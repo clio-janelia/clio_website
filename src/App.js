@@ -106,7 +106,7 @@ function ErrorFallback(props) {
   return (
     <div role="alert">
       <p>
-        Neurohub has produced an internal error. Please send the following error information to the
+        Clio has produced an internal error. Please send the following error information to the
         FlyEM software team.
       </p>
       <pre>{error.stack}</pre>
