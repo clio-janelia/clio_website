@@ -8,9 +8,8 @@ import examplePage from './example_page.png';
 
 const useStyles = makeStyles({
   homepage: {
+    height: '100%',
     padding: '24px',
-  },
-  hero: {
     // background: 'linear-gradient(45deg,#9dc66b 5%,#4fa49a 30%,#4361c2)',
     // backgroundImage: 'linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%)',
     // backgroundImage: 'linear-gradient(to top, #30cfd0 0%, #330867 100%)',
@@ -18,6 +17,8 @@ const useStyles = makeStyles({
     // backgroundImage: 'radial-gradient(circle, rgba(199,201,192,1) 0%, rgba(152,160,170,1) 100%)',
     background: '#bdc3c7',
     backgroundImage: 'linear-gradient(to top, #2c3e50, #bdc3c7)',
+  },
+  hero: {
     color: '#fff',
     textAlign: 'center',
     paddingTop: '20px',
