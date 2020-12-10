@@ -60,13 +60,10 @@ export default function Matches({ matches, imageRootUrl, actions }) {
     );
   });
 
-  const keyboardText = navigator.appVersion.indexOf('Mac') ? 'option' : 'alt';
 
   const noMatches = (
-    <Alert severity="info" style={{ width: '100%' }}>
-      No matches found - To locate matches use neuroglancer to navigate to a region
-      of interest and <span className="kbd">{keyboardText}</span>+ &apos;click&apos;
-      on the point you are interested in.
+    <Alert severity="warning" style={{ width: '100%' }}>
+      No matches found for the chosen coordinates.
     </Alert>
   );
 

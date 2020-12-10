@@ -32,10 +32,10 @@ export default function SearchCard({
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   function handleSelect(point) {
+    history.push('/ws/image_search');
     actions.setViewerCameraPosition(point);
     actions.setViewerCrossSectionScale(0.75);
     actions.setMousePosition(point);
-    history.push('/ws/image_search');
   }
 
   function handleDelete(point) {

@@ -32,7 +32,7 @@ import { setSyncStateNeeded } from './reducers/viewer';
 
 import './Neuroglancer.css';
 
-const ImagePicker = lazy(() => import('./ImagePicker'));
+const ImageSearch = lazy(() => import('./ImageSearch'));
 const Annotate = lazy(() => import('./Annotate'));
 const Atlas = lazy(() => import('./Atlas'));
 
@@ -50,8 +50,8 @@ function WorkSpaces(props) {
   let RenderedComponent = null;
 
   switch (match.params.ws) {
-    case 'image_picker':
-      RenderedComponent = ImagePicker;
+    case 'image_search':
+      RenderedComponent = ImageSearch;
       break;
     case 'annotate':
       RenderedComponent = Annotate;
@@ -60,7 +60,7 @@ function WorkSpaces(props) {
       RenderedComponent = Atlas;
       break;
     default:
-      RenderedComponent = ImagePicker;
+      RenderedComponent = ImageSearch;
   }
 
   React.useEffect(() => {

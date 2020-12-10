@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import {
   Link as RouterLink,
@@ -18,13 +18,16 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
+import { Alert } from '@material-ui/lab';
 import { makeStyles } from '@material-ui/core/styles';
-import ByExampleResults from './ImagePicker/ByExampleResults';
-import TransferResults from './ImagePicker/TransferResults';
-import SavedSearches from './ImagePicker/SavedSearches';
-import config from './config';
+import ByExampleResults from './ImageSearch/ByExampleResults';
+import TransferResults from './ImageSearch/TransferResults';
+import SavedSearches from './ImageSearch/SavedSearches';
+import NGLoader from './ImageSearch/NGLoader';
 
 const initialCoordinates = []; // [24646, 15685, 17376];
+
+const keyboardText = navigator.appVersion.indexOf('Mac') ? 'option' : 'alt';
 
 const useStyles = makeStyles({
   window: {
@@ -46,7 +49,7 @@ const useStyles = makeStyles({
 });
 
 // eslint-disable-next-line object-curly-newline
-export default function ImagePicker({ actions, datasets, selectedDatasetName, children }) {
+export default function ImageSearch({ actions, datasets, selectedDatasetName, children }) {
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const classes = useStyles();
@@ -56,64 +59,6 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
   const { path, url } = useRouteMatch();
 
   const updatedActions = { ...actions, setMousePosition };
-
-  useEffect(() => {
-    if (dataset) {
-      console.log('reloading neuroglancer');
-      const replaceRegex = new RegExp(`/${config.top_level_function}$`);
-      const annotationsUrl = projectUrl.replace(replaceRegex, '');
-      const layers = [
-        {
-          name: dataset.name,
-          type: 'image',
-          source: {
-            url: `precomputed://${dataset.location}`,
-          },
-        },
-        {
-          name: 'annotations',
-          type: 'annotation',
-          source: {
-            url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
-          },
-        },
-      ];
-
-      if ('layers' in dataset) {
-        dataset.layers.forEach((layer) => {
-          layers.push({
-            name: layer.name,
-            type: layer.type,
-            source: {
-              url: `precomputed://${layer.location}`,
-            },
-          });
-        });
-      }
-
-      const viewerOptions = {
-        position: initialCoordinates,
-        layers,
-        layout: 'xy',
-        showSlices: true,
-      };
-
-      // because the initViewer action makes some assumptions about the dimensions
-      // of the dataset, we have to check for the mb20 dataset and change the
-      // dimensions used. This should ideally be fixed in the initViewer action or
-      // the dimensions should be passed as part of the dataset object from the clio
-      // backend.
-      if (dataset.name === 'mb20') {
-        viewerOptions.dimensions = {
-          x: [4e-9, 'm'],
-          y: [4e-9, 'm'],
-          z: [4e-9, 'm'],
-        };
-      }
-
-      actions.initViewer(viewerOptions);
-    }
-  }, [actions, dataset, projectUrl]);
 
   const handleChange = (event) => {
     // make sure the mouse position gets cleared out so that we don't
@@ -204,7 +149,18 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
             </Typography>
           </Grid>
           <Grid item sm={2}>
-            <Link component={RouterLink} to={`${url}/saved_searches`}>Saved Searches</Link>
+            <Switch>
+              <Route exact path={path}>
+                <Link component={RouterLink} to={`${url}/saved_searches`}>
+                  <Typography variant="h5">Saved Searches &raquo;</Typography>
+                </Link>
+              </Route>
+              <Route path={`${path}/saved_searches`}>
+                <Link component={RouterLink} to={`${url}`}>
+                  <Typography variant="h5">&laquo; Back</Typography>
+                </Link>
+              </Route>
+            </Switch>
           </Grid>
         </Grid>
       </div>
@@ -234,20 +190,29 @@ export default function ImagePicker({ actions, datasets, selectedDatasetName, ch
             </FormControl>
           )}
           {modelSelect}
+          {dataset ? (
+            <NGLoader dataset={dataset} actions={actions} coords={mousePosition}>
+              {childrenWithMoreProps}
+            </NGLoader>
+          ) : (
+            ''
+          )}
+          <Alert severity="info" style={{ width: '100%' }}>
+            To locate new  matches use neuroglancer to navigate to a region
+            of interest and <span className="kbd">{keyboardText}</span>+ &apos;click&apos;
+            on the point you are interested in.
+          </Alert>
+          { mousePosition.length > 0 ? <div className={classes.matches}>{results}</div> : '' }
         </Route>
         <Route path={`${path}/saved_searches`}>
-          {dataset && (
-            <SavedSearches dataset={dataset} actions={updatedActions} />
-          )}
+          {dataset && <SavedSearches dataset={dataset} actions={updatedActions} />}
         </Route>
       </Switch>
-      <div className={classes.window}>{childrenWithMoreProps}</div>
-      <div className={classes.matches}>{results}</div>
     </div>
   );
 }
 
-ImagePicker.propTypes = {
+ImageSearch.propTypes = {
   actions: PropTypes.object.isRequired,
   datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
   selectedDatasetName: PropTypes.string.isRequired,
