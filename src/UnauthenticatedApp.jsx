@@ -11,12 +11,16 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Navbar from './Navbar';
 import Login from './Login';
+import Home from './Home';
 
 const useStyles = makeStyles({
   login: {
     width: '500px',
     margin: '20px auto',
     textAlign: 'center',
+    position: 'absolute',
+    left: '2em',
+    zIndex: 2,
   },
 });
 
@@ -35,6 +39,7 @@ export default function UnauthenticatedApp({ history, theme }) {
               <Login fullWidth />
             </CardActions>
           </Card>
+          <Home />
         </div>
       </ThemeProvider>
     </Router>
