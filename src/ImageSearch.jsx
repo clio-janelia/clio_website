@@ -197,7 +197,7 @@ export default function ImageSearch({ actions, datasets, selectedDatasetName, ch
           ) : (
             ''
           )}
-          <Alert severity="info" style={{ width: '100%' }}>
+          <Alert severity="info">
             To locate new  matches use neuroglancer to navigate to a region
             of interest and <span className="kbd">{keyboardText}</span>+ &apos;click&apos;
             on the point you are interested in.

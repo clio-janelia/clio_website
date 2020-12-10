@@ -1,7 +1,8 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
+import { useMutation, useQueryCache } from 'react-query';
 
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
@@ -14,31 +15,34 @@ import IconButton from '@material-ui/core/IconButton';
 
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
-import { addAlert } from '../actions/alerts';
 import MouseCoordinates from './MouseCoordinates';
+import config from '../config';
 
 import './Matches.css';
 
-export default function SearchCard({
-  search,
-  imageRootUrl,
-  actions,
-  dataset,
-  onDelete,
-}) {
+export default function SearchCard({ search, actions, dataset }) {
   const history = useHistory();
-  const dispatch = useDispatch();
+  const queryCache = useQueryCache();
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
+  let imageRootUrl = '';
+
+  if (dataset) {
+    imageRootUrl = config.imageSliceUrlTemplate.replace(
+      '<location>',
+      dataset.location.replace('gs://', ''),
+    );
+  }
+
   function handleSelect(point) {
-    history.push('/ws/image_search');
     actions.setViewerCameraPosition(point);
     actions.setViewerCrossSectionScale(0.75);
     actions.setMousePosition(point);
+    history.push('/ws/image_search');
   }
 
-  function handleDelete(point) {
+  const [mutate] = useMutation((point) => {
     const xyz = `x=${point[0]}&y=${point[1]}&z=${point[2]}`;
     const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
     const options = {
@@ -47,24 +51,16 @@ export default function SearchCard({
         Authorization: `Bearer ${user.getAuthResponse().id_token}`,
       },
     };
-    fetch(savedSearchUrl, options)
-      .then((response) => {
-        if (response.status === 200) {
-          // remove from the list in SavedSearches component
-          // so it is removed from the UI
-          onDelete(point);
-        } else {
-          // show an error message to say it couldn't be deleted.
-          dispatch(
-            addAlert({
-              message: 'Search removal failed',
-              duration: 3000,
-            }),
-          );
-        }
-      })
-      .catch((error) => console.log(error));
-  }
+    return fetch(savedSearchUrl, options);
+  }, {
+    onSuccess: () => {
+      queryCache.invalidateQueries('savedSearches');
+    },
+  });
+
+  const handleDelete = async (point) => {
+    mutate(point);
+  };
 
   const xyzString = `${Math.max(0, search.location[0] - 128)}_${Math.max(
     0,
@@ -98,9 +94,11 @@ export default function SearchCard({
         </CardContent>
       </CardActionArea>
       <CardActions>
-        <Button variant="outlined" color="primary" onClick={() => handleSelect(search.location)}>
-          Show Matches
-        </Button>
+        {actions && (
+          <Button variant="outlined" color="primary" onClick={() => handleSelect(search.location)}>
+            Show Matches
+          </Button>
+        )}
         <IconButton style={{ marginLeft: 'auto' }} onClick={() => handleDelete(search.location)}>
           <DeleteForeverIcon />
         </IconButton>
@@ -110,9 +108,7 @@ export default function SearchCard({
 }
 
 SearchCard.propTypes = {
-  onDelete: PropTypes.func.isRequired,
   actions: PropTypes.object.isRequired,
   dataset: PropTypes.object.isRequired,
   search: PropTypes.object.isRequired,
-  imageRootUrl: PropTypes.string.isRequired,
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { useMutation, useQueryCache } from 'react-query';
 
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
@@ -37,6 +38,7 @@ export default function ByExampleResults({
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const dispatch = useDispatch();
+  const queryCache = useQueryCache();
 
   useEffect(() => {
     if (mousePosition && mousePosition.length > 0 && user && dataset && projectUrl) {
@@ -82,7 +84,7 @@ export default function ByExampleResults({
     setCurrentPage(page);
   };
 
-  const handleSaveSearch = () => {
+  const [mutate] = useMutation(() => {
     const roundedPos = mousePosition.map((point) => Math.floor(point));
     const xyz = `x=${roundedPos[0]}&y=${roundedPos[1]}&z=${roundedPos[2]}`;
     const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
@@ -94,28 +96,30 @@ export default function ByExampleResults({
       },
       body: JSON.stringify(body),
     };
-    fetch(savedSearchUrl, options)
-      .then((response) => {
-        if (response.status === 200) {
-          // alert message to say it is all good
-          dispatch(
-            addAlert({
-              message: 'Search saved',
-              severity: 'success',
-              duration: 2000,
-            }),
-          );
-        } else {
-          // alert message to say save failed.
-          dispatch(
-            addAlert({
-              message: 'Search save failed',
-              duration: 3000,
-            }),
-          );
-        }
-      })
-      .catch((error) => console.log(error));
+    fetch(savedSearchUrl, options);
+  }, {
+    onSuccess: () => {
+      queryCache.invalidateQueries('savedSearches');
+      dispatch(
+        addAlert({
+          message: 'Search saved',
+          severity: 'success',
+          duration: 2000,
+        }),
+      );
+    },
+    onError: () => {
+      dispatch(
+        addAlert({
+          message: 'Search save failed',
+          duration: 3000,
+        }),
+      );
+    },
+  });
+
+  const handleSaveSearch = () => {
+    mutate();
   };
 
   const pages = Math.ceil(matches.length / matchesPerPage);
