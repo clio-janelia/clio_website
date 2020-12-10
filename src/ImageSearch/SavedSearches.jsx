@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import SearchList from './SearchList';
 
 export default function SavedSearches({ dataset, actions }) {
@@ -9,14 +10,16 @@ export default function SavedSearches({ dataset, actions }) {
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <p>Saved Searches</p>
+    <div style={{ margin: '1em' }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Typography variant="h5">Saved Searches</Typography>
+        </Grid>
+        {user && dataset && clioUrl && (
+          <SearchList actions={actions} user={user} dataset={dataset} clioUrl={clioUrl} />
+        )}
       </Grid>
-      {user && dataset && clioUrl && (
-        <SearchList actions={actions} user={user} dataset={dataset} clioUrl={clioUrl} />
-      )}
-    </Grid>
+    </div>
   );
 }
 
