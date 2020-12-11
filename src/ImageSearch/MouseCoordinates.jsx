@@ -11,15 +11,15 @@ export default function MouseCoordinates({ position }) {
     <div className="mousecoordinates">
       <Typography variant="body1" component="p">
         x:
-        {position[0]}
+        {Math.floor(position[0])}
       </Typography>
       <Typography variant="body1" component="p">
         y:
-        {position[1]}
+        {Math.floor(position[1])}
       </Typography>
       <Typography variant="body1" component="p">
         z:
-        {position[2]}
+        {Math.floor(position[2])}
       </Typography>
     </div>
   );

@@ -4,9 +4,10 @@ import { useDispatch } from 'react-redux';
 import { useQuery, useMutation, useQueryCache } from 'react-query';
 
 import Grid from '@material-ui/core/Grid';
-import { Alert } from '@material-ui/lab';
 import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
 import Pagination from '@material-ui/lab/Pagination';
+import Skeleton from '@material-ui/lab/Skeleton';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Matches from './Matches';
@@ -41,39 +42,42 @@ export default function MatchListLoader({
     setCurrentPage(page);
   };
 
-  const [mutate] = useMutation(() => {
-    const roundedPos = coords.map((point) => Math.floor(point));
-    const xyz = `x=${roundedPos[0]}&y=${roundedPos[1]}&z=${roundedPos[2]}`;
-    const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
-    const body = { note: 'saved from clio image search' };
-    const mutOptions = {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+  const [mutate] = useMutation(
+    () => {
+      const roundedPos = coords.map((point) => Math.floor(point));
+      const xyz = `x=${roundedPos[0]}&y=${roundedPos[1]}&z=${roundedPos[2]}`;
+      const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
+      const body = { note: 'saved from clio image search' };
+      const mutOptions = {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        },
+        body: JSON.stringify(body),
+      };
+      fetch(savedSearchUrl, mutOptions);
+    },
+    {
+      onSuccess: () => {
+        queryCache.invalidateQueries('savedSearches');
+        dispatch(
+          addAlert({
+            message: 'Search saved',
+            severity: 'success',
+            duration: 2000,
+          }),
+        );
       },
-      body: JSON.stringify(body),
-    };
-    fetch(savedSearchUrl, mutOptions);
-  }, {
-    onSuccess: () => {
-      queryCache.invalidateQueries('savedSearches');
-      dispatch(
-        addAlert({
-          message: 'Search saved',
-          severity: 'success',
-          duration: 2000,
-        }),
-      );
+      onError: () => {
+        dispatch(
+          addAlert({
+            message: 'Search save failed',
+            duration: 3000,
+          }),
+        );
+      },
     },
-    onError: () => {
-      dispatch(
-        addAlert({
-          message: 'Search save failed',
-          duration: 3000,
-        }),
-      );
-    },
-  });
+  );
 
   const handleSaveSearch = () => {
     mutate();
@@ -107,14 +111,6 @@ export default function MatchListLoader({
     { staleTime: 30000 },
   );
 
-  if (isLoading) {
-    return (
-      <Grid item>
-        <p>Loading...</p>
-      </Grid>
-    );
-  }
-
   if (isError) {
     return (
       <Grid item>
@@ -123,33 +119,24 @@ export default function MatchListLoader({
     );
   }
 
-  if (data.length === 0) {
-    return (
-      <Grid item style={{ margin: '0 auto' }}>
-        <Alert severity="info">
-          <p>
-            No Saved searches found for this dataset. To add some searches to this list, Please go
-            back to the main ImageSearch page and add them there.
-          </p>
-        </Alert>
-      </Grid>
-    );
-  }
-
-  const pages = Math.ceil(data.length / matchesPerPage);
+  const pages = data ? Math.ceil(data.length / matchesPerPage) : 0;
 
   let matchesText = '';
-  if (data.length > 0) {
+  if (data && data.length > 0) {
     matchesText = `Matches ${currentPage * matchesPerPage - matchesPerPage + 1} - ${Math.min(
       currentPage * matchesPerPage,
       data.length,
     )} of ${data.length}`;
   }
 
-  const paginatedList = data.slice(
-    currentPage * matchesPerPage - matchesPerPage,
-    currentPage * matchesPerPage,
-  );
+  let paginatedList = [];
+
+  if (data) {
+    paginatedList = data.slice(
+      currentPage * matchesPerPage - matchesPerPage,
+      currentPage * matchesPerPage,
+    );
+  }
 
   let imageRootUrl = '';
 
@@ -162,24 +149,41 @@ export default function MatchListLoader({
 
   return (
     <>
-      {coords && coords.length > 0 && (
-        <>
-          <Grid item xs={12} md={4}>
-            Viewing Matches for <MouseCoordinates position={coords} />
+      <Grid item xs={12} md={5}>
+        <Typography>
+          {isLoading ? (
+            <Skeleton />
+          ) : (
+            <>
+              Viewing Matches for <MouseCoordinates position={coords} />
+            </>
+          )}
+          {isLoading ? (
+            ''
+          ) : (
             <Button variant="outlined" color="primary" onClick={handleSaveSearch}>
               Save
             </Button>
-          </Grid>
-          <Grid item xs={12} md={4} className={classes.matchText}>
-            {matchesText}
-          </Grid>
-          <Grid item xs={12} md={4} className={classes.pagination}>
-            <Pagination count={pages} page={currentPage} onChange={handlePageChange} size="small" />
-          </Grid>
-        </>
-      )}
+          )}
+        </Typography>
+      </Grid>
+      <Grid item xs={12} md={2} className={classes.matchText}>
+        <Typography>{isLoading ? <Skeleton /> : matchesText}</Typography>
+      </Grid>
+      <Grid item xs={12} md={5} className={classes.pagination}>
+        {isLoading ? (
+          <Skeleton />
+        ) : (
+          <Pagination count={pages} page={currentPage} onChange={handlePageChange} size="small" />
+        )}
+      </Grid>
       <Grid item xs={12}>
-        <Matches matches={paginatedList} imageRootUrl={imageRootUrl} actions={actions} />
+        <Matches
+          matches={paginatedList}
+          imageRootUrl={imageRootUrl}
+          actions={actions}
+          isLoading={isLoading}
+        />
       </Grid>
     </>
   );
