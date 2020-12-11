@@ -118,7 +118,8 @@ function UserAdmin() {
   const users = Object.entries(userList).map(([name]) => (
     <TableRow key={name}>
       <TableCell>{name}</TableCell>
-      <TableCell>{userList[name].clio_global.includes('admin') ? 'Admin' : 'General'}</TableCell>
+      <TableCell>{userList[name].clio_global && userList[name].clio_global.includes('admin') ? 'Yes' : '-'}</TableCell>
+      <TableCell>{JSON.stringify(userList[name])}</TableCell>
       <TableCell>
         <Button onClick={() => handleDelete(name)}>Delete</Button> | <Button>Update</Button>
       </TableCell>
@@ -131,11 +132,12 @@ function UserAdmin() {
         <Grid item xs={12}>
           <Typography variant="h5">User Admin</Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item md={9}>
           <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell>Username</TableCell>
+                <TableCell>is Admin</TableCell>
                 <TableCell>Permissions</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
@@ -143,7 +145,7 @@ function UserAdmin() {
             <TableBody>{users}</TableBody>
           </Table>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item md={3}>
           <NewUserForm onUpdate={(userInfo) => handleNewUser(userInfo)} />
         </Grid>
       </Grid>
