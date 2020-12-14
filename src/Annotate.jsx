@@ -5,6 +5,8 @@ import config from './config';
 
 import './Neuroglancer.css';
 
+import AnnotationPanel from './Annotation/AnnotationPanel';
+
 // eslint-disable-next-line object-curly-newline
 export default function Annotate({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
@@ -22,12 +24,21 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `precomputed://${dataset.location}`,
           },
+          tool: 'annotatePoint',
         },
         {
           name: 'annotations',
           type: 'annotation',
           source: {
             url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+          },
+          tool: 'annotatePoint',
+        },
+        {
+          name: 'atlas',
+          type: 'annotation',
+          source: {
+            url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub&kind=atlas`,
           },
         },
       ];
@@ -47,6 +58,9 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       const viewerOptions = {
         position: [],
         layers,
+        selectedLayer: {
+          layer: 'annotations',
+        },
         layout: '4panel',
         showSlices: true,
       };
@@ -68,7 +82,61 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   }, [user, actions, dataset, projectUrl]);
 
   if (dataset) {
-    return <div className="ng-container">{children}</div>;
+    const annotationConfig = {
+      layers: [
+        {
+          name: 'annotations',
+          locateItem: actions.setViewerCameraPosition,
+          dataConfig: {
+            columns: [
+              {
+                title: 'Description',
+                field: 'comment',
+                filterEnabled: true,
+              },
+              {
+                title: 'Position',
+                field: 'pos',
+              },
+            ],
+          },
+        },
+        {
+          name: 'atlas',
+          locateItem: actions.setViewerCameraPosition,
+          dataConfig: {
+            columns: [
+              {
+                title: 'Title',
+                field: 'title',
+                filterEnabled: true,
+              },
+              {
+                title: 'Description',
+                field: 'comment',
+                filterEnabled: true,
+              },
+              {
+                title: 'Position',
+                field: 'pos',
+              },
+            ],
+          },
+        },
+      ],
+    };
+    return (
+      <div
+        style={{ display: 'flex', height: '100%' }}
+      >
+        <div className="ng-container" style={{ flexGrow: 1 }}>
+          {children}
+        </div>
+        <AnnotationPanel config={annotationConfig} actions={actions}>
+          <div tabName="test">test</div>
+        </AnnotationPanel>
+      </div>
+    );
   }
   return <div />;
 }
