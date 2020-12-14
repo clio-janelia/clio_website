@@ -105,3 +105,10 @@ export function addViewerLayer(payload) {
     payload,
   };
 }
+
+export function selectLayer(payload) {
+  return {
+    type: C.SELECT_LAYER,
+    payload,
+  };
+}

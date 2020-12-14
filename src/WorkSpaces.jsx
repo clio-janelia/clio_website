@@ -26,6 +26,7 @@ import {
   setViewerSegments,
   setViewerSegmentColors,
   addViewerLayer,
+  selectLayer,
 } from './actions/viewer';
 
 import { setSyncStateNeeded } from './reducers/viewer';
@@ -145,6 +146,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     addViewerLayer: (newState) => {
       dispatch(addViewerLayer(newState));
+    },
+    selectLayer: (newState) => {
+      dispatch(selectLayer(newState));
     },
     addAlert: (newState) => {
       dispatch(addAlert(newState));
