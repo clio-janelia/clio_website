@@ -40,6 +40,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub&kind=atlas`,
           },
+          tool: 'annotatePoint',
         },
       ];
 

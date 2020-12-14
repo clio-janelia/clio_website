@@ -139,6 +139,9 @@ export default function viewerReducer(state = viewerState, action) {
       const { name } = action.payload;
       return setInLayerArray(syncedState(state), name, [], action.payload);
     }
+    case C.SELECT_LAYER: {
+      return (syncedState(state).setIn(['ngState', 'selectedLayer'], { layer: action.payload }));
+    }
     default: {
       return state;
     }
