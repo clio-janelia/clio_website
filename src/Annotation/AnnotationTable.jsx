@@ -14,6 +14,8 @@ function AnnotationTable(props) {
     layerName, dataConfig, locateItem,
   } = props;
   const [data, setData] = React.useState({ rows: [] });
+  const [selected, setSelected] = React.useState(null);
+
   const annotationToItem = React.useCallback((annotation) => {
     const newAnnotation = { ...annotation };
     let newItem;
@@ -74,13 +76,17 @@ function AnnotationTable(props) {
     return newItem;
   }, [layerName, locateItem]);
 
-  const updateTable = React.useCallback(() => {
+  const updateTable = React.useCallback((annotation) => {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const newData = [];
       source.references.forEach((ref) => {
         if (ref.value) {
-          newData.push(annotationToItem(ref.value));
+          const item = annotationToItem(ref.value);
+          if (annotation && !annotation.source && item.id === annotation.id) {
+            console.log('new annotation added:', annotation.id);
+          }
+          newData.push(item);
         }
       });
       setData({ rows: newData });
@@ -88,9 +94,9 @@ function AnnotationTable(props) {
   }, [layerName, annotationToItem]);
 
   const onAnnotationAdded = React.useCallback((annotation) => {
-    console.log(annotation);
+    // console.log(annotation);
     if (!annotation.source || annotation.source === 'downloaded:last') {
-      updateTable();
+      updateTable(annotation);
     }
   }, [updateTable]);
 
@@ -103,6 +109,15 @@ function AnnotationTable(props) {
     console.log(annotation);
     updateTable();
   }, [updateTable]);
+
+  const onAnnotationSelectionChanged = React.useCallback((annotation) => {
+    console.log('selected:', annotation);
+    if (annotation) {
+      setSelected(annotation.id);
+    } else {
+      setSelected(null);
+    }
+  }, [setSelected]);
 
   useEffect(() => {
     if (data.rows.length === 0) {
@@ -118,6 +133,7 @@ function AnnotationTable(props) {
       onAnnotationAdded,
       onAnnotationDeleted,
       onAnnotationUpdated,
+      onAnnotationSelectionChanged,
     }, (remover) => addLayerSignalRemover(undefined, layerName, remover));
 
     return configureLayersChangedSignals(undefined, {
@@ -129,10 +145,11 @@ function AnnotationTable(props) {
     onAnnotationAdded,
     onAnnotationDeleted,
     onAnnotationUpdated,
+    onAnnotationSelectionChanged,
   ]);
 
   return (
-    <DataTable data={data} config={dataConfig} getKey={(row) => row.id} />
+    <DataTable data={data} selected={selected} config={dataConfig} getKey={(row) => row.id} />
   );
 }
 

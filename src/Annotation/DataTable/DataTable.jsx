@@ -31,7 +31,7 @@ export default function DataTable(props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
-  const { data } = props;
+  const { data, selected } = props;
 
   useEffect(() => {
     if (filter) {
@@ -74,7 +74,14 @@ export default function DataTable(props) {
           <DataTableHead config={config} handleFilterChange={handleFilterChange} />
           <TableBody>
             {filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
-              (row) => <DataTableRow key={props.getKey(row)} config={config} row={row} />,
+              (row) => (
+                <DataTableRow
+                  key={props.getKey(row)}
+                  config={config}
+                  row={row}
+                  selected={row.id === selected}
+                />
+              ),
             )}
             {emptyRows > 0 && (
               <TableRow style={{ height: rowHeight * emptyRows }}>
@@ -106,4 +113,9 @@ DataTable.propTypes = {
   data: PropTypes.object.isRequired,
   config: PropTypes.object.isRequired,
   getKey: PropTypes.func.isRequired,
+  selected: PropTypes.string,
+};
+
+DataTable.defaultProps = {
+  selected: null,
 };

@@ -12,7 +12,7 @@ import DataEdit from './DataEdit';
 function DataTableRow(props) {
   const [editing, setEditing] = useState(false);
 
-  const { config, row } = props;
+  const { config, row, selected } = props;
 
   const handleEditClicked = () => {
     setEditing(true);
@@ -60,7 +60,7 @@ function DataTableRow(props) {
           component="th"
           scope="row"
         >
-          {row[column.field]}
+          {row[column.field] + (selected ? '*' : '')}
         </TableCell>
       ))}
       <TableCell>
@@ -78,6 +78,11 @@ function DataTableRow(props) {
 DataTableRow.propTypes = {
   config: PropTypes.object.isRequired,
   row: PropTypes.object.isRequired,
+  selected: PropTypes.bool,
+};
+
+DataTableRow.defaultProps = {
+  selected: false,
 };
 
 export default DataTableRow;
