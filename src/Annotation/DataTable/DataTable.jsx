@@ -74,7 +74,7 @@ export default function DataTable(props) {
           <DataTableHead config={config} handleFilterChange={handleFilterChange} />
           <TableBody>
             {filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
-              (row) => <DataTableRow key={props.getKey(row)} config={config} data={row} />,
+              (row) => <DataTableRow key={props.getKey(row)} config={config} row={row} />,
             )}
             {emptyRows > 0 && (
               <TableRow style={{ height: rowHeight * emptyRows }}>

@@ -12,7 +12,7 @@ import DataEdit from './DataEdit';
 function DataTableRow(props) {
   const [editing, setEditing] = useState(false);
 
-  const { config, data } = props;
+  const { config, row } = props;
 
   const handleEditClicked = () => {
     setEditing(true);
@@ -23,17 +23,32 @@ function DataTableRow(props) {
   };
 
   const takeChange = (change) => {
-    data.updateAction(change);
+    row.updateAction(change);
     setEditing(false);
   };
 
   const locateButton = (
-    <IconButton onClick={data.locate}>
+    <IconButton onClick={row.locate}>
       <LocateIcon />
     </IconButton>
   );
 
-  let tableRow = (
+  if (editing) {
+    return (
+      <DataEdit
+        config={
+          {
+            columns: [{ cell: locateButton, field: '#locateButton' }, ...config.columns],
+          }
+        }
+        data={row}
+        cancelEdit={cancelEdit}
+        takeChange={takeChange}
+      />
+    );
+  }
+
+  return (
     <TableRow>
       <TableCell>
         {locateButton}
@@ -45,11 +60,11 @@ function DataTableRow(props) {
           component="th"
           scope="row"
         >
-          {data[column.field]}
+          {row[column.field]}
         </TableCell>
       ))}
       <TableCell>
-        <IconButton onClick={data.deleteAction}>
+        <IconButton onClick={row.deleteAction}>
           <DeleteIcon />
         </IconButton>
         <IconButton onClick={handleEditClicked}>
@@ -58,28 +73,11 @@ function DataTableRow(props) {
       </TableCell>
     </TableRow>
   );
-
-  if (editing) {
-    tableRow = (
-      <DataEdit
-        config={
-          {
-            columns: [{ cell: locateButton, field: '#locateButton' }, ...config.columns],
-          }
-        }
-        data={data}
-        cancelEdit={cancelEdit}
-        takeChange={takeChange}
-      />
-    );
-  }
-
-  return tableRow;
 }
 
 DataTableRow.propTypes = {
   config: PropTypes.object.isRequired,
-  data: PropTypes.object.isRequired,
+  row: PropTypes.object.isRequired,
 };
 
 export default DataTableRow;

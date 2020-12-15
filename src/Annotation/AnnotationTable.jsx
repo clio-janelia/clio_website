@@ -89,7 +89,9 @@ function AnnotationTable(props) {
 
   const onAnnotationAdded = React.useCallback((annotation) => {
     console.log(annotation);
-    updateTable();
+    if (!annotation.source || annotation.source === 'downloaded:last') {
+      updateTable();
+    }
   }, [updateTable]);
 
   const onAnnotationDeleted = React.useCallback((id) => {
