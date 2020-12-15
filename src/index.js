@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { QueryCache, ReactQueryCacheProvider } from 'react-query';
-import { ReactQueryDevtools } from 'react-query-devtools';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ReactQueryDevtools } from 'react-query/devtools';
 
 import './index.css';
 import App from './App';
@@ -10,14 +10,14 @@ import * as serviceWorker from './serviceWorker';
 
 import store from './store';
 
-const queryCache = new QueryCache();
+const queryClient = new QueryClient();
 
 ReactDOM.render(
   <Provider store={store}>
-    <ReactQueryCacheProvider queryCache={queryCache}>
+    <QueryClientProvider client={queryClient}>
       <App />
       <ReactQueryDevtools initialIsOpen={false} />
-    </ReactQueryCacheProvider>
+    </QueryClientProvider>
   </Provider>,
   document.getElementById('root'),
 );

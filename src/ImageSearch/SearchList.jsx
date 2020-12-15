@@ -57,6 +57,7 @@ export default function SearchList({
       </Grid>
     );
   }
+  Object.values(data).map((search) => console.log(search));
 
   // - display them as a list of thumbnail cards with a link to show the
   // coordinates in the main view with the attached results.
