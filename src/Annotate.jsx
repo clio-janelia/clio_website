@@ -7,8 +7,6 @@ import './Neuroglancer.css';
 
 import AnnotationPanel from './Annotation/AnnotationPanel';
 
-import { getTestViewerOptions, DEBUG_MODE } from './sandbox/sandbox';
-
 // eslint-disable-next-line object-curly-newline
 export default function Annotate({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
@@ -80,11 +78,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
         };
       }
 
-      if (DEBUG_MODE) {
-        actions.initViewer(getTestViewerOptions());
-      } else {
-        actions.initViewer(viewerOptions);
-      }
+      actions.initViewer(viewerOptions);
     }
   }, [user, actions, dataset, projectUrl]);
 
