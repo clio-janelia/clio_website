@@ -7,6 +7,8 @@ import './Neuroglancer.css';
 
 import AnnotationPanel from './Annotation/AnnotationPanel';
 
+import { getTestViewerOptions, DEBUG_MODE } from './sandbox/sandbox';
+
 // eslint-disable-next-line object-curly-newline
 export default function Annotate({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
@@ -78,7 +80,11 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
         };
       }
 
-      actions.initViewer(viewerOptions);
+      if (DEBUG_MODE) {
+        actions.initViewer(getTestViewerOptions());
+      } else {
+        actions.initViewer(viewerOptions);
+      }
     }
   }, [user, actions, dataset, projectUrl]);
 
@@ -94,6 +100,9 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                 title: 'Description',
                 field: 'comment',
                 filterEnabled: true,
+                editElement: {
+                  type: 'input',
+                },
               },
               {
                 title: 'Position',
@@ -111,11 +120,21 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                 title: 'Title',
                 field: 'title',
                 filterEnabled: true,
+                placeholder: '*Required',
+                editElement: {
+                  type: 'input',
+                },
+                validation: {
+                  required: true,
+                },
               },
               {
                 title: 'Description',
                 field: 'comment',
                 filterEnabled: true,
+                editElement: {
+                  type: 'input',
+                },
               },
               {
                 title: 'Position',

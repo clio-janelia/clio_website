@@ -28,7 +28,7 @@ function DataTableRow(props) {
   };
 
   const locateButton = (
-    <IconButton onClick={row.locate}>
+    <IconButton onClick={row.locate} style={selected ? { color: 'red' } : null}>
       <LocateIcon />
     </IconButton>
   );
@@ -60,7 +60,7 @@ function DataTableRow(props) {
           component="th"
           scope="row"
         >
-          {row[column.field] + (selected ? '*' : '')}
+          {row[column.field]}
         </TableCell>
       ))}
       <TableCell>

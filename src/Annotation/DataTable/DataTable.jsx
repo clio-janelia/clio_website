@@ -31,7 +31,7 @@ export default function DataTable(props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
-  const { data, selected } = props;
+  const { data, selectedId } = props;
 
   useEffect(() => {
     if (filter) {
@@ -79,7 +79,7 @@ export default function DataTable(props) {
                   key={props.getKey(row)}
                   config={config}
                   row={row}
-                  selected={row.id === selected}
+                  selected={row.id === selectedId}
                 />
               ),
             )}
@@ -113,9 +113,9 @@ DataTable.propTypes = {
   data: PropTypes.object.isRequired,
   config: PropTypes.object.isRequired,
   getKey: PropTypes.func.isRequired,
-  selected: PropTypes.string,
+  selectedId: PropTypes.string,
 };
 
 DataTable.defaultProps = {
-  selected: null,
+  selectedId: null,
 };

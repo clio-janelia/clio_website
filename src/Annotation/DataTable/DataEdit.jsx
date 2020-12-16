@@ -19,7 +19,7 @@ export default function DataEdit(props) {
       return column.cell;
     }
 
-    return column.filterEnabled ? (
+    return (column.editElement && column.editElement.type === 'input') ? (
       <DataCellEdit
         config={column}
         onValueChange={
@@ -28,6 +28,7 @@ export default function DataEdit(props) {
           }
         }
         value={data[column.field]}
+        placeholder={column.placeholder}
       />
     ) : null;
   };

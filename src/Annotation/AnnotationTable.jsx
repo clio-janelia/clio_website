@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 import {
   getAnnotationSource,
+  getAnnotationLayer,
   configureAnnotationLayerChanged,
   configureLayersChangedSignals,
   addLayerSignalRemover,
@@ -14,7 +15,7 @@ function AnnotationTable(props) {
     layerName, dataConfig, locateItem,
   } = props;
   const [data, setData] = React.useState({ rows: [] });
-  const [selected, setSelected] = React.useState(null);
+  const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
 
   const annotationToItem = React.useCallback((annotation) => {
     const newAnnotation = { ...annotation };
@@ -76,7 +77,7 @@ function AnnotationTable(props) {
     return newItem;
   }, [layerName, locateItem]);
 
-  const updateTable = React.useCallback((annotation) => {
+  const updateTableRows = React.useCallback((annotation) => {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const newData = [];
@@ -90,42 +91,47 @@ function AnnotationTable(props) {
         }
       });
       setData({ rows: newData });
+
+      const layer = getAnnotationLayer(undefined, layerName);
+      if (layer.selectedAnnotation && layer.selectedAnnotation.value) {
+        setSelectedAnnotation(layer.selectedAnnotation.value.id);
+      }
     }
   }, [layerName, annotationToItem]);
 
   const onAnnotationAdded = React.useCallback((annotation) => {
     // console.log(annotation);
     if (!annotation.source || annotation.source === 'downloaded:last') {
-      updateTable(annotation);
+      updateTableRows(annotation);
     }
-  }, [updateTable]);
+  }, [updateTableRows]);
 
   const onAnnotationDeleted = React.useCallback((id) => {
     console.log(id);
-    updateTable();
-  }, [updateTable]);
+    updateTableRows();
+  }, [updateTableRows]);
 
   const onAnnotationUpdated = React.useCallback((annotation) => {
     console.log(annotation);
-    updateTable();
-  }, [updateTable]);
+    updateTableRows();
+  }, [updateTableRows]);
 
   const onAnnotationSelectionChanged = React.useCallback((annotation) => {
     console.log('selected:', annotation);
     if (annotation) {
-      setSelected(annotation.id);
+      setSelectedAnnotation(annotation.id);
     } else {
-      setSelected(null);
+      setSelectedAnnotation(null);
     }
-  }, [setSelected]);
+  }, [setSelectedAnnotation]);
 
   useEffect(() => {
     if (data.rows.length === 0) {
-      updateTable();
+      updateTableRows();
     }
   }, [
     data,
-    updateTable,
+    updateTableRows,
   ]);
 
   useEffect(() => {
@@ -149,7 +155,12 @@ function AnnotationTable(props) {
   ]);
 
   return (
-    <DataTable data={data} selected={selected} config={dataConfig} getKey={(row) => row.id} />
+    <DataTable
+      data={data}
+      selectedId={selectedAnnotation}
+      config={dataConfig}
+      getKey={(row) => row.id}
+    />
   );
 }
 
