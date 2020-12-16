@@ -34,6 +34,17 @@ export default function DataTable(props) {
   const { data, selectedId } = props;
 
   useEffect(() => {
+    if (selectedId) {
+      for (let i = 0; i < data.rows.length; i += 1) {
+        if (data.rows[i].id === selectedId) {
+          setPage(Math.floor(i / rowsPerPage));
+          break;
+        }
+      }
+    }
+  }, [selectedId, setPage, data.rows, rowsPerPage]);
+
+  useEffect(() => {
     if (filter) {
       setFilteredRows(
         data.rows.filter(
@@ -62,7 +73,6 @@ export default function DataTable(props) {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
   };
 
   const { config } = props;
