@@ -31,7 +31,7 @@ export default function DataTable(props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
-  const { data, selectedId } = props;
+  const { data, selectedId, getId } = props;
 
   useEffect(() => {
     if (selectedId) {
@@ -86,10 +86,10 @@ export default function DataTable(props) {
             {filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
               (row) => (
                 <DataTableRow
-                  key={props.getKey(row)}
+                  key={getId(row)}
                   config={config}
                   row={row}
-                  selected={row.id === selectedId}
+                  selected={getId(row) === selectedId}
                 />
               ),
             )}
@@ -130,7 +130,7 @@ DataTable.propTypes = {
       filterEnabled: PropTypes.bool,
     })),
   }).isRequired,
-  getKey: PropTypes.func.isRequired, // Get key for a row component
+  getId: PropTypes.func.isRequired, // Get id for row
   selectedId: PropTypes.string, // Selected ID
 };
 

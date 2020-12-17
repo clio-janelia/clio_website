@@ -159,7 +159,7 @@ function AnnotationTable(props) {
       data={data}
       selectedId={selectedAnnotation}
       config={dataConfig}
-      getKey={(row) => row.id}
+      getId={(row) => row.id}
     />
   );
 }

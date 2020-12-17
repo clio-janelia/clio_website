@@ -102,7 +102,7 @@ function MergePanelUnstyled(props) {
         <Button color="primary" variant="contained" onClick={onClickButtonPullRequest}>Pull Request</Button>
       </div>
 
-      <DataTable data={data} config={DATA_TABLE_CONFIG} getKey={(row) => row.id} />
+      <DataTable data={data} config={DATA_TABLE_CONFIG} getId={(row) => row.id} />
 
       <Dialog open={confirmationOpen} disableEnforceFocus>
         <DialogContent>
