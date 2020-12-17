@@ -6,15 +6,23 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
-import { withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import DataTable from './DataTable/DataTable';
 import './MergePanel.css';
 
-const styles = {
+const useStyles = makeStyles((theme) => ({
   spaced: {
     marginLeft: '15px',
   },
-};
+  mergeControlRow: {
+    display: 'flex',
+    flexFlow: 'row',
+    backgroundColor: theme.palette.primary.light,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '0px',
+  },
+}));
 
 const KEY_BINDINGS = Object.freeze({
   MERGE: 'm',
@@ -36,7 +44,8 @@ const DATA_TABLE_CONFIG = {
   ],
 };
 
-function MergePanelUnstyled(props) {
+function MergePanel(props) {
+  const classes = useStyles();
   const { mergeManager } = props;
 
   const [data, setData] = React.useState({ rows: [] });
@@ -91,7 +100,7 @@ function MergePanelUnstyled(props) {
 
   return (
     <div>
-      <div className="merge-control-row">
+      <div className={classes.mergeControlRow}>
         <Tooltip title={`Keyboard shortcut: "${KEY_BINDINGS.MERGE}"`}>
           <Button color="primary" variant="contained" onClick={onClickButtonMerge}>Merge</Button>
         </Tooltip>
@@ -117,11 +126,9 @@ function MergePanelUnstyled(props) {
   );
 }
 
-MergePanelUnstyled.propTypes = {
+MergePanel.propTypes = {
   mergeManager: PropTypes.object.isRequired,
 };
-
-const MergePanel = withStyles(styles)(MergePanelUnstyled);
 
 function onKeyPressMerge(event, mergeManager) {
   if (event.key === KEY_BINDINGS.MERGE) {
