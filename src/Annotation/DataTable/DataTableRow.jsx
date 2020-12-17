@@ -10,9 +10,18 @@ import LocateIcon from '@material-ui/icons/RoomOutlined';
 import DataEdit from './DataEdit';
 
 function DataTableRow(props) {
-  const [editing, setEditing] = useState(false);
-
   const { config, row, selected } = props;
+
+  const isValid = () => (
+    config.columns.every((column) => {
+      if (column.checkValidity) {
+        return column.checkValidity(row[column.field]);
+      }
+      return true;
+    })
+  );
+
+  const [editing, setEditing] = useState(!isValid());
 
   const handleEditClicked = () => {
     setEditing(true);

@@ -159,9 +159,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                 editElement: {
                   type: 'input',
                 },
-                validation: {
-                  required: true,
-                },
+                checkValidity: (value) => value && value.trim(),
               },
               {
                 title: 'Description',
