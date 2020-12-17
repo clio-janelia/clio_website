@@ -56,9 +56,7 @@ export default function AnnotationPanel(props) {
     }
     const startIndex = tabs.length;
     tabs = tabs.concat(childArray.map((child, index) => (
-      <Tab label={child.props.tabName} key={child.props.tabName} value={`${startIndex + index}`}>
-        {child}
-      </Tab>
+      <Tab label={child.props.tabName} key={child.props.tabName} value={`${startIndex + index}`} />
     )));
 
     tabPanels = tabPanels.concat(childArray.map((child, index) => (

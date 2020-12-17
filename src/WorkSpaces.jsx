@@ -25,6 +25,7 @@ import {
   setViewerCameraProjectionOrientation,
   setViewerSegments,
   setViewerSegmentColors,
+  setViewerSegmentEquivalences,
   addViewerLayer,
   selectLayer,
 } from './actions/viewer';
@@ -134,6 +135,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     setViewerSegmentColors: (newState) => {
       dispatch(setViewerSegmentColors(newState));
+    },
+    setViewerSegmentEquivalences: (newState) => {
+      dispatch(setViewerSegmentEquivalences(newState));
     },
     setViewerCameraPosition: (newState) => {
       dispatch(setViewerCameraPosition(newState));

@@ -99,6 +99,13 @@ export function setViewerSegmentColors(payload) {
   };
 }
 
+export function setViewerSegmentEquivalences(payload) {
+  return {
+    type: C.SET_VIEWER_SEGMENT_EQUIVALENCES,
+    payload,
+  };
+}
+
 export function addViewerLayer(payload) {
   return {
     type: C.ADD_VIEWER_LAYER,

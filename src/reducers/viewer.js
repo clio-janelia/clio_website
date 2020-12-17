@@ -78,9 +78,9 @@ const syncedState = (state) => {
 
 const setInLayerArray = (state, layerName, propPathArray, propValue) => {
   const layers = state.getIn(['ngState', 'layers']);
-  let i = layers.findIndex((value) => (value.name === layerName));
+  let i = layers.findIndex((value) => (value.name.includes(layerName)));
   if (i === -1) {
-    i = layers.findIndex((value) => (value.type === layerName));
+    i = layers.findIndex((value) => (value.type.includes(layerName)));
   }
   if (i === -1) {
     i = layers.length;
@@ -94,6 +94,7 @@ export default function viewerReducer(state = viewerState, action) {
       return viewerState;
     }
     case C.INIT_VIEWER: {
+      syncStateNeeded = false;
       return state.set('ngState', action.payload);
     }
     case C.SYNC_VIEWER: {
@@ -122,6 +123,9 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
       return setInLayerArray(syncedState(state), 'segmentation', ['segmentColors'], action.payload);
+    }
+    case C.SET_VIEWER_SEGMENT_EQUIVALENCES: {
+      return setInLayerArray(syncedState(state), 'segmentation', ['equivalences'], action.payload);
     }
     case C.SET_VIEWER_CROSS_SECTION_SCALE: {
       return (syncedState(state).setIn(['ngState', 'crossSectionScale'], action.payload));
