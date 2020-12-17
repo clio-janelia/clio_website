@@ -48,10 +48,16 @@ function DataTableRow(props) {
     );
   }
 
+  const editButton = (
+    <IconButton onClick={handleEditClicked}>
+      <EditIcon />
+    </IconButton>
+  );
+
   return (
     <TableRow>
       <TableCell>
-        {locateButton}
+        {row.locate ? locateButton : undefined}
       </TableCell>
       {config.columns.map((column) => (
         <TableCell
@@ -67,9 +73,7 @@ function DataTableRow(props) {
         <IconButton onClick={row.deleteAction}>
           <DeleteIcon />
         </IconButton>
-        <IconButton onClick={handleEditClicked}>
-          <EditIcon />
-        </IconButton>
+        {row.updateAction ? editButton : undefined}
       </TableCell>
     </TableRow>
   );
