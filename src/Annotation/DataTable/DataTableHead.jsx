@@ -33,6 +33,12 @@ export default function DataTableHead(props) {
 }
 
 DataTableHead.propTypes = {
-  config: PropTypes.object.isRequired,
-  handleFilterChange: PropTypes.func.isRequired,
+  config: PropTypes.shape({
+    columns: PropTypes.arrayOf(PropTypes.shape({
+      field: PropTypes.string,
+      title: PropTypes.string,
+      filterEnabled: PropTypes.bool,
+    })),
+  }).isRequired,
+  handleFilterChange: PropTypes.func.isRequired, // Function of filtering a given column
 };

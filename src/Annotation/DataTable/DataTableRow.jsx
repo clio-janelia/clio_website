@@ -80,8 +80,14 @@ function DataTableRow(props) {
 }
 
 DataTableRow.propTypes = {
-  config: PropTypes.object.isRequired,
-  row: PropTypes.object.isRequired,
+  config: PropTypes.shape({
+    columns: PropTypes.arrayOf(PropTypes.shape({
+      field: PropTypes.string,
+      title: PropTypes.string,
+      filterEnabled: PropTypes.bool,
+    })),
+  }).isRequired,
+  row: PropTypes.object.isRequired, // Row data with a shape specified in column settings
   selected: PropTypes.bool,
 };
 

@@ -120,10 +120,18 @@ export default function DataTable(props) {
 }
 
 DataTable.propTypes = {
-  data: PropTypes.object.isRequired,
-  config: PropTypes.object.isRequired,
-  getKey: PropTypes.func.isRequired,
-  selectedId: PropTypes.string,
+  data: PropTypes.shape({
+    rows: PropTypes.arrayOf(PropTypes.object).isRequired,
+  }).isRequired,
+  config: PropTypes.shape({
+    columns: PropTypes.arrayOf(PropTypes.shape({
+      field: PropTypes.string,
+      title: PropTypes.string,
+      filterEnabled: PropTypes.bool,
+    })),
+  }).isRequired,
+  getKey: PropTypes.func.isRequired, // Get key for a row component
+  selectedId: PropTypes.string, // Selected ID
 };
 
 DataTable.defaultProps = {
