@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
 import Tab from '@material-ui/core/Tab';
 import TabPanel from '@material-ui/lab/TabPanel';
 import TabList from '@material-ui/lab/TabList';
@@ -12,9 +11,12 @@ const useStyles = makeStyles((theme) => (
   {
     root: {
       display: 'flex',
-      backgroundColor: theme.palette.background.color,
       flexFlow: 'column',
       width: '500px',
+    },
+    tabContainer: {
+      background: theme.palette.primary.main,
+      color: theme.palette.common.white,
     },
     tabPanel: {
       margin: '0px',
@@ -66,14 +68,14 @@ export default function AnnotationPanel(props) {
     )));
   }
 
+  tabPanels = '';
+
   return (
     <div className={classes.root}>
       <TabContext value={tabValue}>
-        <AppBar position="static">
-          <TabList onChange={handleTabChange}>
-            {tabs}
-          </TabList>
-        </AppBar>
+        <TabList onChange={handleTabChange} className={classes.tabContainer}>
+          {tabs}
+        </TabList>
         {tabPanels}
       </TabContext>
     </div>
