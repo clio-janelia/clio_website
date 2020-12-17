@@ -13,7 +13,7 @@ import DataTableHead from './DataTableHead';
 import DataTableRow from './DataTableRow';
 
 const useStyles = makeStyles({
-  root: {
+  dataTableRoot: {
     width: '100%',
     backgroundColor: 'white',
   },
@@ -78,7 +78,7 @@ export default function DataTable(props) {
   const { config } = props;
 
   return (
-    <div className={classes.root}>
+    <div className={classes.dataTableRoot}>
       <TableContainer className={classes.container}>
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
           <DataTableHead config={config} handleFilterChange={handleFilterChange} />

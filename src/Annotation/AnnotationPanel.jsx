@@ -9,13 +9,13 @@ import AnnotationTable from './AnnotationTable';
 
 const useStyles = makeStyles((theme) => (
   {
-    root: {
+    annotationRoot: {
       display: 'flex',
       flexFlow: 'column',
       width: '500px',
     },
     tabContainer: {
-      background: theme.palette.primary.main,
+      background: theme.palette.primary.light,
       color: theme.palette.common.white,
     },
     tabPanel: {
@@ -68,10 +68,8 @@ export default function AnnotationPanel(props) {
     )));
   }
 
-  tabPanels = '';
-
   return (
-    <div className={classes.root}>
+    <div className={classes.annotationRoot}>
       <TabContext value={tabValue}>
         <TabList onChange={handleTabChange} className={classes.tabContainer}>
           {tabs}
