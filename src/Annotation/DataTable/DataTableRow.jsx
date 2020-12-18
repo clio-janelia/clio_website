@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-
-import TableRow from '@material-ui/core/TableRow';
-import TableCell from '@material-ui/core/TableCell';
-import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/DeleteOutlined';
 import EditIcon from '@material-ui/icons/EditOutlined';
+import IconButton from '@material-ui/core/IconButton';
 import LocateIcon from '@material-ui/icons/RoomOutlined';
+import TableCell from '@material-ui/core/TableCell';
+import TableRow from '@material-ui/core/TableRow';
+import Tooltip from '@material-ui/core/Tooltip';
 import DataEdit from './DataEdit';
 
 function DataTableRow(props) {
@@ -37,9 +37,11 @@ function DataTableRow(props) {
   };
 
   const locateButton = (
-    <IconButton onClick={row.locate} style={selected ? { color: 'red' } : null}>
-      <LocateIcon />
-    </IconButton>
+    <Tooltip title={row.locateTooltip}>
+      <IconButton onClick={row.locateAction} style={selected ? { color: 'red' } : row.locateStyle}>
+        <LocateIcon />
+      </IconButton>
+    </Tooltip>
   );
 
   if (editing) {
@@ -66,7 +68,7 @@ function DataTableRow(props) {
   return (
     <TableRow>
       <TableCell>
-        {row.locate ? locateButton : undefined}
+        {row.locateAction ? locateButton : undefined}
       </TableCell>
       {config.columns.map((column) => (
         <TableCell
