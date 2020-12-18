@@ -7,6 +7,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/DeleteOutlined';
 import EditIcon from '@material-ui/icons/EditOutlined';
 import LocateIcon from '@material-ui/icons/RoomOutlined';
+import LocateIconSelected from '@material-ui/icons/Room';
 import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import { Tooltip } from '@material-ui/core';
 import DataEdit from './DataEdit';
@@ -52,8 +53,8 @@ function DataTableRow(props) {
   };
 
   const locateButton = (
-    <IconButton onClick={row.locate} style={selected ? { color: 'red' } : null}>
-      <LocateIcon />
+    <IconButton onClick={row.locate}>
+      {selected ? <LocateIconSelected /> : <LocateIcon />}
     </IconButton>
   );
 
