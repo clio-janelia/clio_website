@@ -81,7 +81,12 @@ export default function AnnotationPanel(props) {
 }
 
 AnnotationPanel.propTypes = {
-  config: PropTypes.object.isRequired,
+  config: PropTypes.shape({
+    layers: PropTypes.arrayOf(PropTypes.shape({
+      dataConfig: PropTypes.object,
+      name: PropTypes.string,
+    })),
+  }).isRequired,
   actions: PropTypes.object.isRequired,
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.object),

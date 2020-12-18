@@ -159,7 +159,13 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                 editElement: {
                   type: 'input',
                 },
-                checkValidity: (value) => value && value.trim(),
+                checkValidity: (value, handleError) => {
+                  const isValid = value && value.trim();
+                  if (handleError && !isValid) {
+                    handleError('The title field of atlas cannot be empty. It will NOT be saved until a valid title is specified.');
+                  }
+                  return isValid;
+                },
               },
               {
                 title: 'Description',

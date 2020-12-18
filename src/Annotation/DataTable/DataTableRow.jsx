@@ -7,21 +7,34 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/DeleteOutlined';
 import EditIcon from '@material-ui/icons/EditOutlined';
 import LocateIcon from '@material-ui/icons/RoomOutlined';
+import ReportProblemIcon from '@material-ui/icons/ReportProblem';
+import { Tooltip } from '@material-ui/core';
 import DataEdit from './DataEdit';
 
 function DataTableRow(props) {
   const { config, row, selected } = props;
 
-  const isValid = () => (
+  const isValid = config.columns.every((column) => {
+    if (column.checkValidity) {
+      return column.checkValidity(row[column.field]);
+    }
+    return true;
+  });
+
+  const isValidAfterChange = (change) => (
     config.columns.every((column) => {
       if (column.checkValidity) {
-        return column.checkValidity(row[column.field]);
+        let value = row[column.field];
+        if (column.field in change) {
+          value = change[column.field];
+        }
+        return column.checkValidity(value);
       }
       return true;
     })
   );
 
-  const [editing, setEditing] = useState(!isValid());
+  const [editing, setEditing] = useState(!isValid);
 
   const handleEditClicked = () => {
     setEditing(true);
@@ -32,8 +45,10 @@ function DataTableRow(props) {
   };
 
   const takeChange = (change) => {
-    row.updateAction(change);
-    setEditing(false);
+    if (isValidAfterChange(change)) {
+      row.updateAction(change);
+      setEditing(false);
+    }
   };
 
   const locateButton = (
@@ -63,6 +78,26 @@ function DataTableRow(props) {
     </IconButton>
   );
 
+  const getCellElement = (column) => {
+    const value = row[column.field];
+    if (column.checkValidity) {
+      let errorHint = '';
+      if (!column.checkValidity(value, (error) => {
+        errorHint = error;
+      })) {
+        return (
+          <Tooltip title={errorHint} style={{ color: 'orange' }}>
+            <IconButton onClick={handleEditClicked}>
+              <ReportProblemIcon />
+            </IconButton>
+          </Tooltip>
+        );
+      }
+    }
+
+    return value;
+  };
+
   return (
     <TableRow>
       <TableCell>
@@ -75,7 +110,7 @@ function DataTableRow(props) {
           component="th"
           scope="row"
         >
-          {row[column.field]}
+          {getCellElement(column)}
         </TableCell>
       ))}
       <TableCell>
