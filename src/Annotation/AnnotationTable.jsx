@@ -46,7 +46,7 @@ function AnnotationTable(props) {
         title,
         comment,
         type,
-        locate: () => { locateItem(pos); },
+        locateAction: () => { locateItem(pos); },
         deleteAction: () => {
           const source = getAnnotationSource(undefined, layerName);
           console.log(source);
