@@ -33,16 +33,26 @@ export default function DataTable(props) {
 
   const { data, selectedId, getId } = props;
 
+  const rowHeight = 38;
+  const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
+  const maxPage = Math.max(0, Math.floor((filteredRows.length - 1) / rowsPerPage));
+
+  useEffect(() => {
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [page, maxPage]);
+
   useEffect(() => {
     if (selectedId) {
-      for (let i = 0; i < data.rows.length; i += 1) {
-        if (data.rows[i].id === selectedId) {
+      for (let i = 0; i < filteredRows.length; i += 1) {
+        if (filteredRows[i].id === selectedId) {
           setPage(Math.floor(i / rowsPerPage));
           break;
         }
       }
     }
-  }, [selectedId, setPage, data.rows, rowsPerPage]);
+  }, [selectedId, setPage, filteredRows, rowsPerPage]);
 
   useEffect(() => {
     if (filter) {
@@ -64,11 +74,8 @@ export default function DataTable(props) {
     setFilter(newFilter);
   };
 
-  const rowHeight = 38;
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
-
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    setPage(newPage, maxPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -83,7 +90,10 @@ export default function DataTable(props) {
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
           <DataTableHead config={config} handleFilterChange={handleFilterChange} />
           <TableBody>
-            {filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
+            {filteredRows.slice(
+              page * rowsPerPage,
+              page * rowsPerPage + rowsPerPage,
+            ).map(
               (row) => (
                 <DataTableRow
                   key={getId(row)}
