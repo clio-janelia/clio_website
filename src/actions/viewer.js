@@ -113,9 +113,9 @@ export function addViewerLayer(payload) {
   };
 }
 
-export function selectLayer(payload) {
+export function selectViewerLayer(payload) {
   return {
-    type: C.SELECT_LAYER,
+    type: C.SELECT_VIEWER_LAYER,
     payload,
   };
 }

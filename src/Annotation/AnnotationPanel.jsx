@@ -34,7 +34,7 @@ export default function AnnotationPanel(props) {
     setTabValue(newValue);
     const index = parseInt(newValue, 10);
     if (config.layers[index]) {
-      actions.selectLayer(config.layers[index].name);
+      actions.selectViewerLayer(config.layers[index].name);
     }
   };
 
