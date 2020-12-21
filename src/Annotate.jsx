@@ -38,7 +38,6 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `precomputed://${dataset.location}`,
           },
-          tool: 'annotatePoint',
         },
         {
           name: 'annotations',
