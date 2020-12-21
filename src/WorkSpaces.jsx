@@ -19,6 +19,7 @@ import {
   setViewerTodosSource,
   setViewerTodosType,
   setViewerTodosHint,
+  setViewerAnnotationSelection,
   setViewerCrossSectionScale,
   setViewerCameraPosition,
   setViewerCameraProjectionScale,
@@ -126,6 +127,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     setViewerTodosHint: (newState) => {
       dispatch(setViewerTodosHint(newState));
+    },
+    setViewerAnnotationSelection: (newState) => {
+      dispatch(setViewerAnnotationSelection(newState));
     },
     setViewerCrossSectionScale: (newState) => {
       dispatch(setViewerCrossSectionScale(newState));

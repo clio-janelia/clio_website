@@ -118,6 +118,9 @@ export default function viewerReducer(state = viewerState, action) {
     case C.SET_VIEWER_TODOS_HINT: {
       return setInLayerArray(syncedState(state), 'todos', ['defaultAnnotationProperties', 'point', 'hint'], action.payload);
     }
+    case C.SET_VIEWER_ANNOTATION_SELECTION: {
+      return setInLayerArray(syncedState(state), action.payload.layerName, ['selectedAnnotation'], { id: action.payload.annotationId });
+    }
     case C.SET_VIEWER_SEGMENTS: {
       return setInLayerArray(syncedState(state), 'segmentation', ['segments'], action.payload);
     }

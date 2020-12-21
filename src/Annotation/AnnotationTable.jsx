@@ -12,7 +12,7 @@ import DataTable from './DataTable/DataTable';
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, locateItem,
+    layerName, dataConfig, locateItem, actions,
   } = props;
   const [data, setData] = React.useState({ rows: [] });
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
@@ -41,12 +41,18 @@ function AnnotationTable(props) {
       }
 
       newItem = {
-        id: `${id}`,
+        id,
         pos: `(${pos[0]}, ${pos[1]}, ${pos[2]})`,
         title,
         comment,
         type,
-        locate: () => { locateItem(pos); },
+        locate: () => {
+          actions.setViewerAnnotationSelection({
+            layerName,
+            annotationId: id,
+          });
+          locateItem(pos);
+        },
         deleteAction: () => {
           const source = getAnnotationSource(undefined, layerName);
           console.log(source);
@@ -75,7 +81,7 @@ function AnnotationTable(props) {
       };
     }
     return newItem;
-  }, [layerName, locateItem]);
+  }, [layerName, locateItem, actions]);
 
   const updateTableRows = React.useCallback((annotation) => {
     const source = getAnnotationSource(undefined, layerName);
@@ -168,6 +174,7 @@ AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
   locateItem: PropTypes.func.isRequired,
+  actions: PropTypes.object.isRequired,
 };
 
 export default AnnotationTable;

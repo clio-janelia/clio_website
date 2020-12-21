@@ -47,6 +47,7 @@ export default function AnnotationPanel(props) {
         dataConfig={layer.dataConfig}
         layerName={layer.name}
         locateItem={layer.locateItem}
+        actions={actions}
       />
     </TabPanel>
   ));

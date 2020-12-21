@@ -57,6 +57,13 @@ export function setViewerTodosHint(payload) {
   };
 }
 
+export function setViewerAnnotationSelection(payload) {
+  return {
+    type: C.SET_VIEWER_ANNOTATION_SELECTION,
+    payload,
+  };
+}
+
 export function setViewerCrossSectionScale(payload) {
   return {
     type: C.SET_VIEWER_CROSS_SECTION_SCALE,
