@@ -5,6 +5,7 @@ import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import config from './config';
+import { ANNOTATION_COLUMNS, ATLAS_COLUMNS } from './Annotation/AnnotationUtils';
 import MergeBackendLocal from './Annotation/MergeBackendLocal';
 import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
@@ -129,56 +130,14 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           name: 'annotations',
           locateItem: actions.setViewerCameraPosition,
           dataConfig: {
-            columns: [
-              {
-                title: 'Description',
-                field: 'comment',
-                filterEnabled: true,
-                editElement: {
-                  type: 'input',
-                },
-              },
-              {
-                title: 'Position',
-                field: 'pos',
-              },
-            ],
+            columns: ANNOTATION_COLUMNS,
           },
         },
         {
           name: 'atlas',
           locateItem: actions.setViewerCameraPosition,
           dataConfig: {
-            columns: [
-              {
-                title: 'Title',
-                field: 'title',
-                filterEnabled: true,
-                placeholder: '*Required',
-                editElement: {
-                  type: 'input',
-                },
-                checkValidity: (value, handleError) => {
-                  const isValid = value && value.trim();
-                  if (handleError && !isValid) {
-                    handleError('The title field of atlas cannot be empty. It will NOT be saved until a valid title is specified.');
-                  }
-                  return isValid;
-                },
-              },
-              {
-                title: 'Description',
-                field: 'comment',
-                filterEnabled: true,
-                editElement: {
-                  type: 'input',
-                },
-              },
-              {
-                title: 'Position',
-                field: 'pos',
-              },
-            ],
+            columns: ATLAS_COLUMNS,
           },
         },
       ],
