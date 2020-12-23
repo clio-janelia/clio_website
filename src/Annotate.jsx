@@ -5,7 +5,9 @@ import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import config from './config';
-import { ANNOTATION_COLUMNS, ATLAS_COLUMNS } from './Annotation/AnnotationUtils';
+import {
+  ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
+} from './Annotation/AnnotationUtils';
 import MergeBackendLocal from './Annotation/MergeBackendLocal';
 import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
@@ -46,6 +48,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
           },
+          shader: ANNOTATION_SHADER,
           tool: 'annotatePoint',
         },
         {
@@ -54,6 +57,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub&kind=atlas`,
           },
+          shader: ATLAS_SHADER,
           tool: 'annotatePoint',
         },
       ];

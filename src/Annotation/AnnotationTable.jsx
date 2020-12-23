@@ -122,7 +122,7 @@ function AnnotationTable(props) {
       data={data}
       selectedId={selectedAnnotation}
       config={dataConfig}
-      getId={(row) => row.id}
+      getId={React.useCallback((row) => row.id, [])}
     />
   );
 }

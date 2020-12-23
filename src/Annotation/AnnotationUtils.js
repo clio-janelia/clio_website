@@ -1,9 +1,5 @@
 import {
   getAnnotationSource,
-  // getAnnotationLayer,
-  // configureAnnotationLayerChanged,
-  // configureLayersChangedSignals,
-  // addLayerSignalRemover,
 } from '@janelia-flyem/react-neuroglancer';
 
 export const ANNOTATION_COLUMNS = [
@@ -51,6 +47,63 @@ export const ATLAS_COLUMNS = [
     field: 'pos',
   },
 ];
+
+export const ANNOTATION_SHADER = `
+#uicontrol vec3 falseSplitColor color(default="#F08040")
+#uicontrol vec3 falseMergeColor color(default="#F040F0")
+#uicontrol vec3 checkedColor color(default="green")
+#uicontrol vec3 borderColor color(default="black")
+#uicontrol float pointRadius slider(min=3, max=20, step=1, default=10)
+#uicontrol float lineEndRadius slider(min=3, max=20, step=1, default=10)
+#uicontrol float lineWidth slider(min=1, max=10, step=1, default=1)
+#uicontrol float opacity slider(min=0, max=1, step=0.1, default=1)
+#uicontrol float opacity3D slider(min=0, max=1, step=0.1, default=0.2)
+#uicontrol vec3 defaultPointColor color(default="#FF0000")
+#uicontrol vec3 lineColor color(default="#FF0000")
+#uicontrol vec3 sphereColor color(default="red")
+#uicontrol float sphereAnnotationOpacity slider(min=0, max=1, step=0.1, default=1)
+void main() {
+  setPointMarkerSize(pointRadius);
+  setEndpointMarkerSize(lineEndRadius);
+  setLineWidth(lineWidth);
+  float finalOpacity = PROJECTION_VIEW ? opacity3D : opacity;
+  setPointMarkerBorderColor(vec4(borderColor, finalOpacity));
+  if (prop_rendering_attribute() == 1) {
+    setColor(vec4(checkedColor, finalOpacity));
+  } else if (prop_rendering_attribute() == 2) {
+    setColor(vec4(falseSplitColor, finalOpacity));
+  } else if (prop_rendering_attribute() == 3)  {
+    setColor(vec4(falseMergeColor, finalOpacity));
+  } else {
+    setColor(vec4(defaultPointColor, finalOpacity));
+  }
+  setLineColor(lineColor, lineColor);
+  setEndpointMarkerColor(lineColor);
+  float finalSphereAnnotationOpacity = sphereAnnotationOpacity;
+  if (prop_rendering_attribute() != 11) {
+    finalSphereAnnotationOpacity = 1.0;
+  }
+  setSphereColor(vec4(sphereColor, finalSphereAnnotationOpacity));
+  setAxisColor(vec4(sphereColor, finalSphereAnnotationOpacity));
+  setAxisEndpointMarkerColor(vec4(sphereColor, finalSphereAnnotationOpacity));
+}`;
+
+export const ATLAS_SHADER = `
+#uicontrol vec3 borderColor color(default="black")
+#uicontrol float pointRadius slider(min=3, max=20, step=1, default=10)
+#uicontrol float opacity slider(min=0, max=1, step=0.1, default=1)
+#uicontrol float opacity3D slider(min=0, max=1, step=0.1, default=0.2)
+#uicontrol vec3 defaultPointColor color(default="#8080FF")
+void main() {
+  setPointMarkerSize(pointRadius);
+  float finalOpacity = PROJECTION_VIEW ? opacity3D : opacity;
+  setPointMarkerBorderColor(vec4(borderColor, finalOpacity));
+  if (prop_rendering_attribute() == 1) {
+    setColor(vec4(defaultPointColor, 0.1));
+  } else {
+    setColor(vec4(defaultPointColor, finalOpacity));
+  }
+}`;
 
 export function getNewAnnotation(annotation, prop) {
   const newAnnotation = { ...annotation };
@@ -111,6 +164,7 @@ export function getRowItemFromAnnotation(annotation, config) {
           const source = getAnnotationSource(undefined, layerName);
           source.update(source.getReference(id), getNewAnnotation(newAnnotation, newProps));
           source.commit(source.getReference(id));
+          locate(layerName, id, pos);
         }
       },
     };
