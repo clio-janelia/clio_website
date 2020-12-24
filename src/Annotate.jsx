@@ -132,14 +132,13 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       layers: [
         {
           name: 'annotations',
-          locateItem: actions.setViewerCameraPosition,
+          tools: ['annotatePoint', 'annotateLine'],
           dataConfig: {
             columns: ANNOTATION_COLUMNS,
           },
         },
         {
           name: 'atlas',
-          locateItem: actions.setViewerCameraPosition,
           dataConfig: {
             columns: ATLAS_COLUMNS,
           },

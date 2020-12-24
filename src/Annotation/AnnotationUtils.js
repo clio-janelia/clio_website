@@ -115,30 +115,48 @@ function getPointAnnotationPos(annotation) {
   return [annotation.point[0], annotation.point[1], annotation.point[2]];
 }
 
-function getRowItemWithoutAction(annotation) {
-  if (annotation.type === 0) { // point annotation
-    const { id } = annotation;
-    const pos = getPointAnnotationPos(annotation);
-    const { comment, type, title } = annotation.prop ? annotation.prop : { comment: '', type: '', title: '' };
+function getLineAnnotationPos(annotation) {
+  return [
+    Math.round((annotation.pointA[0] + annotation.pointB[0]) / 2),
+    Math.round((annotation.pointA[1] + annotation.pointB[1]) / 2),
+    Math.round((annotation.pointA[2] + annotation.pointB[2]) / 2),
+  ];
+}
 
-    return {
-      id,
-      pos: `(${pos[0]}, ${pos[1]}, ${pos[2]})`,
-      title: title || '',
-      comment: comment || '',
-      type: type || '',
-    };
+export function getAnnotationPos(annotation) {
+  switch (annotation.type) {
+    case 0:
+      return getPointAnnotationPos(annotation);
+    case 1:
+      return getLineAnnotationPos(annotation);
+    default:
+      break;
   }
 
-  return undefined;
+  return null;
 }
+
+function getRowItemWithoutAction(annotation) {
+  const { id } = annotation;
+  const pos = getAnnotationPos(annotation);
+  const { comment, type, title } = annotation.prop ? annotation.prop : { comment: '', type: '', title: '' };
+
+  return {
+    id,
+    pos: `(${pos.join(',')})`,
+    title: title || '',
+    comment: comment || '',
+    type: type || '',
+  };
+}
+
 export function getRowItemFromAnnotation(annotation, config) {
   let item = getRowItemWithoutAction(annotation);
   if (item) { // point annotation
     const { layerName, locate } = config;
     const newAnnotation = { ...annotation };
     const { id } = annotation;
-    const pos = getPointAnnotationPos(annotation);
+    const pos = getAnnotationPos(annotation);
     item = {
       ...item,
       locate: () => {
@@ -175,6 +193,10 @@ export function getRowItemFromAnnotation(annotation, config) {
 
 export function isValidAnnotation(annotation, dataConfig) {
   const item = getRowItemWithoutAction(annotation);
+  if (!item) {
+    return false;
+  }
+
   const isFieldValid = (field, value) => {
     const column = dataConfig.columns.find((c) => (c.field === field));
     if (column) {

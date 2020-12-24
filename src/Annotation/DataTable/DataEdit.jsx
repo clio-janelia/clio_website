@@ -5,6 +5,8 @@ import IconButton from '@material-ui/core/IconButton';
 import DoneIcon from '@material-ui/icons/DoneAllTwoTone';
 import RevertIcon from '@material-ui/icons/NotInterestedOutlined';
 import { TableCell } from '@material-ui/core';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+
 import DataCellEdit from './DataCellEdit';
 
 export default function DataEdit(props) {
@@ -72,19 +74,21 @@ export default function DataEdit(props) {
         </TableCell>
       ))}
       <TableCell>
-        <IconButton
-          aria-label="ok"
-          disabled={!isNewDataValid() || !hasChanged()}
-          onClick={() => takeChange(newData)}
-        >
-          <DoneIcon />
-        </IconButton>
-        <IconButton
-          aria-label="cancel"
-          onClick={cancelEdit}
-        >
-          <RevertIcon />
-        </IconButton>
+        <ButtonGroup>
+          <IconButton
+            aria-label="ok"
+            disabled={!isNewDataValid() || !hasChanged()}
+            onClick={() => takeChange(newData)}
+          >
+            <DoneIcon />
+          </IconButton>
+          <IconButton
+            aria-label="cancel"
+            onClick={cancelEdit}
+          >
+            <RevertIcon />
+          </IconButton>
+        </ButtonGroup>
       </TableCell>
     </TableRow>
   );

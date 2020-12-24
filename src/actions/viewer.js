@@ -64,6 +64,13 @@ export function setViewerAnnotationSelection(payload) {
   };
 }
 
+export function setViewerAnnotationTool(payload) {
+  return {
+    type: C.SET_VIEWER_ANNOTATION_TOOL,
+    payload,
+  };
+}
+
 export function setViewerCrossSectionScale(payload) {
   return {
     type: C.SET_VIEWER_CROSS_SECTION_SCALE,

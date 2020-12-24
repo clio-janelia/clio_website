@@ -45,6 +45,7 @@ export default function AnnotationPanel(props) {
     <TabPanel key={layer.name} value={`${index}`} className={classes.tabPanel}>
       <AnnotationTable
         dataConfig={layer.dataConfig}
+        tools={layer.tools}
         layerName={layer.name}
         locateItem={layer.locateItem}
         actions={actions}

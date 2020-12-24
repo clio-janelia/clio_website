@@ -33,7 +33,7 @@ export default function DataTable(props) {
 
   const { data, selectedId, getId } = props;
 
-  const rowHeight = 38;
+  const rowHeight = 56;
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
   const maxPage = Math.max(0, Math.floor((filteredRows.length - 1) / rowsPerPage));
 

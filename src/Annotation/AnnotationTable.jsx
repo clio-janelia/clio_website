@@ -9,11 +9,12 @@ import {
 } from '@janelia-flyem/react-neuroglancer';
 
 import DataTable from './DataTable/DataTable';
-import { getRowItemFromAnnotation, isValidAnnotation } from './AnnotationUtils';
+import { getRowItemFromAnnotation, isValidAnnotation, getAnnotationPos } from './AnnotationUtils';
+import AnnotationToolControl from './AnnotationToolControl';
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, locateItem, actions,
+    layerName, dataConfig, actions, tools,
   } = props;
   const [data, setData] = React.useState({ rows: [] });
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
@@ -26,9 +27,9 @@ function AnnotationTable(props) {
           layerName: targetLayerName,
           annotationId: id,
         });
-        locateItem(pos);
+        actions.setViewerCameraPosition(pos);
       },
-    }), [layerName, locateItem, actions],
+    }), [layerName, actions],
   );
 
   const updateTableRows = React.useCallback(() => {
@@ -58,7 +59,7 @@ function AnnotationTable(props) {
         const isValid = isValidAnnotation(annotation, dataConfig);
         actions.addAlert({
           severity: isValid ? 'success' : 'info',
-          message: `${isValid ? 'New' : ' Temporary'} annotation added @(${annotation.point[0]}, ${annotation.point[1]}, ${annotation.point[2]}) in [${layerName}]`,
+          message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')} in [${layerName}]`,
           duration: 1000,
         });
       }
@@ -117,21 +118,36 @@ function AnnotationTable(props) {
     onAnnotationSelectionChanged,
   ]);
 
+  const handleToolChange = React.useCallback((tool) => {
+    actions.setViewerAnnotationTool({
+      layerName,
+      annotationTool: tool,
+    });
+  }, [layerName, actions]);
+
   return (
-    <DataTable
-      data={data}
-      selectedId={selectedAnnotation}
-      config={dataConfig}
-      getId={React.useCallback((row) => row.id, [])}
-    />
+    <div>
+      <DataTable
+        data={data}
+        selectedId={selectedAnnotation}
+        config={dataConfig}
+        getId={React.useCallback((row) => row.id, [])}
+      />
+      <hr />
+      {tools ? <AnnotationToolControl tools={tools} actions={actions} defaultTool="annotatePoint" onToolChanged={handleToolChange} /> : null}
+    </div>
   );
 }
 
 AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
-  locateItem: PropTypes.func.isRequired,
+  tools: PropTypes.arrayOf(PropTypes.string),
   actions: PropTypes.object.isRequired,
+};
+
+AnnotationTable.defaultProps = {
+  tools: null,
 };
 
 export default AnnotationTable;

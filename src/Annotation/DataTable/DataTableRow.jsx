@@ -10,10 +10,14 @@ import LocateIcon from '@material-ui/icons/RoomOutlined';
 import LocateIconSelected from '@material-ui/icons/Room';
 import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import { Tooltip } from '@material-ui/core';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+
 import DataEdit from './DataEdit';
 
 function DataTableRow(props) {
-  const { config, row, selected } = props;
+  const {
+    config, row, selected, getLocateIcon,
+  } = props;
 
   const isValid = config.columns.every((column) => {
     if (column.checkValidity) {
@@ -52,9 +56,11 @@ function DataTableRow(props) {
     }
   };
 
+  const getDefaultLocateIcon = () => (selected ? <LocateIconSelected /> : <LocateIcon />);
+
   const locateButton = (
     <IconButton onClick={row.locate}>
-      {selected ? <LocateIconSelected /> : <LocateIcon />}
+      {getLocateIcon ? getLocateIcon(selected) : getDefaultLocateIcon()}
     </IconButton>
   );
 
@@ -115,10 +121,12 @@ function DataTableRow(props) {
         </TableCell>
       ))}
       <TableCell>
-        <IconButton onClick={row.deleteAction}>
-          <DeleteIcon />
-        </IconButton>
-        {row.updateAction ? editButton : undefined}
+        <ButtonGroup>
+          {row.updateAction ? editButton : undefined}
+          <IconButton onClick={row.deleteAction}>
+            <DeleteIcon />
+          </IconButton>
+        </ButtonGroup>
       </TableCell>
     </TableRow>
   );
@@ -134,10 +142,12 @@ DataTableRow.propTypes = {
   }).isRequired,
   row: PropTypes.object.isRequired, // Row data with a shape specified in column settings
   selected: PropTypes.bool,
+  getLocateIcon: PropTypes.func,
 };
 
 DataTableRow.defaultProps = {
   selected: false,
+  getLocateIcon: undefined,
 };
 
 export default DataTableRow;
