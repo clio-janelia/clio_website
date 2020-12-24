@@ -31,9 +31,11 @@ export default function DataTable(props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
-  const { data, selectedId, getId } = props;
+  const {
+    data, selectedId, getId, getLocateIcon,
+  } = props;
 
-  const rowHeight = 56;
+  const rowHeight = 44;
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
   const maxPage = Math.max(0, Math.floor((filteredRows.length - 1) / rowsPerPage));
 
@@ -100,6 +102,7 @@ export default function DataTable(props) {
                   config={config}
                   row={row}
                   selected={getId(row) === selectedId}
+                  getLocateIcon={getLocateIcon}
                 />
               ),
             )}
@@ -142,8 +145,10 @@ DataTable.propTypes = {
   }).isRequired,
   getId: PropTypes.func.isRequired, // Get id for row
   selectedId: PropTypes.string, // Selected ID
+  getLocateIcon: PropTypes.func,
 };
 
 DataTable.defaultProps = {
   selectedId: null,
+  getLocateIcon: null,
 };

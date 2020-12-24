@@ -9,7 +9,9 @@ import {
 } from '@janelia-flyem/react-neuroglancer';
 
 import DataTable from './DataTable/DataTable';
-import { getRowItemFromAnnotation, isValidAnnotation, getAnnotationPos } from './AnnotationUtils';
+import {
+  getRowItemFromAnnotation, isValidAnnotation, getAnnotationPos, getAnnotationIcon,
+} from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
 
 function AnnotationTable(props) {
@@ -81,7 +83,7 @@ function AnnotationTable(props) {
   }, [updateTableRows]);
 
   const onAnnotationSelectionChanged = React.useCallback((annotation) => {
-    console.log('selected:', annotation);
+    // console.log('selected:', annotation);
     if (annotation) {
       setSelectedAnnotation(annotation.id);
     } else {
@@ -125,6 +127,8 @@ function AnnotationTable(props) {
     });
   }, [layerName, actions]);
 
+  const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected)), []);
+
   return (
     <div>
       <DataTable
@@ -132,6 +136,7 @@ function AnnotationTable(props) {
         selectedId={selectedAnnotation}
         config={dataConfig}
         getId={React.useCallback((row) => row.id, [])}
+        getLocateIcon={getLocateIcon}
       />
       <hr />
       {tools ? <AnnotationToolControl tools={tools} actions={actions} defaultTool="annotatePoint" onToolChanged={handleToolChange} /> : null}

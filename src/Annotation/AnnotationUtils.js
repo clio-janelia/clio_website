@@ -1,3 +1,10 @@
+import React from 'react';
+
+import LocateIcon from '@material-ui/icons/RoomOutlined';
+import LocateIconSelected from '@material-ui/icons/Room';
+import LineLocateIcon from '@material-ui/icons/PinDropOutlined';
+import LineLocateIconSelected from '@material-ui/icons/PinDrop';
+
 import {
   getAnnotationSource,
 } from '@janelia-flyem/react-neuroglancer';
@@ -105,6 +112,18 @@ void main() {
   }
 }`;
 
+export function getAnnotationIcon(kind, action, selected) {
+  if (action === 'locate') {
+    if (kind === 'line') {
+      return selected ? <LineLocateIconSelected /> : <LineLocateIcon />;
+    }
+
+    return selected ? <LocateIconSelected /> : <LocateIcon />;
+  }
+
+  return null;
+}
+
 export function getNewAnnotation(annotation, prop) {
   const newAnnotation = { ...annotation };
   newAnnotation.prop = { ...newAnnotation.prop, ...prop };
@@ -122,6 +141,11 @@ function getLineAnnotationPos(annotation) {
     Math.round((annotation.pointA[2] + annotation.pointB[2]) / 2),
   ];
 }
+
+const KIND_MAP = {
+  0: 'point',
+  1: 'line',
+};
 
 export function getAnnotationPos(annotation) {
   switch (annotation.type) {
@@ -143,6 +167,7 @@ function getRowItemWithoutAction(annotation) {
 
   return {
     id,
+    kind: KIND_MAP[annotation.type],
     pos: `(${pos.join(',')})`,
     title: title || '',
     comment: comment || '',

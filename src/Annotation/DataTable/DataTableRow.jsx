@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
+import Box from '@material-ui/core/Box';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import IconButton from '@material-ui/core/IconButton';
@@ -10,7 +11,7 @@ import LocateIcon from '@material-ui/icons/RoomOutlined';
 import LocateIconSelected from '@material-ui/icons/Room';
 import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import { Tooltip } from '@material-ui/core';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
+// import ButtonGroup from '@material-ui/core/ButtonGroup';
 
 import DataEdit from './DataEdit';
 
@@ -60,7 +61,7 @@ function DataTableRow(props) {
 
   const locateButton = (
     <IconButton onClick={row.locate}>
-      {getLocateIcon ? getLocateIcon(selected) : getDefaultLocateIcon()}
+      {getLocateIcon ? getLocateIcon(row, selected) : getDefaultLocateIcon()}
     </IconButton>
   );
 
@@ -121,12 +122,12 @@ function DataTableRow(props) {
         </TableCell>
       ))}
       <TableCell>
-        <ButtonGroup>
+        <Box display="flex" flexDirection="row">
           {row.updateAction ? editButton : undefined}
           <IconButton onClick={row.deleteAction}>
             <DeleteIcon />
           </IconButton>
-        </ButtonGroup>
+        </Box>
       </TableCell>
     </TableRow>
   );
