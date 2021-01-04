@@ -9,7 +9,7 @@ function About() {
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   const isAdmin = roles.clio_global && roles.clio_global.includes('admin');
   return (
-    <div className="about">
+    <div className="about" style={{ margin: '1em' }}>
       <Typography variant="h5">About</Typography>
       <span>v{process.env.REACT_APP_VERSION}</span>
       {user && (

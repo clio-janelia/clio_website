@@ -13,16 +13,14 @@ export default function GlobalSettingsAdmin() {
   return (
     <div>
       <p>Global Settings</p>
-      <form noValidate>
-        <TextField
-          id="top_level_url"
-          onChange={handleTopLevelChange}
-          label="Top Level URL"
-          variant="outlined"
-          fullWidth
-          value={clioUrl}
-        />
-      </form>
+      <TextField
+        id="top_level_url"
+        onChange={handleTopLevelChange}
+        label="Top Level URL"
+        variant="outlined"
+        fullWidth
+        value={clioUrl}
+      />
     </div>
   );
 }
