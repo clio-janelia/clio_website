@@ -11,7 +11,7 @@ function About() {
   return (
     <div className="about" style={{ margin: '1em' }}>
       <Typography variant="h5">About</Typography>
-      <span>v{process.env.REACT_APP_VERSION}</span>
+      <span>v{process.env.REACT_APP_VERSION} - {process.env.NODE_ENV}</span>
       {user && (
         <>
           <p>USER: {user.getBasicProfile().getName()}</p>

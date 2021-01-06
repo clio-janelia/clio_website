@@ -16,7 +16,7 @@ ReactDOM.render(
   <Provider store={store}>
     <QueryClientProvider client={queryClient}>
       <App />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {process.env.NODE_ENV !== 'production' ? <ReactQueryDevtools initialIsOpen={false} /> : ''}
     </QueryClientProvider>
   </Provider>,
   document.getElementById('root'),
