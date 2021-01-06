@@ -71,9 +71,7 @@ export default function DataTable(props) {
   }, [filter, data.rows]);
 
   const handleFilterChange = (column, columnFilter) => {
-    const newFilter = { ...filter };
-    newFilter[column] = columnFilter;
-    setFilter(newFilter);
+    setFilter((prevFilter) => ({ ...prevFilter, [column]: columnFilter }));
   };
 
   const handleChangePage = (event, newPage) => {

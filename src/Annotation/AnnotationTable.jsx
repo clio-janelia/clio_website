@@ -61,7 +61,7 @@ function AnnotationTable(props) {
         const isValid = isValidAnnotation(annotation, dataConfig);
         actions.addAlert({
           severity: isValid ? 'success' : 'info',
-          message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')} in [${layerName}]`,
+          message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
           duration: 1000,
         });
       }
