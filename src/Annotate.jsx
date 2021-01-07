@@ -10,6 +10,9 @@ import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import config from './config';
+import {
+  ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
+} from './Annotation/AnnotationUtils';
 import MergeBackendLocal from './Annotation/MergeBackendLocal';
 import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
@@ -96,7 +99,6 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `precomputed://${dataset.location}`,
           },
-          tool: 'annotatePoint',
         },
         {
           name: 'annotations',
@@ -104,6 +106,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
           },
+          shader: ANNOTATION_SHADER,
           tool: 'annotatePoint',
         },
         {
@@ -112,6 +115,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           source: {
             url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub&kind=atlas`,
           },
+          shader: ATLAS_SHADER,
           tool: 'annotatePoint',
         },
       ];
@@ -189,52 +193,15 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       layers: [
         {
           name: 'annotations',
-          locateItem: actions.setViewerCameraPosition,
+          tools: ['annotatePoint', 'annotateLine'],
           dataConfig: {
-            columns: [
-              {
-                title: 'Description',
-                field: 'comment',
-                filterEnabled: true,
-                editElement: {
-                  type: 'input',
-                },
-              },
-              {
-                title: 'Position',
-                field: 'pos',
-              },
-            ],
+            columns: ANNOTATION_COLUMNS,
           },
         },
         {
           name: 'atlas',
-          locateItem: actions.setViewerCameraPosition,
           dataConfig: {
-            columns: [
-              {
-                title: 'Title',
-                field: 'title',
-                filterEnabled: true,
-                placeholder: '*Required',
-                editElement: {
-                  type: 'input',
-                },
-                checkValidity: (value) => value && value.trim(),
-              },
-              {
-                title: 'Description',
-                field: 'comment',
-                filterEnabled: true,
-                editElement: {
-                  type: 'input',
-                },
-              },
-              {
-                title: 'Position',
-                field: 'pos',
-              },
-            ],
+            columns: ATLAS_COLUMNS,
           },
         },
       ],

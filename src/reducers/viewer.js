@@ -118,6 +118,12 @@ export default function viewerReducer(state = viewerState, action) {
     case C.SET_VIEWER_TODOS_HINT: {
       return setInLayerArray(syncedState(state), 'todos', ['defaultAnnotationProperties', 'point', 'hint'], action.payload);
     }
+    case C.SET_VIEWER_ANNOTATION_SELECTION: {
+      return setInLayerArray(syncedState(state), action.payload.layerName, ['selectedAnnotation'], { id: action.payload.annotationId });
+    }
+    case C.SET_VIEWER_ANNOTATION_TOOL: {
+      return setInLayerArray(syncedState(state), action.payload.layerName, ['tool'], action.payload.annotationTool);
+    }
     case C.SET_VIEWER_SEGMENTS: {
       return setInLayerArray(syncedState(state), 'segmentation', ['segments'], action.payload);
     }
@@ -143,7 +149,7 @@ export default function viewerReducer(state = viewerState, action) {
       const { name } = action.payload;
       return setInLayerArray(syncedState(state), name, [], action.payload);
     }
-    case C.SELECT_LAYER: {
+    case C.SELECT_VIEWER_LAYER: {
       return (syncedState(state).setIn(['ngState', 'selectedLayer'], { layer: action.payload }));
     }
     default: {

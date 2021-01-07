@@ -31,18 +31,30 @@ export default function DataTable(props) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
-  const { data, selectedId, getId } = props;
+  const {
+    data, selectedId, getId, getLocateIcon,
+  } = props;
+
+  const rowHeight = 44;
+  const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
+  const maxPage = Math.max(0, Math.floor((filteredRows.length - 1) / rowsPerPage));
+
+  useEffect(() => {
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [page, maxPage]);
 
   useEffect(() => {
     if (selectedId) {
-      for (let i = 0; i < data.rows.length; i += 1) {
-        if (data.rows[i].id === selectedId) {
+      for (let i = 0; i < filteredRows.length; i += 1) {
+        if (filteredRows[i].id === selectedId) {
           setPage(Math.floor(i / rowsPerPage));
           break;
         }
       }
     }
-  }, [selectedId, setPage, data.rows, rowsPerPage]);
+  }, [selectedId, setPage, filteredRows, rowsPerPage]);
 
   useEffect(() => {
     if (filter) {
@@ -59,16 +71,11 @@ export default function DataTable(props) {
   }, [filter, data.rows]);
 
   const handleFilterChange = (column, columnFilter) => {
-    const newFilter = { ...filter };
-    newFilter[column] = columnFilter;
-    setFilter(newFilter);
+    setFilter((prevFilter) => ({ ...prevFilter, [column]: columnFilter }));
   };
 
-  const rowHeight = 38;
-  const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
-
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    setPage(Math.min(newPage, maxPage));
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -77,19 +84,43 @@ export default function DataTable(props) {
 
   const { config } = props;
 
+  const actualPage = Math.min(page, maxPage);
+
+  const pagination = (
+    <TablePagination
+      rowsPerPageOptions={rowsPerPageOptions}
+      colSpan={3}
+      count={filteredRows.length}
+      rowsPerPage={rowsPerPage}
+      page={actualPage}
+      SelectProps={{
+        inputProps: { 'aria-label': 'rows per page' },
+        native: true,
+      }}
+      onChangePage={handleChangePage}
+      onChangeRowsPerPage={handleChangeRowsPerPage}
+      component="div"
+    />
+  );
+
+
   return (
     <div className={classes.dataTableRoot}>
       <TableContainer className={classes.container}>
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
           <DataTableHead config={config} handleFilterChange={handleFilterChange} />
           <TableBody>
-            {filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
+            {filteredRows.slice(
+              actualPage * rowsPerPage,
+              actualPage * rowsPerPage + rowsPerPage,
+            ).map(
               (row) => (
                 <DataTableRow
                   key={getId(row)}
                   config={config}
                   row={row}
                   selected={getId(row) === selectedId}
+                  getLocateIcon={getLocateIcon}
                 />
               ),
             )}
@@ -101,20 +132,7 @@ export default function DataTable(props) {
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={rowsPerPageOptions}
-        colSpan={3}
-        count={filteredRows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        SelectProps={{
-          inputProps: { 'aria-label': 'rows per page' },
-          native: true,
-        }}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-        component="div"
-      />
+      {pagination}
     </div>
   );
 }
@@ -132,8 +150,10 @@ DataTable.propTypes = {
   }).isRequired,
   getId: PropTypes.func.isRequired, // Get id for row
   selectedId: PropTypes.string, // Selected ID
+  getLocateIcon: PropTypes.func,
 };
 
 DataTable.defaultProps = {
   selectedId: null,
+  getLocateIcon: null,
 };

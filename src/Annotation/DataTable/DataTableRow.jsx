@@ -1,27 +1,43 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import Box from '@material-ui/core/Box';
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
+import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/DeleteOutlined';
 import EditIcon from '@material-ui/icons/EditOutlined';
-import IconButton from '@material-ui/core/IconButton';
 import LocateIcon from '@material-ui/icons/RoomOutlined';
-import TableCell from '@material-ui/core/TableCell';
-import TableRow from '@material-ui/core/TableRow';
+import LocateIconSelected from '@material-ui/icons/Room';
+import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import Tooltip from '@material-ui/core/Tooltip';
 import DataEdit from './DataEdit';
 
 function DataTableRow(props) {
-  const { config, row, selected } = props;
+  const {
+    config, row, selected, getLocateIcon,
+  } = props;
 
-  const isValid = () => (
+  const isValid = config.columns.every((column) => {
+    if (column.checkValidity) {
+      return column.checkValidity(row[column.field]);
+    }
+    return true;
+  });
+
+  const isValidAfterChange = (change) => (
     config.columns.every((column) => {
       if (column.checkValidity) {
-        return column.checkValidity(row[column.field]);
+        let value = row[column.field];
+        if (column.field in change) {
+          value = change[column.field];
+        }
+        return column.checkValidity(value);
       }
       return true;
     })
   );
 
-  const [editing, setEditing] = useState(!isValid());
+  const [editing, setEditing] = useState(!isValid);
 
   const handleEditClicked = () => {
     setEditing(true);
@@ -32,17 +48,29 @@ function DataTableRow(props) {
   };
 
   const takeChange = (change) => {
-    row.updateAction(change);
-    setEditing(false);
+    if (isValidAfterChange(change)) {
+      row.updateAction(change);
+      setEditing(false);
+    }
   };
 
-  const locateButton = (
-    <Tooltip title={row.locateTooltip}>
-      <IconButton onClick={row.locateAction} style={selected ? { color: 'red' } : row.locateStyle}>
-        <LocateIcon />
-      </IconButton>
-    </Tooltip>
+  const getDefaultLocateIcon = () => (selected ? <LocateIconSelected /> : <LocateIcon />);
+
+  const locateButtonWithoutTooptip = (
+    <IconButton
+      onClick={row.locateAction}
+      style={(selected && row.locateStyle) ? row.locateStyle : null}
+    >
+      {getLocateIcon ? getLocateIcon(row, selected) : getDefaultLocateIcon()}
+    </IconButton>
   );
+
+  const locateButton = row.locateTooltip
+    ? (
+      <Tooltip title={row.locateTooltip}>
+        {locateButtonWithoutTooptip}
+      </Tooltip>
+    ) : locateButtonWithoutTooptip;
 
   if (editing) {
     return (
@@ -65,6 +93,26 @@ function DataTableRow(props) {
     </IconButton>
   );
 
+  const getCellElement = (column) => {
+    const value = row[column.field];
+    if (column.checkValidity) {
+      let errorHint = '';
+      if (!column.checkValidity(value, (error) => {
+        errorHint = error;
+      })) {
+        return (
+          <Tooltip title={errorHint} style={{ color: 'orange' }}>
+            <IconButton onClick={handleEditClicked}>
+              <ReportProblemIcon />
+            </IconButton>
+          </Tooltip>
+        );
+      }
+    }
+
+    return value;
+  };
+
   return (
     <TableRow>
       <TableCell>
@@ -77,14 +125,16 @@ function DataTableRow(props) {
           component="th"
           scope="row"
         >
-          {row[column.field]}
+          {getCellElement(column)}
         </TableCell>
       ))}
       <TableCell>
-        <IconButton onClick={row.deleteAction}>
-          <DeleteIcon />
-        </IconButton>
-        {row.updateAction ? editButton : undefined}
+        <Box display="flex" flexDirection="row">
+          {row.updateAction ? editButton : undefined}
+          <IconButton onClick={row.deleteAction}>
+            <DeleteIcon />
+          </IconButton>
+        </Box>
       </TableCell>
     </TableRow>
   );
@@ -100,10 +150,12 @@ DataTableRow.propTypes = {
   }).isRequired,
   row: PropTypes.object.isRequired, // Row data with a shape specified in column settings
   selected: PropTypes.bool,
+  getLocateIcon: PropTypes.func,
 };
 
 DataTableRow.defaultProps = {
   selected: false,
+  getLocateIcon: undefined,
 };
 
 export default DataTableRow;
