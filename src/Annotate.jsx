@@ -68,6 +68,9 @@ const useStyles = makeStyles((theme) => {
       }),
       marginRight: 0,
     },
+    drawerPaper: {
+      top: 'inherit',
+    },
   });
 });
 
@@ -233,7 +236,14 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           {sidebarOpen ? <ChevronRight /> : <ChevronLeft />}
         </Fab>
 
-        <Drawer variant="persistent" anchor="right" open={sidebarOpen}>
+        <Drawer
+          variant="persistent"
+          anchor="right"
+          open={sidebarOpen}
+          classes={{
+            paper: classes.drawerPaper,
+          }}
+        >
           <AnnotationPanel config={annotationConfig} actions={actions}>
             <MergePanel tabName="merges" mergeManager={mergeManager.current} />
           </AnnotationPanel>

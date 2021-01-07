@@ -33,11 +33,11 @@ const useStyles = makeStyles((theme) => ({
   floater: {
     position: 'absolute',
     top: '0',
-    right: '90px',
+    right: '150px',
     background: theme.palette.primary.main,
     textAlign: 'center',
     borderRadius: '0 0 5px 5px',
-    zIndex: 20,
+    zIndex: 5000,
   },
   navToggle: {
     marginRight: '25px',
