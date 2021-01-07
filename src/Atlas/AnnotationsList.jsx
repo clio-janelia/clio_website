@@ -11,6 +11,8 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Chip from '@material-ui/core/Chip';
+import DoneIcon from '@material-ui/icons/Done';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -19,20 +21,6 @@ const useStyles = makeStyles((theme) => ({
     border: '2px solid',
     borderColor: theme.palette.primary.main,
     background: 'rgba(143, 170, 143, 0.3)',
-  },
-  unverified: {
-    borderRadius: '10px',
-    padding: '2px 4px 2px 4px',
-    fontSize: '10pt',
-    color: 'white',
-    background: 'rgba(255, 128, 0, 1)',
-  },
-  verified: {
-    borderRadius: '10px',
-    padding: '2px 4px 2px 4px',
-    fontSize: '10pt',
-    color: 'white',
-    background: 'rgba(0, 128, 0, 1)',
   },
 }));
 
@@ -127,15 +115,11 @@ export default function AnnotationsList({
     const key = `${name}_${timestamp}`;
     const isSelected = key === `${selected.title}_${selected.timestamp}`;
 
-    let classVerified = '';
-    let msgVerified = '';
-    if (verified) {
-      classVerified = classes.verified;
-      msgVerified = 'Verified';
-    } else {
-      classVerified = classes.unverified;
-      msgVerified = 'Unverified';
-    }
+    const verifiedChip = verified ? (
+      <Chip label="Verified" color="primary" icon={<DoneIcon />} />
+    ) : (
+      <Chip label="Unverified" />
+    );
 
     if (!id) {
       console.log(canWrite);
@@ -167,9 +151,7 @@ export default function AnnotationsList({
             <Button size="small" color="primary" onClick={() => handleClick(annotation)}>
               View
             </Button>
-            <Typography className={classVerified}>
-              {msgVerified}
-            </Typography>
+            {verifiedChip}
           </CardActions>
         </Card>
       </Grid>
