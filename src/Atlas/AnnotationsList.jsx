@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
 import Pagination from '@material-ui/lab/Pagination';
@@ -19,6 +20,20 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.palette.primary.main,
     background: 'rgba(143, 170, 143, 0.3)',
   },
+  unverified: {
+    borderRadius: '10px',
+    padding: '2px 4px 2px 4px',
+    fontSize: '10pt',
+    color: 'white',
+    background: 'rgba(255, 128, 0, 1)',
+  },
+  verified: {
+    borderRadius: '10px',
+    padding: '2px 4px 2px 4px',
+    fontSize: '10pt',
+    color: 'white',
+    background: 'rgba(0, 128, 0, 1)',
+  },
 }));
 
 const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>';
@@ -33,6 +48,9 @@ export default function AnnotationsList({
   datasetFilter,
   loading,
 }) {
+  const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
+  const canWrite = roles.clio_global && roles.clio_global.includes('clio_write');
+
   const [currentPage, setCurrentPage] = useState(1);
   const classes = useStyles();
 
@@ -91,6 +109,8 @@ export default function AnnotationsList({
       description,
       timestamp,
       location,
+      verified,
+      id,
     } = annotation;
 
     let thumbnailUrl = '';
@@ -105,9 +125,21 @@ export default function AnnotationsList({
     }
 
     const key = `${name}_${timestamp}`;
-
     const isSelected = key === `${selected.title}_${selected.timestamp}`;
 
+    let classVerified = '';
+    let msgVerified = '';
+    if (verified) {
+      classVerified = classes.verified;
+      msgVerified = 'Verified';
+    } else {
+      classVerified = classes.unverified;
+      msgVerified = 'Unverified';
+    }
+
+    if (!id) {
+      console.log(canWrite);
+    }
     return (
       <Grid key={key} item xs={12} sm={3}>
         <Card raised={isSelected} className={isSelected ? classes.selected : ''}>
@@ -135,6 +167,9 @@ export default function AnnotationsList({
             <Button size="small" color="primary" onClick={() => handleClick(annotation)}>
               View
             </Button>
+            <Typography className={classVerified}>
+              {msgVerified}
+            </Typography>
           </CardActions>
         </Card>
       </Grid>
@@ -155,7 +190,7 @@ AnnotationsList.propTypes = {
   selected: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   filterBy: PropTypes.string,
-  filterType: PropTypes.arrayOf(PropTypes.string).isRequired,
+  filterType: PropTypes.string.isRequired,
   datasetFilter: PropTypes.arrayOf(PropTypes.string).isRequired,
   datasets: PropTypes.object.isRequired,
   annotations: PropTypes.arrayOf(PropTypes.object).isRequired,

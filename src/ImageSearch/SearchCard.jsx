@@ -2,7 +2,7 @@ import React from 'react';
 import { useHistory } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
-import { useMutation, useQueryCache } from 'react-query';
+import { useMutation, useQueryClient } from 'react-query';
 
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
@@ -22,7 +22,7 @@ import './Matches.css';
 
 export default function SearchCard({ search, actions, dataset }) {
   const history = useHistory();
-  const queryCache = useQueryCache();
+  const queryClient = useQueryClient();
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
@@ -42,7 +42,7 @@ export default function SearchCard({ search, actions, dataset }) {
     history.push('/ws/image_search');
   }
 
-  const [mutate] = useMutation((point) => {
+  const { mutate } = useMutation((point) => {
     const xyz = `x=${point[0]}&y=${point[1]}&z=${point[2]}`;
     const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
     const options = {
@@ -54,7 +54,7 @@ export default function SearchCard({ search, actions, dataset }) {
     return fetch(savedSearchUrl, options);
   }, {
     onSuccess: () => {
-      queryCache.invalidateQueries('savedSearches');
+      queryClient.invalidateQueries('savedSearches');
     },
   });
 

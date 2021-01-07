@@ -56,15 +56,16 @@ function MergePanel(props) {
       newData.push({
         main: m,
         others: o.join(', '),
-        locate: () => {
+        locateAction: () => {
           mergeManager.select([parseInt(m, 10)]);
           mergeManager.actions.setViewerSegments([parseInt(m, 10)]);
         },
+        locateStyle: mergeManager.otherToMain[m] ? { color: 'GoldenRod' } : null,
+        locateTooltip: mergeManager.otherToMain[m] ? `Selects ${mergeManager.getUltimateMain(m)}` : '',
         deleteAction: () => {
           mergeManager.select([parseInt(m, 10)]);
           mergeManager.unmerge();
         },
-
       })
     ));
     setData({ rows: newData });

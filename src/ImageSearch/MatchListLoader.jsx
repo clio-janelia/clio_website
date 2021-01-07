@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
-import { useQuery, useMutation, useQueryCache } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
@@ -36,13 +36,13 @@ export default function MatchListLoader({
   const classes = useStyles();
   const [currentPage, setCurrentPage] = useState(1);
   const dispatch = useDispatch();
-  const queryCache = useQueryCache();
+  const queryClient = useQueryClient();
 
   const handlePageChange = (event, page) => {
     setCurrentPage(page);
   };
 
-  const [mutate] = useMutation(
+  const { mutate } = useMutation(
     () => {
       const roundedPos = coords.map((point) => Math.floor(point));
       const xyz = `x=${roundedPos[0]}&y=${roundedPos[1]}&z=${roundedPos[2]}`;
@@ -59,7 +59,7 @@ export default function MatchListLoader({
     },
     {
       onSuccess: () => {
-        queryCache.invalidateQueries('savedSearches');
+        queryClient.invalidateQueries('savedSearches');
         dispatch(
           addAlert({
             message: 'Search saved',

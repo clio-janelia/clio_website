@@ -1,4 +1,9 @@
 import React, { useEffect } from 'react';
+import ChevronRight from '@material-ui/icons/ChevronRight';
+import ChevronLeft from '@material-ui/icons/ChevronLeft';
+import Drawer from '@material-ui/core/Drawer';
+import Fab from '@material-ui/core/Fab';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
@@ -13,6 +18,58 @@ import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
 
 import './Neuroglancer.css';
+
+const SIDEBAR_WIDTH_PX = 500;
+const SIDEBAR_SPACING_PX = 10;
+
+const useStyles = makeStyles((theme) => {
+  const fabSidebar = {
+    position: 'absolute',
+    bottom: theme.spacing(2),
+    // Necessary for events to go to a button on top of Neuroglancer.
+    zIndex: 3,
+  };
+  const ngSidebar = {
+    display: 'flex',
+    flexFlow: 'column',
+    height: '100%',
+    flexGrow: 1,
+  };
+  return ({
+    fabSidebarOpen: {
+      ...fabSidebar,
+      transition: theme.transitions.create(['right'], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+      }),
+      right: `${SIDEBAR_WIDTH_PX + SIDEBAR_SPACING_PX}px`,
+    },
+    fabSidebarClosed: {
+      ...fabSidebar,
+      transition: theme.transitions.create(['right'], {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+      right: `${SIDEBAR_SPACING_PX}px`,
+    },
+    ngSidebarOpen: {
+      ...ngSidebar,
+      transition: theme.transitions.create(['margin'], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+      }),
+      marginRight: SIDEBAR_WIDTH_PX,
+    },
+    ngSidebarClosed: {
+      ...ngSidebar,
+      transition: theme.transitions.create(['margin'], {
+        easing: theme.transitions.easing.easeOut,
+        duration: theme.transitions.duration.enteringScreen,
+      }),
+      marginRight: 0,
+    },
+  });
+});
 
 const inferredLayerType = (layer) => {
   if (layer.name.includes('segmentation')) {
@@ -29,6 +86,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
+  const classes = useStyles();
 
   useEffect(() => {
     if (dataset && user) {
@@ -127,8 +185,11 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     React.cloneElement(child, { onVisibleChanged }, null)
   ));
 
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+
   if (dataset) {
     const annotationConfig = {
+      width: `${SIDEBAR_WIDTH_PX}px`,
       layers: [
         {
           name: 'annotations',
@@ -145,21 +206,38 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
         },
       ],
     };
+
+    const onClickFab = () => {
+      // Prevents Neuroglancer `position` from being reset.
+      actions.syncViewer();
+      setSidebarOpen(!sidebarOpen);
+    };
+
     return (
       <div
         style={{ display: 'flex', height: '100%' }}
       >
         <div
-          className="ng-container"
-          style={{ flexGrow: 1 }}
+          className={sidebarOpen ? classes.ngSidebarOpen : classes.ngSidebarClosed}
           tabIndex={0}
           onKeyPress={onKeyPress}
         >
           {childrenWithMoreProps}
         </div>
-        <AnnotationPanel config={annotationConfig} actions={actions}>
-          <MergePanel tabName="merges" mergeManager={mergeManager.current} />
-        </AnnotationPanel>
+
+        <Fab
+          className={sidebarOpen ? classes.fabSidebarOpen : classes.fabSidebarClosed}
+          color="primary"
+          onClick={onClickFab}
+        >
+          {sidebarOpen ? <ChevronRight /> : <ChevronLeft />}
+        </Fab>
+
+        <Drawer variant="persistent" anchor="right" open={sidebarOpen}>
+          <AnnotationPanel config={annotationConfig} actions={actions}>
+            <MergePanel tabName="merges" mergeManager={mergeManager.current} />
+          </AnnotationPanel>
+        </Drawer>
       </div>
     );
   }

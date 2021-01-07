@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-
 import Box from '@material-ui/core/Box';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
@@ -10,9 +9,7 @@ import EditIcon from '@material-ui/icons/EditOutlined';
 import LocateIcon from '@material-ui/icons/RoomOutlined';
 import LocateIconSelected from '@material-ui/icons/Room';
 import ReportProblemIcon from '@material-ui/icons/ReportProblem';
-import { Tooltip } from '@material-ui/core';
-// import ButtonGroup from '@material-ui/core/ButtonGroup';
-
+import Tooltip from '@material-ui/core/Tooltip';
 import DataEdit from './DataEdit';
 
 function DataTableRow(props) {
@@ -59,11 +56,21 @@ function DataTableRow(props) {
 
   const getDefaultLocateIcon = () => (selected ? <LocateIconSelected /> : <LocateIcon />);
 
-  const locateButton = (
-    <IconButton onClick={row.locate}>
+  const locateButtonWithoutTooptip = (
+    <IconButton
+      onClick={row.locateAction}
+      style={(selected && row.locateStyle) ? row.locateStyle : null}
+    >
       {getLocateIcon ? getLocateIcon(row, selected) : getDefaultLocateIcon()}
     </IconButton>
   );
+
+  const locateButton = row.locateTooltip
+    ? (
+      <Tooltip title={row.locateTooltip}>
+        {locateButtonWithoutTooptip}
+      </Tooltip>
+    ) : locateButtonWithoutTooptip;
 
   if (editing) {
     return (
@@ -109,7 +116,7 @@ function DataTableRow(props) {
   return (
     <TableRow>
       <TableCell>
-        {row.locate ? locateButton : undefined}
+        {row.locateAction ? locateButton : undefined}
       </TableCell>
       {config.columns.map((column) => (
         <TableCell

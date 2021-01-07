@@ -184,12 +184,12 @@ export function getRowItemFromAnnotation(annotation, config) {
     const pos = getAnnotationPos(annotation);
     item = {
       ...item,
-      locate: () => {
+      locateAction: () => {
         locate(layerName, id, pos);
       },
       deleteAction: () => {
         const source = getAnnotationSource(undefined, layerName);
-        console.log(source);
+        // console.log(source);
         source.delete(source.getReference(id));
       },
       updateAction: (change) => {

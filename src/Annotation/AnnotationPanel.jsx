@@ -9,11 +9,11 @@ import AnnotationTable from './AnnotationTable';
 
 const useStyles = makeStyles((theme) => (
   {
-    annotationRoot: {
+    annotationRoot: (props) => ({
       display: 'flex',
       flexFlow: 'column',
-      width: '500px',
-    },
+      width: props.width,
+    }),
     tabContainer: {
       background: theme.palette.primary.light,
       color: theme.palette.common.white,
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => (
 
 export default function AnnotationPanel(props) {
   const { config, actions, children } = props;
-  const classes = useStyles();
+  const classes = useStyles({ width: config.width });
   const [tabValue, setTabValue] = React.useState('0');
 
   const handleTabChange = (event, newValue) => {
@@ -88,6 +88,7 @@ AnnotationPanel.propTypes = {
       dataConfig: PropTypes.object,
       name: PropTypes.string,
     })),
+    width: PropTypes.string,
   }).isRequired,
   actions: PropTypes.object.isRequired,
   children: PropTypes.oneOfType([

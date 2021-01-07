@@ -75,7 +75,7 @@ export default function DataTable(props) {
   };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage, maxPage);
+    setPage(Math.min(newPage, maxPage));
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -84,6 +84,26 @@ export default function DataTable(props) {
 
   const { config } = props;
 
+  const actualPage = Math.min(page, maxPage);
+
+  const pagination = (
+    <TablePagination
+      rowsPerPageOptions={rowsPerPageOptions}
+      colSpan={3}
+      count={filteredRows.length}
+      rowsPerPage={rowsPerPage}
+      page={actualPage}
+      SelectProps={{
+        inputProps: { 'aria-label': 'rows per page' },
+        native: true,
+      }}
+      onChangePage={handleChangePage}
+      onChangeRowsPerPage={handleChangeRowsPerPage}
+      component="div"
+    />
+  );
+
+
   return (
     <div className={classes.dataTableRoot}>
       <TableContainer className={classes.container}>
@@ -91,8 +111,8 @@ export default function DataTable(props) {
           <DataTableHead config={config} handleFilterChange={handleFilterChange} />
           <TableBody>
             {filteredRows.slice(
-              page * rowsPerPage,
-              page * rowsPerPage + rowsPerPage,
+              actualPage * rowsPerPage,
+              actualPage * rowsPerPage + rowsPerPage,
             ).map(
               (row) => (
                 <DataTableRow
@@ -112,20 +132,7 @@ export default function DataTable(props) {
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={rowsPerPageOptions}
-        colSpan={3}
-        count={filteredRows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        SelectProps={{
-          inputProps: { 'aria-label': 'rows per page' },
-          native: true,
-        }}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-        component="div"
-      />
+      {pagination}
     </div>
   );
 }
