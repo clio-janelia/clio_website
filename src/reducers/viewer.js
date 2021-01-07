@@ -76,14 +76,17 @@ const syncedState = (state) => {
   return state;
 };
 
-const setInLayerArray = (state, layerName, propPathArray, propValue) => {
+const setInLayerArray = (state, layerName, propPathArray, propValue, adding) => {
   const layers = state.getIn(['ngState', 'layers']);
   let i = layers.findIndex((value) => (value.name.includes(layerName)));
   if (i === -1) {
     i = layers.findIndex((value) => (value.type.includes(layerName)));
   }
-  if (i === -1) {
+  if ((i === -1) && adding) {
     i = layers.length;
+  }
+  if (i === -1) {
+    return state;
   }
   return state.setIn(['ngState', 'layers', i, ...propPathArray], propValue);
 };
@@ -147,7 +150,7 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.ADD_VIEWER_LAYER: {
       const { name } = action.payload;
-      return setInLayerArray(syncedState(state), name, [], action.payload);
+      return setInLayerArray(syncedState(state), name, [], action.payload, true);
     }
     case C.SELECT_VIEWER_LAYER: {
       return (syncedState(state).setIn(['ngState', 'selectedLayer'], { layer: action.payload }));
