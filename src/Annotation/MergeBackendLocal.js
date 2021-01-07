@@ -20,6 +20,6 @@ export default class MergeBackendLocal {
       mainToOthers = JSON.parse(mainToOthersStr) || mainToOthers;
       otherToMain = JSON.parse(otherToMainStr) || otherToMain;
     }
-    return [mainToOthers, otherToMain];
+    return new Promise((resolve) => { resolve([mainToOthers, otherToMain]); });
   }
 }
