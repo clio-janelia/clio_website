@@ -118,8 +118,6 @@ ErrorFallback.propTypes = {
   error: PropTypes.object.isRequired,
 };
 
-const { project } = config;
-
 function App() {
   const dispatch = useDispatch();
 
@@ -127,12 +125,11 @@ function App() {
 
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const [datasets, setDatasets] = useState([]);
-  const formattedProject = project.toLowerCase().replace(/ /g, '-');
 
   // Set the top level function when first mounting the application.
   // This is done here as it needs to be done before a lot of other functions
   // that use it are executed.
-  const clioUrl = `https://us-east4-${formattedProject}.cloudfunctions.net/${
+  const clioUrl = `https://clio-store-vwzoicitea-uk.a.run.app/${
     config.top_level_function
   }`;
   dispatch(setTopLevelFunction(clioUrl));
