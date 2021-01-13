@@ -7,7 +7,7 @@ import GlobalSettingsAdmin from './GlobalSettingsAdmin';
 function About() {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
-  const isAdmin = roles.clio_global && roles.clio_global.includes('admin');
+  const isAdmin = roles.global_roles && roles.global_roles.includes('admin');
   return (
     <div className="about" style={{ margin: '1em' }}>
       <Typography variant="h5">About</Typography>

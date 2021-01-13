@@ -37,7 +37,7 @@ export default function AnnotationsList({
   loading,
 }) {
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
-  const canWrite = roles.clio_global && roles.clio_global.includes('clio_write');
+  const canWrite = roles.global_roles && roles.global_roles.includes('clio_write');
 
   const [currentPage, setCurrentPage] = useState(1);
   const classes = useStyles();
