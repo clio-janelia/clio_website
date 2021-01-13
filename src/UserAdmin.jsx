@@ -32,7 +32,7 @@ function UserAdmin() {
   const [loadState, setLoadState] = useState('preload');
 
   const usersUrl = `${clioUrl}/users`;
-  const isAdmin = roles.clio_global && roles.clio_global.includes('admin');
+  const isAdmin = roles.global_roles && roles.global_roles.includes('admin');
 
   useEffect(() => {
     setLoadState('loading');
@@ -118,7 +118,7 @@ function UserAdmin() {
   const users = Object.entries(userList).map(([name]) => (
     <TableRow key={name}>
       <TableCell>{name}</TableCell>
-      <TableCell>{userList[name].clio_global && userList[name].clio_global.includes('admin') ? 'Yes' : '-'}</TableCell>
+      <TableCell>{userList[name].global_roles && userList[name].global_roles.includes('admin') ? 'Yes' : '-'}</TableCell>
       <TableCell>{JSON.stringify(userList[name])}</TableCell>
       <TableCell>
         <Button onClick={() => handleDelete(name)}>Delete</Button> | <Button>Update</Button>
