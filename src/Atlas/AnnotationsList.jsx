@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
 import Pagination from '@material-ui/lab/Pagination';
@@ -10,6 +11,8 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Chip from '@material-ui/core/Chip';
+import DoneIcon from '@material-ui/icons/Done';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -33,6 +36,9 @@ export default function AnnotationsList({
   datasetFilter,
   loading,
 }) {
+  const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
+  const canWrite = roles.clio_global && roles.clio_global.includes('clio_write');
+
   const [currentPage, setCurrentPage] = useState(1);
   const classes = useStyles();
 
@@ -91,6 +97,8 @@ export default function AnnotationsList({
       description,
       timestamp,
       location,
+      verified,
+      id,
     } = annotation;
 
     let thumbnailUrl = '';
@@ -105,9 +113,17 @@ export default function AnnotationsList({
     }
 
     const key = `${name}_${timestamp}`;
-
     const isSelected = key === `${selected.title}_${selected.timestamp}`;
 
+    const verifiedChip = verified ? (
+      <Chip label="Verified" color="primary" icon={<DoneIcon />} />
+    ) : (
+      <Chip label="Unverified" />
+    );
+
+    if (!id) {
+      console.log(canWrite);
+    }
     return (
       <Grid key={key} item xs={12} sm={3}>
         <Card raised={isSelected} className={isSelected ? classes.selected : ''}>
@@ -135,6 +151,7 @@ export default function AnnotationsList({
             <Button size="small" color="primary" onClick={() => handleClick(annotation)}>
               View
             </Button>
+            {verifiedChip}
           </CardActions>
         </Card>
       </Grid>
@@ -155,7 +172,7 @@ AnnotationsList.propTypes = {
   selected: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   filterBy: PropTypes.string,
-  filterType: PropTypes.arrayOf(PropTypes.string).isRequired,
+  filterType: PropTypes.string.isRequired,
   datasetFilter: PropTypes.arrayOf(PropTypes.string).isRequired,
   datasets: PropTypes.object.isRequired,
   annotations: PropTypes.arrayOf(PropTypes.object).isRequired,

@@ -19,6 +19,8 @@ import {
   setViewerTodosSource,
   setViewerTodosType,
   setViewerTodosHint,
+  setViewerAnnotationSelection,
+  setViewerAnnotationTool,
   setViewerCrossSectionScale,
   setViewerCameraPosition,
   setViewerCameraProjectionScale,
@@ -27,7 +29,7 @@ import {
   setViewerSegmentColors,
   setViewerSegmentEquivalences,
   addViewerLayer,
-  selectLayer,
+  selectViewerLayer,
 } from './actions/viewer';
 
 import { setSyncStateNeeded } from './reducers/viewer';
@@ -127,6 +129,12 @@ const WorkSpacesActions = (dispatch) => ({
     setViewerTodosHint: (newState) => {
       dispatch(setViewerTodosHint(newState));
     },
+    setViewerAnnotationSelection: (newState) => {
+      dispatch(setViewerAnnotationSelection(newState));
+    },
+    setViewerAnnotationTool: (newState) => {
+      dispatch(setViewerAnnotationTool(newState));
+    },
     setViewerCrossSectionScale: (newState) => {
       dispatch(setViewerCrossSectionScale(newState));
     },
@@ -151,8 +159,8 @@ const WorkSpacesActions = (dispatch) => ({
     addViewerLayer: (newState) => {
       dispatch(addViewerLayer(newState));
     },
-    selectLayer: (newState) => {
-      dispatch(selectLayer(newState));
+    selectViewerLayer: (newState) => {
+      dispatch(selectViewerLayer(newState));
     },
     addAlert: (newState) => {
       dispatch(addAlert(newState));

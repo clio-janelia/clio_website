@@ -34,7 +34,7 @@ export default function AnnotationPanel(props) {
     setTabValue(newValue);
     const index = parseInt(newValue, 10);
     if (config.layers[index]) {
-      actions.selectLayer(config.layers[index].name);
+      actions.selectViewerLayer(config.layers[index].name);
     }
   };
 
@@ -45,8 +45,10 @@ export default function AnnotationPanel(props) {
     <TabPanel key={layer.name} value={`${index}`} className={classes.tabPanel}>
       <AnnotationTable
         dataConfig={layer.dataConfig}
+        tools={layer.tools}
         layerName={layer.name}
         locateItem={layer.locateItem}
+        actions={actions}
       />
     </TabPanel>
   ));
@@ -81,7 +83,13 @@ export default function AnnotationPanel(props) {
 }
 
 AnnotationPanel.propTypes = {
-  config: PropTypes.object.isRequired,
+  config: PropTypes.shape({
+    layers: PropTypes.arrayOf(PropTypes.shape({
+      dataConfig: PropTypes.object,
+      name: PropTypes.string,
+    })),
+    width: PropTypes.string,
+  }).isRequired,
   actions: PropTypes.object.isRequired,
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.object),

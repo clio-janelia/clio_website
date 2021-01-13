@@ -5,14 +5,45 @@ import IconButton from '@material-ui/core/IconButton';
 import DoneIcon from '@material-ui/icons/DoneAllTwoTone';
 import RevertIcon from '@material-ui/icons/NotInterestedOutlined';
 import { TableCell } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+
 import DataCellEdit from './DataCellEdit';
 
 export default function DataEdit(props) {
-  const change = {};
-
   const {
     takeChange, cancelEdit, config, data,
   } = props;
+
+  const dataForEditing = {};
+  config.columns.forEach((column) => {
+    if (column.editElement) {
+      dataForEditing[column.field] = data[column.field];
+    }
+  });
+
+  const [newData, setNewData] = React.useState(dataForEditing);
+
+  const isFieldValid = React.useCallback((field, value) => {
+    const column = config.columns.find((c) => (c.field === field));
+    if (column) {
+      if (column.checkValidity) {
+        return column.checkValidity(value);
+      }
+      return true;
+    }
+
+    return false;
+  }, [config]);
+
+  const isNewDataValid = React.useCallback(() => (
+    Object.keys(newData).every((field) => isFieldValid(field, newData[field]))
+  ), [newData, isFieldValid]);
+
+  const hasChanged = React.useCallback(() => (
+    Object.keys(newData).some((field) => dataForEditing[field] !== newData[field])
+  ), [newData, dataForEditing]);
+
+  console.log(isNewDataValid());
 
   const columnToCell = (column) => {
     if (column.cell) {
@@ -24,7 +55,9 @@ export default function DataEdit(props) {
         config={column}
         onValueChange={
           (value) => {
-            change[column.field] = value;
+            const changed = { ...newData };
+            changed[column.field] = value;
+            setNewData(changed);
           }
         }
         value={data[column.field]}
@@ -41,18 +74,21 @@ export default function DataEdit(props) {
         </TableCell>
       ))}
       <TableCell>
-        <IconButton
-          aria-label="ok"
-          onClick={() => takeChange(change)}
-        >
-          <DoneIcon />
-        </IconButton>
-        <IconButton
-          aria-label="cancel"
-          onClick={cancelEdit}
-        >
-          <RevertIcon />
-        </IconButton>
+        <Box display="flex" flexDirection="row">
+          <IconButton
+            aria-label="ok"
+            disabled={!isNewDataValid() || !hasChanged()}
+            onClick={() => takeChange(newData)}
+          >
+            <DoneIcon />
+          </IconButton>
+          <IconButton
+            aria-label="cancel"
+            onClick={cancelEdit}
+          >
+            <RevertIcon />
+          </IconButton>
+        </Box>
       </TableCell>
     </TableRow>
   );

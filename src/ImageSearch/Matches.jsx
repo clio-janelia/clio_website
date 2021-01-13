@@ -24,6 +24,7 @@ export default function Matches({
   function handleMatchSelect(point) {
     actions.setViewerCameraPosition(point);
     actions.setViewerCrossSectionScale(0.75);
+    window.scrollTo(0, 0);
   }
 
   let matchList = Array(4).fill().map((_, i) => {

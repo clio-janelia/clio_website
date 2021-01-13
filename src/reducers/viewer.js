@@ -76,14 +76,17 @@ const syncedState = (state) => {
   return state;
 };
 
-const setInLayerArray = (state, layerName, propPathArray, propValue) => {
+const setInLayerArray = (state, layerName, propPathArray, propValue, adding) => {
   const layers = state.getIn(['ngState', 'layers']);
   let i = layers.findIndex((value) => (value.name.includes(layerName)));
   if (i === -1) {
     i = layers.findIndex((value) => (value.type.includes(layerName)));
   }
-  if (i === -1) {
+  if ((i === -1) && adding) {
     i = layers.length;
+  }
+  if (i === -1) {
+    return state;
   }
   return state.setIn(['ngState', 'layers', i, ...propPathArray], propValue);
 };
@@ -118,6 +121,12 @@ export default function viewerReducer(state = viewerState, action) {
     case C.SET_VIEWER_TODOS_HINT: {
       return setInLayerArray(syncedState(state), 'todos', ['defaultAnnotationProperties', 'point', 'hint'], action.payload);
     }
+    case C.SET_VIEWER_ANNOTATION_SELECTION: {
+      return setInLayerArray(syncedState(state), action.payload.layerName, ['selectedAnnotation'], { id: action.payload.annotationId });
+    }
+    case C.SET_VIEWER_ANNOTATION_TOOL: {
+      return setInLayerArray(syncedState(state), action.payload.layerName, ['tool'], action.payload.annotationTool);
+    }
     case C.SET_VIEWER_SEGMENTS: {
       return setInLayerArray(syncedState(state), 'segmentation', ['segments'], action.payload);
     }
@@ -141,9 +150,9 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.ADD_VIEWER_LAYER: {
       const { name } = action.payload;
-      return setInLayerArray(syncedState(state), name, [], action.payload);
+      return setInLayerArray(syncedState(state), name, [], action.payload, true);
     }
-    case C.SELECT_LAYER: {
+    case C.SELECT_VIEWER_LAYER: {
       return (syncedState(state).setIn(['ngState', 'selectedLayer'], { layer: action.payload }));
     }
     default: {

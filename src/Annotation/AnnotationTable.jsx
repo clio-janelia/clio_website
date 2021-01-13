@@ -9,84 +9,38 @@ import {
 } from '@janelia-flyem/react-neuroglancer';
 
 import DataTable from './DataTable/DataTable';
+import {
+  getRowItemFromAnnotation, isValidAnnotation, getAnnotationPos, getAnnotationIcon,
+} from './AnnotationUtils';
+import AnnotationToolControl from './AnnotationToolControl';
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, locateItem,
+    layerName, dataConfig, actions, tools,
   } = props;
   const [data, setData] = React.useState({ rows: [] });
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
 
-  const annotationToItem = React.useCallback((annotation) => {
-    const newAnnotation = { ...annotation };
-    let newItem;
-    if (annotation.type === 0) { // point annotation
-      const { id } = annotation;
-      const pos = [
-        annotation.point[0], annotation.point[1], annotation.point[2],
-      ];
-      let comment = '';
-      let type = '';
-      let title = '';
-      if (annotation.prop) {
-        if (annotation.prop.type) {
-          type = annotation.prop.type;
-        }
-        if (annotation.prop.comment) {
-          comment = annotation.prop.comment;
-        }
-        if (annotation.prop.title) {
-          title = annotation.prop.title;
-        }
-      }
+  const annotationToItem = React.useCallback(
+    (annotation) => getRowItemFromAnnotation(annotation, {
+      layerName,
+      locate: (targetLayerName, id, pos) => {
+        actions.setViewerAnnotationSelection({
+          layerName: targetLayerName,
+          annotationId: id,
+        });
+        actions.setViewerCameraPosition(pos);
+      },
+    }), [layerName, actions],
+  );
 
-      newItem = {
-        id: `${id}`,
-        pos: `(${pos[0]}, ${pos[1]}, ${pos[2]})`,
-        title,
-        comment,
-        type,
-        locateAction: () => { locateItem(pos); },
-        deleteAction: () => {
-          const source = getAnnotationSource(undefined, layerName);
-          console.log(source);
-          source.delete(source.getReference(id));
-        },
-        updateAction: (change) => {
-          const source = getAnnotationSource(undefined, layerName);
-          let changed = false;
-          if (change.title !== undefined) {
-            newAnnotation.prop.title = change.title;
-            changed = true;
-          }
-          if (change.comment !== undefined) {
-            newAnnotation.prop.comment = change.comment;
-            changed = true;
-          }
-          if (change.type !== undefined) {
-            newAnnotation.prop.type = change.type;
-            changed = true;
-          }
-          if (changed) {
-            source.update(source.getReference(id), newAnnotation);
-            source.commit(source.getReference(id));
-          }
-        },
-      };
-    }
-    return newItem;
-  }, [layerName, locateItem]);
-
-  const updateTableRows = React.useCallback((annotation) => {
+  const updateTableRows = React.useCallback(() => {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const newData = [];
       source.references.forEach((ref) => {
         if (ref.value) {
           const item = annotationToItem(ref.value);
-          if (annotation && !annotation.source && item.id === annotation.id) {
-            console.log('new annotation added:', annotation.id);
-          }
           newData.push(item);
         }
       });
@@ -102,14 +56,26 @@ function AnnotationTable(props) {
   const onAnnotationAdded = React.useCallback((annotation) => {
     // console.log(annotation);
     if (!annotation.source || annotation.source === 'downloaded:last') {
-      updateTableRows(annotation);
+      updateTableRows();
+      if (!annotation.source) {
+        const isValid = isValidAnnotation(annotation, dataConfig);
+        actions.addAlert({
+          severity: isValid ? 'success' : 'info',
+          message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
+          duration: 1000,
+        });
+      }
     }
-  }, [updateTableRows]);
+  }, [updateTableRows, dataConfig, layerName, actions]);
 
   const onAnnotationDeleted = React.useCallback((id) => {
-    console.log(id);
+    actions.addAlert({
+      severity: 'success',
+      message: `Annotation ${id} deleted in [${layerName}]`,
+      duration: 2000,
+    });
     updateTableRows();
-  }, [updateTableRows]);
+  }, [updateTableRows, actions, layerName]);
 
   const onAnnotationUpdated = React.useCallback((annotation) => {
     console.log(annotation);
@@ -117,7 +83,7 @@ function AnnotationTable(props) {
   }, [updateTableRows]);
 
   const onAnnotationSelectionChanged = React.useCallback((annotation) => {
-    console.log('selected:', annotation);
+    // console.log('selected:', annotation);
     if (annotation) {
       setSelectedAnnotation(annotation.id);
     } else {
@@ -154,20 +120,39 @@ function AnnotationTable(props) {
     onAnnotationSelectionChanged,
   ]);
 
+  const handleToolChange = React.useCallback((tool) => {
+    actions.setViewerAnnotationTool({
+      layerName,
+      annotationTool: tool,
+    });
+  }, [layerName, actions]);
+
+  const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected)), []);
+
   return (
-    <DataTable
-      data={data}
-      selectedId={selectedAnnotation}
-      config={dataConfig}
-      getId={(row) => row.id}
-    />
+    <div>
+      <DataTable
+        data={data}
+        selectedId={selectedAnnotation}
+        config={dataConfig}
+        getId={React.useCallback((row) => row.id, [])}
+        getLocateIcon={getLocateIcon}
+      />
+      <hr />
+      {tools ? <AnnotationToolControl tools={tools} actions={actions} defaultTool="annotatePoint" onToolChanged={handleToolChange} /> : null}
+    </div>
   );
 }
 
 AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
-  locateItem: PropTypes.func.isRequired,
+  tools: PropTypes.arrayOf(PropTypes.string),
+  actions: PropTypes.object.isRequired,
+};
+
+AnnotationTable.defaultProps = {
+  tools: null,
 };
 
 export default AnnotationTable;
