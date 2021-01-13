@@ -165,10 +165,10 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   useEffect(() => {
     if (dataset && user) {
       const token = user.getAuthResponse().id_token;
-      const backend = new MergeBackendCloud(dataset.name, token, actions.addAlert);
+      const backend = new MergeBackendCloud(dataset.name, projectUrl, token, actions.addAlert);
       mergeManager.current.init(actions, getNeuroglancerColor, backend);
     }
-  }, [actions, dataset, mergeManager, user]);
+  }, [actions, dataset, projectUrl, mergeManager, user]);
 
   const onKeyPress = (event) => {
     // Ignore keyboard shortcuts when a Neuroglancer text input has focus.

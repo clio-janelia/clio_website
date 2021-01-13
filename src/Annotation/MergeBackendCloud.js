@@ -3,14 +3,15 @@ const KEY_MAIN_TO_OTHERS = 'mainToOthers';
 const KEY_OTHER_TO_MAIN = 'otherToMain';
 
 export default class MergeBackendCloud {
-  constructor(datasetName, token, addAlert) {
+  constructor(datasetName, projectUrl, token, addAlert) {
     this.datasetName = datasetName;
+    this.projectUrl = projectUrl;
     this.token = token;
     this.addAlert = addAlert;
   }
 
   store = (mainToOthers, otherToMain) => {
-    const urlBase = `https://clio-store-vwzoicitea-uk.a.run.app/clio_toplevel/kv/${this.datasetName}/${SCOPE}`;
+    const urlBase = `${this.projectUrl}/kv/${this.datasetName}/${SCOPE}`;
     const options = {
       method: 'POST',
       headers: {
@@ -45,7 +46,7 @@ export default class MergeBackendCloud {
     let mainToOthers = {};
     let otherToMain = {};
 
-    const urlBase = `https://clio-store-vwzoicitea-uk.a.run.app/clio_toplevel/kv/${this.datasetName}/${SCOPE}`;
+    const urlBase = `${this.projectUrl}/kv/${this.datasetName}/${SCOPE}`;
     const options = {
       headers: {
         Authorization: `Bearer ${this.token}`,
