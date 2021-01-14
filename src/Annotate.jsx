@@ -13,7 +13,7 @@ import config from './config';
 import {
   ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
 } from './Annotation/AnnotationUtils';
-import MergeBackendLocal from './Annotation/MergeBackendLocal';
+import MergeBackendCloud from './Annotation/MergeBackendCloud';
 import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
 
@@ -164,11 +164,11 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const mergeManager = React.useRef(new MergeManager());
   useEffect(() => {
     if (dataset && user) {
-      // TODO: Switch to backend using cloud storage.
-      const backend = new MergeBackendLocal();
+      const token = user.getAuthResponse().id_token;
+      const backend = new MergeBackendCloud(dataset.name, projectUrl, token, actions.addAlert);
       mergeManager.current.init(actions, getNeuroglancerColor, backend);
     }
-  }, [actions, dataset, mergeManager, user]);
+  }, [actions, dataset, projectUrl, mergeManager, user]);
 
   const onKeyPress = (event) => {
     // Ignore keyboard shortcuts when a Neuroglancer text input has focus.

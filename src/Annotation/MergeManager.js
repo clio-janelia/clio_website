@@ -67,11 +67,16 @@ export default class MergeManager {
 
   select = (selectionNow) => {
     this.selection = this.orderedSelection(this.selection, selectionNow);
+    if (this.onSelectionChanged) {
+      this.onSelectionChanged();
+    }
   };
 
   isolate = (ids) => {
     this.actions.setViewerSegments(ids);
   }
+
+  onSelectionChanged = undefined;
 
   onMergeChanged = undefined;
 
@@ -191,14 +196,20 @@ export default class MergeManager {
   };
 
   restore = () => {
-    const [mainToOthers, otherToMain] = this.backend.restore();
-    this.mainToOthers = mainToOthers;
-    this.otherToMain = otherToMain;
+    this.backend.restore()
+      .then(([mainToOthers, otherToMain]) => {
+        this.mainToOthers = mainToOthers;
+        this.otherToMain = otherToMain;
 
-    const equivalences = this.mergeEquivalances();
-    this.actions.setViewerSegmentEquivalences(equivalences);
+        const equivalences = this.mergeEquivalances();
+        this.actions.setViewerSegmentEquivalences(equivalences);
 
-    const colors = this.mergeColors();
-    this.actions.setViewerSegmentColors(colors);
+        const colors = this.mergeColors();
+        this.actions.setViewerSegmentColors(colors);
+
+        if (this.onMergeChanged) {
+          this.onMergeChanged();
+        }
+      });
   };
 }
