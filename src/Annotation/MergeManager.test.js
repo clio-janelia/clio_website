@@ -11,7 +11,7 @@ const mockGetNeuroglancerColor = () => '#000000';
 class MockBackend {
   store = () => {}
 
-  restore = () => [{}, {}]
+  restore = () => new Promise((resolve) => { resolve([{}, {}]); });
 }
 const mockBackend = new MockBackend();
 
