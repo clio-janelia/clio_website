@@ -155,7 +155,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
         <IconButton to="/help" component={Link} className={classes.title}>
           <HelpIcon />
         </IconButton>
-        <IconButton to="/about" component={Link} className={classes.title}>
+        <IconButton to="/settings" component={Link} className={classes.title}>
           <SettingsIcon />
         </IconButton>
       </Toolbar>
