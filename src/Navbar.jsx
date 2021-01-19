@@ -6,8 +6,10 @@ import Select from 'react-select';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import InfoIcon from '@material-ui/icons/Info';
+import SettingsIcon from '@material-ui/icons/Settings';
+import HelpIcon from '@material-ui/icons/Help';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
@@ -28,7 +30,6 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     color: '#fff',
-    textDecoration: 'none',
   },
   floater: {
     position: 'absolute',
@@ -151,9 +152,12 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
           Hide Header
         </Button>
         <Login />
-        <Link to="/about" className={classes.title}>
-          <InfoIcon />
-        </Link>
+        <IconButton to="/help" component={Link} className={classes.title}>
+          <HelpIcon />
+        </IconButton>
+        <IconButton to="/about" component={Link} className={classes.title}>
+          <SettingsIcon />
+        </IconButton>
       </Toolbar>
     </AppBar>
   );
