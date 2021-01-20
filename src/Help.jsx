@@ -90,7 +90,7 @@ export default function Help() {
           <Typography variant="body1" paragraph>
             The web interface is designed to enable users several ways to explore and make and share
             discoveries in EM data. At a high-level, there are a series of plugins for interacting
-            with the data. Each plugin interacts with an embedded version of
+            with the data. Each plugin interacts with an embedded version of{' '}
             <a href="https://github.com/google/neuroglancer">neuroglancer</a>. (We maintain a fork
             of this repo, which we aim to keep close to the original branch.) The user can choose
             from a set of datasets depending on the permissions associated with the dataset. For
