@@ -29,6 +29,7 @@ const UserAdmin = lazy(() => import('./UserAdmin'));
 const WorkSpaces = lazy(() => import('./WorkSpaces'));
 const AuthTest = lazy(() => import('./AuthTest'));
 const Help = lazy(() => import('./Help'));
+const Docs = lazy(() => import('./Docs'));
 
 const theme = createMuiTheme({
   palette: {
@@ -212,6 +213,7 @@ function App() {
                 </Route>
                 <Route path="/settings" component={Settings} />
                 <Route path="/help" component={Help} />
+                <Route path="/api/docs" component={Docs} />
                 <Route path="/users" component={UserAdmin} />
                 <Route path="/auth_test" component={AuthTest} />
               </Suspense>

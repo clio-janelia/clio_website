@@ -9,7 +9,6 @@ const useStyles = makeStyles({
   },
 });
 
-
 export default function Help() {
   const classes = useStyles();
   return (
@@ -23,9 +22,7 @@ export default function Help() {
         </Typography>
       </Grid>
       <Grid item sm={12}>
-        <Typography variant="h6">
-          Help contents
-        </Typography>
+        <Typography variant="h6">Help contents</Typography>
       </Grid>
     </Grid>
   );
