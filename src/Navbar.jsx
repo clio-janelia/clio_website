@@ -30,6 +30,7 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     color: '#fff',
+    textDecoration: 'none',
   },
   floater: {
     position: 'absolute',
