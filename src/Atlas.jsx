@@ -35,6 +35,9 @@ const useStyles = makeStyles({
   },
 });
 
+const minAnnotations = 4;
+const maxAnnotations = 12;
+
 export default function Atlas(props) {
   const { children, actions, datasets } = props;
   const classes = useStyles();
@@ -44,6 +47,7 @@ export default function Atlas(props) {
   const [filterTerm, setFilterTerm] = useState('');
   const [datasetFilter, setDataSetFilter] = useState([]);
   const [dsLookup, setDsLookup] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
   const [showList, setShowList] = useState(true);
   const [annotations, setAnnotations] = useState([]);
   const [loading, setLoading] = useState('preload');
@@ -145,8 +149,18 @@ export default function Atlas(props) {
   }, [actions, selectedAnnotation, projectUrl, dsLookup]);
 
   const handleClearSelection = () => {
+    // figure out the page the currently selected annotation is on when
+    // the view is not displayed/
+    const annotationIndex = annotations.findIndex(
+      (item) => (
+        item.locationkey === selectedAnnotation.locationkey
+        && item.dataset === selectedAnnotation.dataset
+      ),
+    );
+
     setSelected(null);
     setShowList(true);
+    setCurrentPage(Math.ceil((annotationIndex + 1) / maxAnnotations));
   };
 
   if (loading === 'failed') {
@@ -166,6 +180,56 @@ export default function Atlas(props) {
       </div>
     );
   }
+
+  // do annotation filtering here
+
+  let filteredAnnotations = annotations;
+  const annotationsPerPage = selectedAnnotation ? minAnnotations : maxAnnotations;
+
+  if (datasetFilter && datasetFilter.length > 0) {
+    /* eslint-disable-next-line max-len */
+    filteredAnnotations = annotations.filter((annotation) => datasetFilter.includes(annotation.dataset));
+  }
+
+  if (filterTerm) {
+    let category = null;
+    if (filterType !== 'Title or description') {
+      category = filterType.toLowerCase();
+    }
+
+    const re = new RegExp(filterTerm, 'i');
+
+    if (category) {
+      const categories = ['title', 'description'];
+      if (categories.includes(category)) {
+        filteredAnnotations = filteredAnnotations.filter((annot) => re.test(annot[category]));
+      }
+    } else {
+      filteredAnnotations = filteredAnnotations.filter(
+        /* eslint-disable-next-line max-len */
+        (annot) => re.test(annot.title) || re.test(annot.description) || re.test(datasets[annot.dataset].description),
+      );
+    }
+  }
+
+  // must come after the filter code or it wont work.
+  const pages = Math.ceil(filteredAnnotations.length / annotationsPerPage);
+  const paginatedAnnotations = filteredAnnotations.slice(
+    currentPage * annotationsPerPage - annotationsPerPage,
+    currentPage * annotationsPerPage,
+  );
+
+  const handleAnnotationSelect = (annotation) => {
+    const annotationIndex = annotations.findIndex(
+      (item) => (
+        item.locationkey === annotation.locationkey
+        && item.dataset === annotation.dataset
+      ),
+    );
+    setSelected(annotation);
+    setCurrentPage(Math.ceil((annotationIndex + 1) / minAnnotations));
+  };
+
 
   return (
     <div className={classes.expand}>
@@ -195,14 +259,14 @@ export default function Atlas(props) {
               <Grid item xs={12} sm={2} />
               <Grid item xs={12} className={classes.list}>
                 <AnnotationsList
-                  annotations={annotations}
+                  pages={pages}
+                  datasets={dsLookup}
+                  currentPage={currentPage}
+                  annotations={paginatedAnnotations}
                   loading={!(loading === 'success')}
                   selected={selectedAnnotation || {}}
-                  onChange={setSelected}
-                  filterBy={filterTerm}
-                  filterType={filterType}
-                  datasetFilter={datasetFilter}
-                  datasets={dsLookup}
+                  onSelect={handleAnnotationSelect}
+                  onChange={setCurrentPage}
                 />
               </Grid>
             </>

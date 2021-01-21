@@ -33,6 +33,6 @@ export default function FilterType({ selected, onChange }) {
 }
 
 FilterType.propTypes = {
-  selected: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selected: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
 };
