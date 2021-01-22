@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
@@ -10,6 +10,7 @@ import AnnotationsList from './Atlas/AnnotationsList';
 import AnnotationsFilter from './Atlas/AnnotationsFilter';
 import DatasetFilter from './Atlas/DatasetFilter';
 import FilterType from './Atlas/FilterType';
+import { addAlert } from './actions/alerts';
 import config from './config';
 
 const useStyles = makeStyles({
@@ -40,6 +41,7 @@ const maxAnnotations = 12;
 
 export default function Atlas(props) {
   const { children, actions, datasets } = props;
+  const dispatch = useDispatch();
   const classes = useStyles();
 
   const [selectedAnnotation, setSelected] = useState(null);
@@ -53,6 +55,7 @@ export default function Atlas(props) {
   const [loading, setLoading] = useState('preload');
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+  const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
 
   useEffect(() => {
     // load the annotations from an end point
@@ -155,6 +158,7 @@ export default function Atlas(props) {
       (item) => (
         item.locationkey === selectedAnnotation.locationkey
         && item.dataset === selectedAnnotation.dataset
+        && item.user === selectedAnnotation.user
       ),
     );
 
@@ -224,11 +228,73 @@ export default function Atlas(props) {
       (item) => (
         item.locationkey === annotation.locationkey
         && item.dataset === annotation.dataset
+        && item.user === annotation.user
       ),
     );
     setSelected(annotation);
     setCurrentPage(Math.ceil((annotationIndex + 1) / minAnnotations));
   };
+
+  const handleVerified = () => {
+    const verified = {
+      ...selectedAnnotation,
+      verified: true,
+    };
+    // submit the verified component to the backend
+    const options = {
+      headers: {
+        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+      },
+      method: 'POST',
+      body: JSON.stringify(verified),
+    };
+
+    const point = verified.location;
+    const queryCoords = `x=${point[0]}&y=${point[1]}&z=${point[2]}`;
+    const atlasUrl = `${projectUrl}/atlas/${verified.dataset}?${queryCoords}`;
+
+    fetch(atlasUrl, options)
+      .then((response) => response.json()
+        .then((json) => {
+          if (response.ok) {
+            return json;
+          }
+          return Promise.reject(json);
+        }))
+      .then((data) => {
+        dispatch(addAlert({ severity: 'success', message: 'Annotation verified' }));
+        // need to update the UI to show the annotation is now verified.
+        const updatedAnnotations = annotations.map((annotation) => {
+          if (data.locationkey === annotation.locationkey
+            && data.dataset === annotation.dataset
+            && data.user === annotation.user
+          ) {
+            return data;
+          }
+          return annotation;
+        });
+        setAnnotations(updatedAnnotations);
+        setSelected(data);
+      })
+      .catch((error) => {
+        if (error.detail) {
+          dispatch(addAlert({
+            severity: 'error',
+            message: `Failed to verify annotation: ${error.detail}`,
+          }));
+        } else {
+          console.log(error);
+          dispatch(addAlert({
+            severity: 'error',
+            message: 'Failed to verify annotation: error communicating with the server',
+          }));
+        }
+      });
+  };
+
+  // user has clio write
+  const allowedToVerifyAnnotaton = roles.global_roles && roles.global_roles.includes('clio_write');
+  const alreadyVerified = selectedAnnotation && selectedAnnotation.verified;
 
 
   return (
@@ -284,7 +350,16 @@ export default function Atlas(props) {
                   onClick={() => setShowList((current) => !current)}
                 >
                   Toggle Annotation List
+                </Button>{' '}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleVerified}
+                  disabled={!allowedToVerifyAnnotaton || alreadyVerified}
+                >
+                  Verify Annotation
                 </Button>
+
               </p>
             </Grid>
           )}
