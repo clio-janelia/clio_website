@@ -238,7 +238,7 @@ export default function Atlas(props) {
   const handleVerified = () => {
     const verified = {
       ...selectedAnnotation,
-      verified: true,
+      verified: !selectedAnnotation.verified,
     };
     // submit the verified component to the backend
     const options = {
@@ -355,9 +355,9 @@ export default function Atlas(props) {
                   variant="contained"
                   color="primary"
                   onClick={handleVerified}
-                  disabled={!allowedToVerifyAnnotaton || alreadyVerified}
+                  disabled={!allowedToVerifyAnnotaton}
                 >
-                  Verify Annotation
+                  {alreadyVerified ? 'Unverify' : 'Verify Annotation'}
                 </Button>
 
               </p>
