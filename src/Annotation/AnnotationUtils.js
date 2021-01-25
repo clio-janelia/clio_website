@@ -101,12 +101,15 @@ export const ATLAS_SHADER = `
 #uicontrol float opacity slider(min=0, max=1, step=0.1, default=1)
 #uicontrol float opacity3D slider(min=0, max=1, step=0.1, default=0.2)
 #uicontrol vec3 defaultPointColor color(default="#8080FF")
+#uicontrol vec3 checkedPointColor color(default="#008040")
 void main() {
   setPointMarkerSize(pointRadius);
   float finalOpacity = PROJECTION_VIEW ? opacity3D : opacity;
   setPointMarkerBorderColor(vec4(borderColor, finalOpacity));
-  if (prop_rendering_attribute() == 1) {
+  if (prop_rendering_attribute() == -1) {
     setColor(vec4(defaultPointColor, 0.1));
+  } else if (prop_rendering_attribute() == 1) {
+    setColor(vec4(checkedPointColor, finalOpacity));
   } else {
     setColor(vec4(defaultPointColor, finalOpacity));
   }
@@ -187,12 +190,14 @@ export function getRowItemFromAnnotation(annotation, config) {
       locateAction: () => {
         locate(layerName, id, pos);
       },
-      deleteAction: () => {
+    };
+    if (!annotation.verified) {
+      item.deleteAction = () => {
         const source = getAnnotationSource(undefined, layerName);
         // console.log(source);
         source.delete(source.getReference(id));
-      },
-      updateAction: (change) => {
+      };
+      item.updateAction = (change) => {
         const newProps = {};
         if (change.title !== undefined) {
           newProps.title = change.title;
@@ -209,8 +214,8 @@ export function getRowItemFromAnnotation(annotation, config) {
           source.commit(source.getReference(id));
           locate(layerName, id, pos);
         }
-      },
-    };
+      };
+    }
   }
 
   return item;
