@@ -13,7 +13,6 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     alignItems: 'center',
     width: 400,
-    margin: '0 auto',
   },
   filterInput: {
     marginLeft: theme.spacing(1),

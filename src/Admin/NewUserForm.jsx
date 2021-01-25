@@ -7,7 +7,7 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
 const baseSettings = {
-  clio_global: ['clio_general'],
+  global_roles: ['clio_general'],
 };
 
 export default function NewUserForm({ onUpdate }) {
@@ -31,6 +31,10 @@ export default function NewUserForm({ onUpdate }) {
     if (userName === '') {
       return;
     }
+    const modifiedPermissions = {
+      ...permissions,
+      email: userName,
+    };
 
     const options = {
       method: 'POST',
@@ -38,7 +42,7 @@ export default function NewUserForm({ onUpdate }) {
         Authorization: `Bearer ${user.getAuthResponse().id_token}`,
       },
       body: JSON.stringify({
-        [userName]: permissions,
+        [userName]: modifiedPermissions,
       }),
     };
 

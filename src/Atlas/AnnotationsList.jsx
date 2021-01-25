@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import Grid from '@material-ui/core/Grid';
@@ -29,68 +29,33 @@ const imageSliceUrlTemplate = 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice
 export default function AnnotationsList({
   annotations,
   selected,
+  pages,
+  currentPage,
   onChange,
-  filterBy,
-  filterType,
+  onSelect,
   datasets,
-  datasetFilter,
   loading,
 }) {
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   const canWrite = roles.global_roles && roles.global_roles.includes('clio_write');
 
-  const [currentPage, setCurrentPage] = useState(1);
   const classes = useStyles();
 
-  const annotationsPerPage = 'title' in selected ? 4 : 12;
-
-  const handleClick = (annotation) => {
-    onChange(annotation);
-  };
-
+  // move this to parent component
   const handlePageChange = (event, page) => {
-    setCurrentPage(page);
+    onChange(page);
   };
 
   if (loading) {
     return <CircularProgress />;
   }
 
-  let filteredAnnotations = annotations;
+  // move this to parent component
+  const handleClick = (annotation) => {
+    onSelect(annotation);
+  };
 
-  if (datasetFilter && datasetFilter.length > 0) {
-    /* eslint-disable-next-line max-len */
-    filteredAnnotations = annotations.filter((annotation) => datasetFilter.includes(annotation.dataset));
-  }
-
-  if (filterBy) {
-    let category = null;
-    if (filterType !== 'Title or description') {
-      category = filterType.toLowerCase();
-    }
-
-    const re = new RegExp(filterBy, 'i');
-
-    if (category) {
-      const categories = ['title', 'description'];
-      if (categories.includes(category)) {
-        filteredAnnotations = filteredAnnotations.filter((annot) => re.test(annot[category]));
-      }
-    } else {
-      filteredAnnotations = filteredAnnotations.filter(
-        /* eslint-disable-next-line max-len */
-        (annot) => re.test(annot.title) || re.test(annot.description) || re.test(datasets[annot.dataset].description),
-      );
-    }
-  }
-
-  const pages = Math.ceil(filteredAnnotations.length / annotationsPerPage);
-  const paginatedAnnotations = filteredAnnotations.slice(
-    currentPage * annotationsPerPage - annotationsPerPage,
-    currentPage * annotationsPerPage,
-  );
-
-  const annotationSelections = paginatedAnnotations.map((annotation) => {
+  const annotationSelections = annotations.map((annotation) => {
     const {
       title: name,
       dataset: dataSet,
@@ -113,7 +78,7 @@ export default function AnnotationsList({
     }
 
     const key = `${name}_${timestamp}`;
-    const isSelected = key === `${selected.title}_${selected.timestamp}`;
+    const isSelected = selected && key === `${selected.title}_${selected.timestamp}`;
 
     const verifiedChip = verified ? (
       <Chip label="Verified" color="primary" icon={<DoneIcon />} />
@@ -169,16 +134,16 @@ export default function AnnotationsList({
 }
 
 AnnotationsList.propTypes = {
-  selected: PropTypes.object.isRequired,
+  pages: PropTypes.number.isRequired,
+  currentPage: PropTypes.number.isRequired,
+  selected: PropTypes.object,
   onChange: PropTypes.func.isRequired,
-  filterBy: PropTypes.string,
-  filterType: PropTypes.string.isRequired,
-  datasetFilter: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onSelect: PropTypes.func.isRequired,
   datasets: PropTypes.object.isRequired,
   annotations: PropTypes.arrayOf(PropTypes.object).isRequired,
   loading: PropTypes.bool.isRequired,
 };
 
 AnnotationsList.defaultProps = {
-  filterBy: null,
+  selected: null,
 };
