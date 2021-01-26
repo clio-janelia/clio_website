@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 
 import Button from '@material-ui/core/Button';
+
+import { addAlert } from './actions/alerts';
 
 const inferredLayerType = (layer) => {
   if (layer.name.includes('segmentation')) {
@@ -18,6 +20,7 @@ const inferredLayerType = (layer) => {
 export default function NapariButton({ dataset }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
+  const dispatch = useDispatch();
 
   let segmentationLayer = null;
 
@@ -30,9 +33,10 @@ export default function NapariButton({ dataset }) {
   }
 
   const handleClick = () => {
+    // eslint-disable-next-line no-underscore-dangle
+    const coordinates = window.viewer.position.coordinates_;
     const body = {
-      // eslint-disable-next-line no-underscore-dangle
-      focus: window.viewer.position.coordinates_,
+      focus: coordinates,
       layer: segmentationLayer,
       grayscale: dataset.location,
     };
@@ -56,12 +60,12 @@ export default function NapariButton({ dataset }) {
         }
         return response.json();
       })
-      .then((data) => {
-        console.log(data);
+      .then(() => {
         // display message to say that editing can begin.
+        dispatch(addAlert({ severity: 'success', message: `You can now use the Napari Clio plugin to edit your subvolume centered at (${coordinates[0]}, ${coordinates[1]}, ${coordinates[2]})` }));
       })
       .catch((err) => {
-        console.log(err);
+        dispatch(addAlert({ severity: 'error', message: `There was a problem contacting the clio storage service: ${err}` }));
       });
   };
 
