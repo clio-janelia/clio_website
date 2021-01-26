@@ -150,22 +150,21 @@ export default function MatchListLoader({
   return (
     <>
       <Grid item xs={12} md={5}>
-        <Typography>
-          {isLoading ? (
-            <Skeleton />
-          ) : (
-            <>
-              Viewing Matches for <MouseCoordinates position={coords} />
-            </>
-          )}
-          {isLoading ? (
-            ''
-          ) : (
-            <Button variant="outlined" color="primary" onClick={handleSaveSearch}>
-              Save
-            </Button>
-          )}
-        </Typography>
+        {isLoading ? (
+          <Skeleton />
+        ) : (
+          <>
+            <Typography component="span">Viewing Matches for </Typography>
+            <MouseCoordinates position={coords} />
+          </>
+        )}
+        {isLoading ? (
+          ''
+        ) : (
+          <Button variant="outlined" color="primary" onClick={handleSaveSearch}>
+            Save
+          </Button>
+        )}
       </Grid>
       <Grid item xs={12} md={2} className={classes.matchText}>
         <Typography>{isLoading ? <Skeleton /> : matchesText}</Typography>

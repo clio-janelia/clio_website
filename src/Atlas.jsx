@@ -11,7 +11,6 @@ import AnnotationsFilter from './Atlas/AnnotationsFilter';
 import DatasetFilter from './Atlas/DatasetFilter';
 import FilterType from './Atlas/FilterType';
 import { addAlert } from './actions/alerts';
-import config from './config';
 
 const useStyles = makeStyles({
   window: {
@@ -95,8 +94,6 @@ export default function Atlas(props) {
   useEffect(() => {
     if (selectedAnnotation) {
       const selectedDataset = dsLookup[selectedAnnotation.dataset];
-      const replaceRegex = new RegExp(`/${config.top_level_function}$`);
-      const annotationsUrl = projectUrl.replace(replaceRegex, '');
       const layers = [
         {
           name: selectedDataset.name,
@@ -109,7 +106,7 @@ export default function Atlas(props) {
           name: 'annotations',
           type: 'annotation',
           source: {
-            url: `clio://${annotationsUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
+            url: `clio://${projectUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
           },
         },
       ];
