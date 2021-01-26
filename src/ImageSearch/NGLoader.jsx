@@ -3,8 +3,6 @@ import { useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 
-import config from '../config';
-
 const useStyles = makeStyles({
   window: {
     width: '100%',
@@ -26,9 +24,6 @@ export default function NGLoader({
 
   useEffect(() => {
     if (dataset) {
-      console.log('reloading neuroglancer');
-      const replaceRegex = new RegExp(`/${config.top_level_function}$`);
-      const annotationsUrl = projectUrl.replace(replaceRegex, '');
       const layers = [
         {
           name: dataset.name,
@@ -41,7 +36,7 @@ export default function NGLoader({
           name: 'annotations',
           type: 'annotation',
           source: {
-            url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+            url: `clio://${projectUrl}/${dataset.name}?auth=neurohub`,
           },
         },
       ];

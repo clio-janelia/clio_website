@@ -9,7 +9,6 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
 import AnnotationPanel from './Annotation/AnnotationPanel';
-import config from './config';
 import {
   ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
 } from './Annotation/AnnotationUtils';
@@ -95,8 +94,6 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
   useEffect(() => {
     if (dataset && user) {
-      const replaceRegex = new RegExp(`/${config.top_level_function}$`);
-      const annotationsUrl = projectUrl.replace(replaceRegex, '');
       const layers = [
         {
           name: dataset.name,
@@ -109,7 +106,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           name: 'annotations',
           type: 'annotation',
           source: {
-            url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub`,
+            url: `clio://${projectUrl}/${dataset.name}?auth=neurohub`,
           },
           shader: ANNOTATION_SHADER,
           tool: 'annotatePoint',
@@ -118,7 +115,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           name: 'atlas',
           type: 'annotation',
           source: {
-            url: `clio://${annotationsUrl}/${dataset.name}?auth=neurohub&kind=atlas`,
+            url: `clio://${projectUrl}/${dataset.name}?auth=neurohub&kind=atlas`,
           },
           shader: ATLAS_SHADER,
           tool: 'annotatePoint',
