@@ -266,7 +266,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
               mergeManager={mergeManager.current}
             />
           </AnnotationPanel>
-          <NapariButton dataset={selectedDatasetName} />
+          <NapariButton dataset={dataset} />
         </Drawer>
       </div>
     );
