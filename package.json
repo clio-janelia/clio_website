@@ -1,10 +1,10 @@
 {
   "name": "clioWeb",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
   "dependencies": {
     "@babel/core": "7.4.3",
-    "@janelia-flyem/react-neuroglancer": "^1.11.1",
+    "@janelia-flyem/react-neuroglancer": "^1.12.0",
     "@material-ui/core": "^4.9.10",
     "@material-ui/icons": "^4.0.0-beta.0",
     "@material-ui/lab": "^4.0.0-alpha.57",

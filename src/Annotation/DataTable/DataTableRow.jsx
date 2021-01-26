@@ -130,6 +130,7 @@ function DataTableRow(props) {
           align={column.align}
           component="th"
           scope="row"
+          style={column.style}
         >
           {getCellElement(column)}
         </TableCell>

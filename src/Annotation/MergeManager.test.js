@@ -181,3 +181,84 @@ it('handles how Neuroglancer changes the selection', () => {
 
   expect(mm.selection).toEqual([1100404634]);
 });
+
+it('expands', () => {
+  const mm = new MergeManager();
+  mm.init(mockActions, mockGetNeuroglancerColor, mockBackend);
+
+  mm.select([]);
+  mm.select([1, 2, 3]);
+  mm.merge();
+
+  mm.select([]);
+  mm.select([5, 6]);
+  mm.merge();
+
+  mm.select([]);
+  mm.select([9, 10]);
+  mm.merge();
+
+  expect(mm.expand([1, 4, 5, 7, 8, 9])).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+});
+
+it('expands recursively', () => {
+  const mm = new MergeManager();
+  mm.init(mockActions, mockGetNeuroglancerColor, mockBackend);
+
+  mm.select([]);
+  mm.select([1, 2, 3]);
+  mm.merge();
+
+  mm.select([]);
+  mm.select([6, 7, 8]);
+  mm.merge();
+
+  mm.select([]);
+  mm.select([5, 6]);
+  mm.merge();
+
+  mm.select([]);
+  mm.select([9, 10]);
+  mm.merge();
+
+  expect(mm.expand([1, 4, 5, 9])).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+});
+
+it('combines types', () => {
+  const mm = new MergeManager();
+  mm.init(mockActions, mockGetNeuroglancerColor, mockBackend);
+
+  expect(mm.combineTypes(['A', 'A', null])).toEqual('A');
+  expect(mm.combineTypes(['B', 'C', null])).toEqual('Mixed');
+  expect(mm.combineTypes([null, null, 'D'])).toEqual('D');
+  expect(mm.combineTypes(['E', 'E', null, 'F'])).toEqual('Mixed');
+  expect(mm.combineTypes([null, null, null])).toEqual(null);
+});
+
+it('computes merged types', () => {
+  const mm = new MergeManager();
+  mm.init(mockActions, mockGetNeuroglancerColor, mockBackend);
+
+  mm.idToType = {
+    1: 'A', 2: null, 3: 'A', 4: null, 5: 'A', 6: null, 7: 'G', 8: null,
+  };
+
+  mm.select([]);
+  mm.select([1, 2, 3]);
+  mm.merge();
+
+  mm.select([]);
+  mm.select([5, 6, 1]);
+  mm.merge();
+
+  mm.select([]);
+  mm.select([7, 8, 5]);
+  mm.merge();
+
+  expect(mm.typeMerged(1)).toEqual('A');
+  expect(mm.typeMerged(5)).toEqual('A');
+  expect(mm.typeMerged(7)).toEqual('Mixed');
+
+  mm.unmerge();
+  expect(mm.mainToTypeMerged[7]).toBeFalsy();
+});

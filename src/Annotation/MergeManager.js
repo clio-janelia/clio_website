@@ -1,8 +1,9 @@
 export default class MergeManager {
-  init = (actions, getNeuroglancerColor, backend) => {
+  init = (actions, getNeuroglancerColor, backend, neuPrintManager) => {
     this.actions = actions;
     this.getNeuroglancerColor = getNeuroglancerColor;
     this.backend = backend;
+    this.neuPrintManager = neuPrintManager;
     if (this.backend) {
       this.restore();
     }
@@ -63,6 +64,8 @@ export default class MergeManager {
     if (this.onMergeChanged) {
       this.onMergeChanged();
     }
+
+    this.mainToTypeMerged = {};
   };
 
   select = (selectionNow) => {
@@ -75,6 +78,27 @@ export default class MergeManager {
   isolate = (ids) => {
     this.actions.setViewerSegments(ids);
   }
+
+  getUltimateMain = (other) => {
+    let curr;
+    let next = other;
+    do {
+      curr = next;
+      next = this.otherToMain[curr];
+    } while (next);
+    return curr;
+  };
+
+  expand = (ids) => (
+    ids.reduce((a, c) => {
+      let result = [c];
+      const others = this.mainToOthers[c];
+      if (others) {
+        result = result.concat(this.expand(others));
+      }
+      return (a.concat(result));
+    }, [])
+  )
 
   onSelectionChanged = undefined;
 
@@ -94,21 +118,16 @@ export default class MergeManager {
 
   selection = [];
 
-  getUltimateMain = (other) => {
-    let curr;
-    let next = other;
-    do {
-      curr = next;
-      next = this.otherToMain[curr];
-    } while (next);
-    return curr;
-  };
+  idToType = {};
+
+  mainToTypeMerged = {};
 
   mergeData = (mainChosen, others) => {
     const main = this.getUltimateMain(mainChosen);
-    if (!Object.prototype.hasOwnProperty.call(this.mainToOthers, main)) {
+    if (!(main in this.mainToOthers)) {
       this.mainToOthers = { ...this.mainToOthers, [main]: [] };
     }
+
     others.forEach((other) => {
       if (other !== main) {
         const otherMain = this.getUltimateMain(other);
@@ -121,7 +140,38 @@ export default class MergeManager {
     if (this.mainToOthers[main].length === 0) {
       delete this.mainToOthers[main];
     }
+
+    if (this.neuPrintManager) {
+      const idsForTypes = [main].concat(others);
+      this.neuPrintManager.getTypes(idsForTypes)
+        .then((types) => {
+          types.forEach((item) => { this.idToType[item.id] = item.type; });
+          this.issueMergeTypeWarnings(idsForTypes);
+          this.updateMainToTypeMerged();
+        });
+    }
   };
+
+  issueMergeTypeWarnings = (idsForTypes) => {
+    const typeToIds = {};
+    idsForTypes.forEach((id) => {
+      const t = this.idToType[id];
+      if (t) {
+        const ids = typeToIds[t];
+        typeToIds[t] = ids ? ids.concat([id]) : [id];
+      }
+    });
+    if (Object.keys(typeToIds).length > 1) {
+      let message = 'Merge will mix types: ';
+      const entries = Object.entries(typeToIds);
+      message += `'${entries[0][0]}': ${entries[0][1]}; `;
+      message += `'${entries[1][0]}': ${entries[1][1]}`;
+      if (entries.length > 2) {
+        message += '; etc.';
+      }
+      this.actions.addAlert({ severity: 'warning', message });
+    }
+  }
 
   mergeEquivalances = () => {
     const result = [];
@@ -168,6 +218,8 @@ export default class MergeManager {
 
     this.selection = selectionNew;
     this.actions.setViewerSegments(this.selection);
+
+    this.updateMainToTypeMerged();
   }
 
   orderedSelection = (selectionWas, selectionNow) => {
@@ -210,6 +262,54 @@ export default class MergeManager {
         if (this.onMergeChanged) {
           this.onMergeChanged();
         }
+
+        if (this.neuPrintManager) {
+          let ids = Object.keys(this.mainToOthers);
+          Object.values(this.mainToOthers).forEach((others) => {
+            ids = ids.concat(others);
+          });
+          this.neuPrintManager.getTypes(ids)
+            .then((types) => {
+              types.forEach((item) => { this.idToType[item.id] = item.type; });
+              this.updateMainToTypeMerged();
+              // TODO: If any ID from `this.mainToOthers` keys or values is missing from `types`
+              // then the official data has changed in conflict with a local merge.
+              // So add a warning color and tooltip to the `MergePanel` table.
+            });
+        }
       });
   };
+
+  typeMerged = (id) => {
+    if (id in this.mainToTypeMerged) {
+      return this.mainToTypeMerged[id];
+    }
+    if (id in this.mainToOthers) {
+      const types = [this.idToType[id]];
+      this.mainToOthers[id].forEach((other) => {
+        types.push(this.typeMerged(other));
+      });
+      const type = this.combineTypes(types);
+      this.mainToTypeMerged[id] = type;
+      return type;
+    }
+    return this.idToType[id];
+  }
+
+  combineTypes = (types) => {
+    const result = types.reduce((a, c) => {
+      if (a && c && (a !== c)) {
+        return 'Mixed';
+      }
+      return a || c;
+    }, null);
+    return result;
+  }
+
+  updateMainToTypeMerged = () => {
+    this.mainToTypeMerged = {};
+    Object.keys(this.mainToOthers).forEach((main) => {
+      this.typeMerged(main);
+    });
+  }
 }
