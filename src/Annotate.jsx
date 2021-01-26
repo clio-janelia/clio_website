@@ -17,6 +17,7 @@ import NeuPrintManager from './Connections/NeuPrintManager';
 import ConnectionsPanel from './Connections/ConnectionsPanel';
 import MergeBackendCloud from './Annotation/MergeBackendCloud';
 import MergeManager from './Annotation/MergeManager';
+import NapariButton from './NapariButton';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
 
 import './Neuroglancer.css';
@@ -265,6 +266,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
               mergeManager={mergeManager.current}
             />
           </AnnotationPanel>
+          <NapariButton dataset={selectedDatasetName} />
         </Drawer>
       </div>
     );

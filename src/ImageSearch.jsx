@@ -24,6 +24,7 @@ import ByExampleResults from './ImageSearch/ByExampleResults';
 import TransferResults from './ImageSearch/TransferResults';
 import SavedSearches from './ImageSearch/SavedSearches';
 import NGLoader from './ImageSearch/NGLoader';
+import NapariButton from './NapariButton';
 
 const initialCoordinates = []; // [24646, 15685, 17376];
 
@@ -164,6 +165,9 @@ export default function ImageSearch({ actions, datasets, selectedDatasetName, ch
           </Grid>
         </Grid>
       </div>
+      <NapariButton
+        dataset={dataset}
+      />
       <Switch>
         <Route exact path={path}>
           {dataset && dataset.transfer && (
