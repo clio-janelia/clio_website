@@ -93,6 +93,12 @@ function DataTableRow(props) {
     </IconButton>
   );
 
+  const deleteButton = (
+    <IconButton onClick={row.deleteAction}>
+      <DeleteIcon />
+    </IconButton>
+  );
+
   const getCellElement = (column) => {
     const value = row[column.field];
     if (column.checkValidity) {
@@ -124,6 +130,7 @@ function DataTableRow(props) {
           align={column.align}
           component="th"
           scope="row"
+          style={column.style}
         >
           {getCellElement(column)}
         </TableCell>
@@ -131,9 +138,7 @@ function DataTableRow(props) {
       <TableCell>
         <Box display="flex" flexDirection="row">
           {row.updateAction ? editButton : undefined}
-          <IconButton onClick={row.deleteAction}>
-            <DeleteIcon />
-          </IconButton>
+          {row.deleteAction ? deleteButton : undefined}
         </Box>
       </TableCell>
     </TableRow>

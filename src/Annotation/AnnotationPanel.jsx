@@ -73,7 +73,7 @@ export default function AnnotationPanel(props) {
   return (
     <div className={classes.annotationRoot}>
       <TabContext value={tabValue}>
-        <TabList onChange={handleTabChange} className={classes.tabContainer}>
+        <TabList onChange={handleTabChange} className={classes.tabContainer} variant="scrollable">
           {tabs}
         </TabList>
         {tabPanels}
