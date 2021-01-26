@@ -1,17 +1,12 @@
-const SCOPE = 'merges';
-const KEY_MAIN_TO_OTHERS = 'mainToOthers';
-const KEY_OTHER_TO_MAIN = 'otherToMain';
-
 export default class MergeBackendCloud {
-  constructor(datasetName, projectUrl, token, addAlert) {
-    this.datasetName = datasetName;
+  constructor(dataset, projectUrl, token, addAlert) {
+    this.dataset = dataset;
     this.projectUrl = projectUrl;
     this.token = token;
     this.addAlert = addAlert;
   }
 
   store = (mainToOthers, otherToMain) => {
-    const urlBase = `${this.projectUrl}/kv/${this.datasetName}/${SCOPE}`;
     const options = {
       method: 'POST',
       headers: {
@@ -19,12 +14,12 @@ export default class MergeBackendCloud {
       },
     };
     options.body = JSON.stringify(mainToOthers);
-    let url = `${urlBase}/${KEY_MAIN_TO_OTHERS}`;
+    let url = this.urlMainToOthers();
     fetch(url, options)
       .then((res1) => {
         if (res1.ok) {
           options.body = JSON.stringify(otherToMain);
-          url = `${urlBase}/${KEY_OTHER_TO_MAIN}`;
+          url = this.urlOtherToMain();
           return (fetch(url, options)
             .then((res2) => {
               if (res2.ok) {
@@ -46,13 +41,12 @@ export default class MergeBackendCloud {
     let mainToOthers = {};
     let otherToMain = {};
 
-    const urlBase = `${this.projectUrl}/kv/${this.datasetName}/${SCOPE}`;
     const options = {
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
     };
-    let url = `${urlBase}/${KEY_MAIN_TO_OTHERS}`;
+    let url = this.urlMainToOthers();
     return (fetch(url, options)
       .then((res1) => {
         if (res1.ok) {
@@ -66,7 +60,7 @@ export default class MergeBackendCloud {
       })
       .then((res1Json) => {
         mainToOthers = res1Json || {};
-        url = `${urlBase}/${KEY_OTHER_TO_MAIN}`;
+        url = this.urlOtherToMain();
         return (fetch(url, options)
           .then((res2) => {
             if (res2.ok) {
@@ -85,6 +79,24 @@ export default class MergeBackendCloud {
       })
       .catch((exc) => {
         this.addAlert({ severity: 'error', message: exc.message });
+        return new Promise((resolve) => { resolve([{}, {}]); });
       }));
   }
+
+  // Internal
+
+  datasetName = () => {
+    if (this.dataset.tag) {
+      return `${this.dataset.name}-${this.dataset.tag}`;
+    }
+    return this.dataset.name;
+  }
+
+  scope = () => `merges-${this.datasetName()}`;
+
+  urlBase = () => `${this.projectUrl}/kv/${this.scope()}`;
+
+  urlMainToOthers = () => `${this.urlBase()}/mainToOthers`;
+
+  urlOtherToMain = () => `${this.urlBase()}/otherToMain`;
 }

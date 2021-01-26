@@ -35,6 +35,9 @@ const DATA_TABLE_CONFIG = {
       title: 'Main',
       field: 'main',
       filterEnabled: true,
+      /* TODO: Add something like this to report an error, like a missing ID:
+      style: { color: 'red' },
+      */
     },
     {
       title: 'Merged Onto Main',
@@ -56,6 +59,7 @@ function MergePanel(props) {
       newData.push({
         main: m,
         others: o.join(', '),
+        id: m,
         locateAction: () => {
           mergeManager.select([parseInt(m, 10)]);
           mergeManager.actions.setViewerSegments([parseInt(m, 10)]);
@@ -112,7 +116,11 @@ function MergePanel(props) {
         <Button color="primary" variant="contained" onClick={onClickButtonPullRequest}>Pull Request</Button>
       </div>
 
-      <DataTable data={data} config={DATA_TABLE_CONFIG} getId={(row) => row.id} />
+      <DataTable
+        data={data}
+        config={DATA_TABLE_CONFIG}
+        getId={React.useCallback((row) => row.id, [])}
+      />
 
       <Dialog open={confirmationOpen} disableEnforceFocus>
         <DialogContent>

@@ -13,6 +13,8 @@ import config from './config';
 import {
   ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
 } from './Annotation/AnnotationUtils';
+import NeuPrintManager from './Connections/NeuPrintManager';
+import ConnectionsPanel from './Connections/ConnectionsPanel';
 import MergeBackendCloud from './Annotation/MergeBackendCloud';
 import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
@@ -161,12 +163,20 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     }
   }, [user, actions, dataset, projectUrl]);
 
+  const neuPrintManager = React.useRef(new NeuPrintManager());
+  useEffect(() => {
+    if (dataset && user) {
+      const token = user.getAuthResponse().id_token;
+      neuPrintManager.current.init(dataset, projectUrl, token, actions.addAlert);
+    }
+  }, [actions, dataset, projectUrl, neuPrintManager, user]);
+
   const mergeManager = React.useRef(new MergeManager());
   useEffect(() => {
     if (dataset && user) {
       const token = user.getAuthResponse().id_token;
-      const backend = new MergeBackendCloud(dataset.name, projectUrl, token, actions.addAlert);
-      mergeManager.current.init(actions, getNeuroglancerColor, backend);
+      const backend = new MergeBackendCloud(dataset, projectUrl, token, actions.addAlert);
+      mergeManager.current.init(actions, getNeuroglancerColor, backend, neuPrintManager.current);
     }
   }, [actions, dataset, projectUrl, mergeManager, user]);
 
@@ -245,7 +255,15 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           }}
         >
           <AnnotationPanel config={annotationConfig} actions={actions}>
-            <MergePanel tabName="merges" mergeManager={mergeManager.current} />
+            <MergePanel
+              tabName="merges"
+              mergeManager={mergeManager.current}
+            />
+            <ConnectionsPanel
+              tabName="connections"
+              neuPrintManager={neuPrintManager.current}
+              mergeManager={mergeManager.current}
+            />
           </AnnotationPanel>
         </Drawer>
       </div>
