@@ -131,7 +131,7 @@ function App() {
   // Set the top level function when first mounting the application.
   // This is done here as it needs to be done before a lot of other functions
   // that use it are executed.
-  const clioUrl = `https://clio-store-vwzoicitea-uk.a.run.app/${
+  const clioUrl = `${config.projectBaseUrlDefault}/${
     config.top_level_function
   }`;
   dispatch(setTopLevelFunction(clioUrl));
