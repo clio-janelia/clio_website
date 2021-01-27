@@ -154,6 +154,12 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           y: [4e-9, 'm'],
           z: [4e-9, 'm'],
         };
+      } else {
+        viewerOptions.dimensions = {
+          x: [8e-9, 'm'],
+          y: [8e-9, 'm'],
+          z: [8e-9, 'm'],
+        };
       }
 
       actions.initViewer(viewerOptions);

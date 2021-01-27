@@ -55,7 +55,7 @@ export default function NGLoader({
 
       const viewerOptions = {
         position: coords,
-        crossSectionScale,
+        crossSectionScale: 2,
         layers,
         layout: 'xy',
         showSlices: true,
@@ -71,6 +71,12 @@ export default function NGLoader({
           x: [4e-9, 'm'],
           y: [4e-9, 'm'],
           z: [4e-9, 'm'],
+        };
+      } else {
+        viewerOptions.dimensions = {
+          x: [8e-9, 'm'],
+          y: [8e-9, 'm'],
+          z: [8e-9, 'm'],
         };
       }
 
