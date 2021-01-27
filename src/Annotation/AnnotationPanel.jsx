@@ -38,8 +38,13 @@ export default function AnnotationPanel(props) {
     }
   };
 
+  const numTabs = config.layers.length + (children ? children.length : 0);
+  const totalWidth = config.width.replace(/\D/g, '');
+  const tabWidth = Math.max(totalWidth / numTabs, 100);
+  const tabStyle = { minWidth: `${tabWidth}px`, maxWidth: `${tabWidth}px` };
+
   let tabs = config.layers.map((layer, index) => (
-    <Tab label={layer.name} key={layer.name} value={`${index}`} />
+    <Tab label={layer.name} key={layer.name} value={`${index}`} style={tabStyle} />
   ));
   let tabPanels = config.layers.map((layer, index) => (
     <TabPanel key={layer.name} value={`${index}`} className={classes.tabPanel}>
@@ -60,7 +65,7 @@ export default function AnnotationPanel(props) {
     }
     const startIndex = tabs.length;
     tabs = tabs.concat(childArray.map((child, index) => (
-      <Tab label={child.props.tabName} key={child.props.tabName} value={`${startIndex + index}`} />
+      <Tab label={child.props.tabName} key={child.props.tabName} value={`${startIndex + index}`} style={tabStyle} />
     )));
 
     tabPanels = tabPanels.concat(childArray.map((child, index) => (
