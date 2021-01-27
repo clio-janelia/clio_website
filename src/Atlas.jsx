@@ -126,6 +126,7 @@ export default function Atlas(props) {
       const viewerOptions = {
         position: selectedAnnotation.location,
         crossSectionScale: 2,
+        projectionScale: 2600,
         layers,
         layout: 'xy',
         showSlices: true,

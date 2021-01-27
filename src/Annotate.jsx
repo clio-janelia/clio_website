@@ -136,6 +136,8 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
       const viewerOptions = {
         position: [],
+        crossSectionScale: 100,
+        projectionScale: 2600,
         layers,
         selectedLayer: {
           layer: 'annotations',

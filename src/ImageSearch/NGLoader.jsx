@@ -56,6 +56,7 @@ export default function NGLoader({
       const viewerOptions = {
         position: coords,
         crossSectionScale: 2,
+        projectionScale: 2600,
         layers,
         layout: 'xy',
         showSlices: true,
