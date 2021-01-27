@@ -153,11 +153,9 @@ function onKeyPressMerge(event, mergeManager) {
 
 // Neuroglancer's notion of "visible" corresponds to other applications' notion of "selected".
 function onVisibleChangedMerge(segments, layer, mergeManager) {
-  if (layer.name.toLowerCase().includes('segmentation')) {
-    const selectionStrings = segments.toJSON();
-    const selectionNow = selectionStrings.map((s) => parseInt(s, 10));
-    mergeManager.select(selectionNow);
-  }
+  const selectionStrings = segments.toJSON();
+  const selectionNow = selectionStrings.map((s) => parseInt(s, 10));
+  mergeManager.select(selectionNow);
 }
 
 export { MergePanel, onKeyPressMerge, onVisibleChangedMerge };
