@@ -10,6 +10,7 @@ import AnnotationsList from './Atlas/AnnotationsList';
 import AnnotationsFilter from './Atlas/AnnotationsFilter';
 import DatasetFilter from './Atlas/DatasetFilter';
 import FilterType from './Atlas/FilterType';
+import VerifyType from './Atlas/VerifyType';
 import { addAlert } from './actions/alerts';
 
 const useStyles = makeStyles({
@@ -46,6 +47,7 @@ export default function Atlas(props) {
   const [selectedAnnotation, setSelected] = useState(null);
   const [filterType, setFilterType] = useState('Title or description');
   const [filterTerm, setFilterTerm] = useState('');
+  const [verifyType, setVerifyType] = useState('Verified or unverified');
   const [datasetFilter, setDataSetFilter] = useState([]);
   const [dsLookup, setDsLookup] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -220,6 +222,13 @@ export default function Atlas(props) {
     }
   }
 
+  if (verifyType !== 'Verified or unverified') {
+    const testval = (verifyType === 'Verified');
+    filteredAnnotations = filteredAnnotations.filter(
+      (annot) => annot.verified === testval,
+    );
+  }
+
   // must come after the filter code or it wont work.
   const pages = Math.ceil(filteredAnnotations.length / annotationsPerPage);
   const paginatedAnnotations = filteredAnnotations.slice(
@@ -305,16 +314,22 @@ export default function Atlas(props) {
     <div className={classes.expand}>
       <div className={classes.header}>
         <Grid container spacing={0}>
-          <Grid item xs={12} sm={2}>
+          <Grid item xs={12} sm={1}>
             <Typography variant="h5">EM Atlas</Typography>
           </Grid>
           {showList && (
             <>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={3}>
                 <DatasetFilter
                   datasets={datasets.map((dataset) => dataset.name)}
                   selected={datasetFilter}
                   onChange={setDataSetFilter}
+                />
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <VerifyType
+                  selected={verifyType}
+                  onChange={setVerifyType}
                 />
               </Grid>
               <Grid item xs={12} sm={2}>
