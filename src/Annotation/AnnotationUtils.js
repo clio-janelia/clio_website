@@ -195,7 +195,12 @@ export function getRowItemFromAnnotation(annotation, config) {
       item.deleteAction = () => {
         const source = getAnnotationSource(undefined, layerName);
         // console.log(source);
-        source.delete(source.getReference(id));
+        const reference = source.getReference(id);
+        try {
+          source.delete(reference);
+        } finally {
+          reference.dispose();
+        }
       };
       item.updateAction = (change) => {
         const newProps = {};

@@ -135,7 +135,7 @@ function DataTableRow(props) {
           {getCellElement(column)}
         </TableCell>
       ))}
-      <TableCell>
+      <TableCell padding="none">
         <Box display="flex" flexDirection="row">
           {row.updateAction ? editButton : undefined}
           {row.deleteAction ? deleteButton : undefined}

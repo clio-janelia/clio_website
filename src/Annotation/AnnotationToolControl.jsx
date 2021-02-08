@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import FormGroup from '@material-ui/core/FormGroup';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -28,9 +29,11 @@ function AnnotationToolControl(props) {
   return (
     <FormControl component="fieldset">
       <FormLabel component="legend">Annotate</FormLabel>
-      <RadioGroup row value={tool} onChange={handleChange}>
-        {buttons}
-      </RadioGroup>
+      <FormGroup row>
+        <RadioGroup row value={tool} onChange={handleChange}>
+          {buttons}
+        </RadioGroup>
+      </FormGroup>
     </FormControl>
   );
 }
