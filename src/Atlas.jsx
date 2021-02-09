@@ -217,7 +217,7 @@ export default function Atlas(props) {
     } else {
       filteredAnnotations = filteredAnnotations.filter(
         /* eslint-disable-next-line max-len */
-        (annot) => re.test(annot.title) || re.test(annot.description) || re.test(datasets[annot.dataset].description),
+        (annot) => re.test(annot.title) || re.test(annot.description) || re.test(dsLookup[annot.dataset].description),
       );
     }
   }
