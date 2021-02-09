@@ -198,6 +198,9 @@ export function getRowItemFromAnnotation(annotation, config) {
         const reference = source.getReference(id);
         try {
           source.delete(reference);
+        } catch (e) {
+          // FIXME: needs better error handling.
+          console.log(e);
         } finally {
           reference.dispose();
         }
