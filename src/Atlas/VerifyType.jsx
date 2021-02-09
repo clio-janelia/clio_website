@@ -7,7 +7,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import Input from '@material-ui/core/Input';
 
-export default function FilterType({ selected, onChange }) {
+export default function VerifyType({ selected, onChange }) {
   const handleChange = (event) => {
     onChange(event.target.value);
   };
@@ -15,24 +15,24 @@ export default function FilterType({ selected, onChange }) {
   return (
     <div>
       <FormControl style={{ width: '150px' }}>
-        <InputLabel id="filterType-label">Filter type</InputLabel>
+        <InputLabel id="verifyType-label">Verification status</InputLabel>
         <Select
-          labelId="filterType-label"
-          id="filterType"
+          labelId="verifyType-label"
+          id="verifyType"
           value={selected}
           onChange={handleChange}
           input={<Input />}
         >
-          <MenuItem key="any" value="Title or description">Title or description</MenuItem>
-          <MenuItem key="title" value="Title">Title</MenuItem>
-          <MenuItem key="description" value="Description">Description</MenuItem>
+          <MenuItem key="any" value="Verified or unverified">Verified or unverified</MenuItem>
+          <MenuItem key="unverified" value="Unverified">Unverified</MenuItem>
+          <MenuItem key="verified" value="Verified">Verified</MenuItem>
         </Select>
       </FormControl>
     </div>
   );
 }
 
-FilterType.propTypes = {
+VerifyType.propTypes = {
   selected: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
 };

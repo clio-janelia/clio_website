@@ -45,11 +45,12 @@ export default class NeuPrintManager {
   // Internal
 
   doQuery = (cypher) => {
+    const url = `${this.projectUrl}/neuprint/${this.dataset.name}`;
+
     let dataset = `${this.dataset.name}`;
     if (this.dataset.tag) {
       dataset = `${dataset}:${this.dataset.tag}`;
     }
-    const url = `${this.projectUrl}/neuprint/${dataset}`;
 
     const body = JSON.stringify({ cypher, dataset });
     const options = {

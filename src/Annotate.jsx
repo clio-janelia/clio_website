@@ -136,6 +136,8 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
       const viewerOptions = {
         position: [],
+        crossSectionScale: 100,
+        projectionScale: 2600,
         layers,
         selectedLayer: {
           layer: 'annotations',
@@ -153,6 +155,12 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           x: [4e-9, 'm'],
           y: [4e-9, 'm'],
           z: [4e-9, 'm'],
+        };
+      } else {
+        viewerOptions.dimensions = {
+          x: [8e-9, 'm'],
+          y: [8e-9, 'm'],
+          z: [8e-9, 'm'],
         };
       }
 
