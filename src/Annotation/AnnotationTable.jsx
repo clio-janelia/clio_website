@@ -14,7 +14,11 @@ import TableCell from '@material-ui/core/TableCell';
 import Box from '@material-ui/core/Box';
 import DataTable from './DataTable/DataTable';
 import {
-  getRowItemFromAnnotation, isValidAnnotation, getAnnotationPos, getAnnotationIcon,
+  getRowItemFromAnnotation,
+  isValidAnnotation,
+  getAnnotationPos,
+  getAnnotationIcon,
+  toAnnotationPayload,
 } from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
 import ImportAnnotation from './ImportAnnotation';
@@ -69,7 +73,7 @@ function AnnotationTable(props) {
       }
       return fetch(url, {
         method: 'POST',
-        body: (typeof payload === 'string') ? payload : JSON.stringify(payload),
+        body: toAnnotationPayload(payload),
         headers,
       }).then((response) => {
         source.invalidateCache();

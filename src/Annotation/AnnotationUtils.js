@@ -245,3 +245,55 @@ export function isValidAnnotation(annotation, dataConfig) {
 
   return Object.keys(item).every((field) => isFieldValid(field, item[field]));
 }
+
+function dvidBookmarkToAnnotation(bookmark, user) {
+  if (bookmark.Kind === 'Note') {
+    const annotation = {
+      kind: 'point',
+      pos: bookmark.Pos,
+    };
+
+    const prop = bookmark.Prop;
+    if (prop) {
+      if (prop.comment) {
+        annotation.description = prop.comment;
+        delete prop.comment;
+      }
+
+      if (user) {
+        annotation.user = user;
+      } else {
+        annotation.user = prop.user;
+      }
+      delete prop.user;
+      delete prop.custom;
+
+      Object.keys(prop).forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(prop, key)) {
+          if (!prop[key]) {
+            delete prop[key];
+          }
+        }
+      });
+    }
+    annotation.prop = prop;
+
+    return annotation;
+  }
+
+  return null;
+}
+
+export function toAnnotationPayload(buffer, user) {
+  const obj = JSON.parse(buffer);
+  const annotations = [];
+  Object.values(obj).forEach((entry) => {
+    if ('pos' in entry) {
+      annotations.push((!entry.user && user) ? { ...entry, user } : entry);
+    } else if ('Pos' in entry) {
+      annotations.push(dvidBookmarkToAnnotation(entry, user));
+    }
+  });
+
+  return JSON.stringify(annotations);
+}
