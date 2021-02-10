@@ -12,6 +12,7 @@ import DatasetFilter from './Atlas/DatasetFilter';
 import FilterType from './Atlas/FilterType';
 import VerifyType from './Atlas/VerifyType';
 import { addAlert } from './actions/alerts';
+import { canWrite } from './utils/permissions';
 
 const useStyles = makeStyles({
   window: {
@@ -306,7 +307,8 @@ export default function Atlas(props) {
   };
 
   // user has clio write
-  const allowedToVerifyAnnotaton = roles.global_roles && roles.global_roles.includes('clio_write');
+  const allowedToVerifyAnnotaton = selectedAnnotation
+                                   && canWrite(roles, selectedAnnotation.dataset);
   const alreadyVerified = selectedAnnotation && selectedAnnotation.verified;
 
 
