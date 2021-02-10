@@ -37,7 +37,7 @@ function DataTableRow(props) {
     })
   );
 
-  const [editing, setEditing] = useState(!isValid);
+  const [editing, setEditing] = useState(!isValid || row.defaultEditing);
 
   const handleEditClicked = () => {
     setEditing(true);

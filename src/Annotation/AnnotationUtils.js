@@ -175,6 +175,7 @@ function getRowItemWithoutAction(annotation) {
     title: title || '',
     comment: comment || '',
     type: type || '',
+    defaultEditing: false,
   };
 }
 

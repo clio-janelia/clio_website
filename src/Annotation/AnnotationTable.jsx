@@ -104,13 +104,16 @@ function AnnotationTable(props) {
     return Promise.reject(new Error('Failed to get annotation source.'));
   }, [layerName, dataConfig]);
 
-  const updateTableRows = React.useCallback(debounce(() => {
+  const updateTableRows = React.useCallback(debounce((newId) => {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const newData = [];
       source.references.forEach((ref) => {
         if (ref.value) {
           const item = annotationToItem(ref.value);
+          if (item.id === newId) { // A newly added annotation
+            item.defaultEditing = true;
+          }
           newData.push(item);
         }
       });
@@ -126,7 +129,7 @@ function AnnotationTable(props) {
   const onAnnotationAdded = React.useCallback((annotation) => {
     // console.log(annotation);
     // if (!annotation.source || annotation.source === 'downloaded:last') {
-    updateTableRows();
+    updateTableRows(annotation.source ? undefined : annotation.id);
     if (!annotation.source) {
       const isValid = isValidAnnotation(annotation, dataConfig);
       actions.addAlert({
