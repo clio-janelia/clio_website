@@ -12,7 +12,7 @@ function ExportAnnotation(props) {
       const element = document.createElement('a');
       const file = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       element.href = URL.createObjectURL(file);
-      element.download = 'annotations.json';
+      element.download = (kind === 'Atlas') ? 'atlas.json' : 'annotations.json';
       document.body.appendChild(element);
       element.click();
       setTimeout(() => {
@@ -37,7 +37,7 @@ ExportAnnotation.propTypes = {
 };
 
 ExportAnnotation.defaultProps = {
-  kind: 'Annotation',
+  kind: 'Normal',
 };
 
 export default ExportAnnotation;

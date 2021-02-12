@@ -48,7 +48,7 @@ ImportAnnotation.propTypes = {
 };
 
 ImportAnnotation.defaultProps = {
-  kind: 'Annotation',
+  kind: 'Normal',
 };
 
 export default ImportAnnotation;

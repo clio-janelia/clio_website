@@ -225,7 +225,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           tools: [pointTool, lineTool],
           dataConfig: {
             columns: ANNOTATION_COLUMNS,
-            kind: 'Annotation',
+            kind: 'Normal',
             allowingImport: true,
             allowingExport: true,
             token: user.getAuthResponse().id_token,
