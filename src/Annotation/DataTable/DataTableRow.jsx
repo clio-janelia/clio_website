@@ -37,7 +37,7 @@ function DataTableRow(props) {
     })
   );
 
-  const [editing, setEditing] = useState(!isValid);
+  const [editing, setEditing] = useState(!isValid || row.defaultEditing);
 
   const handleEditClicked = () => {
     setEditing(true);
@@ -135,7 +135,7 @@ function DataTableRow(props) {
           {getCellElement(column)}
         </TableCell>
       ))}
-      <TableCell>
+      <TableCell padding="none">
         <Box display="flex" flexDirection="row">
           {row.updateAction ? editButton : undefined}
           {row.deleteAction ? deleteButton : undefined}

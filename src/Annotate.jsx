@@ -214,12 +214,18 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           tools: ['annotatePoint', 'annotateLine'],
           dataConfig: {
             columns: ANNOTATION_COLUMNS,
+            allowingImport: true,
+            allowingExport: true,
+            token: user.getAuthResponse().id_token,
           },
         },
         {
           name: 'atlas',
           dataConfig: {
             columns: ATLAS_COLUMNS,
+            allowingImport: false,
+            allowingExport: true,
+            token: user.getAuthResponse().id_token,
           },
         },
       ],

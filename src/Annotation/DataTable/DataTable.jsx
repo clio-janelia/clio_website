@@ -32,7 +32,7 @@ export default function DataTable(props) {
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
 
   const {
-    data, selectedId, getId, getLocateIcon,
+    data, selectedId, getId, getLocateIcon, makeHeaderRow,
   } = props;
 
   const rowHeight = 44;
@@ -103,12 +103,15 @@ export default function DataTable(props) {
     />
   );
 
-
   return (
     <div className={classes.dataTableRoot}>
       <TableContainer className={classes.container}>
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
-          <DataTableHead config={config} handleFilterChange={handleFilterChange} />
+          <DataTableHead
+            config={config}
+            handleFilterChange={handleFilterChange}
+            makeRow={makeHeaderRow}
+          />
           <TableBody>
             {filteredRows.slice(
               actualPage * rowsPerPage,
@@ -151,9 +154,11 @@ DataTable.propTypes = {
   getId: PropTypes.func.isRequired, // Get id for row
   selectedId: PropTypes.string, // Selected ID
   getLocateIcon: PropTypes.func,
+  makeHeaderRow: PropTypes.func,
 };
 
 DataTable.defaultProps = {
   selectedId: null,
   getLocateIcon: null,
+  makeHeaderRow: null,
 };

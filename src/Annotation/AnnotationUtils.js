@@ -175,6 +175,7 @@ function getRowItemWithoutAction(annotation) {
     title: title || '',
     comment: comment || '',
     type: type || '',
+    defaultEditing: false,
   };
 }
 
@@ -195,7 +196,15 @@ export function getRowItemFromAnnotation(annotation, config) {
       item.deleteAction = () => {
         const source = getAnnotationSource(undefined, layerName);
         // console.log(source);
-        source.delete(source.getReference(id));
+        const reference = source.getReference(id);
+        try {
+          source.delete(reference);
+        } catch (e) {
+          // FIXME: needs better error handling.
+          console.log(e);
+        } finally {
+          reference.dispose();
+        }
       };
       item.updateAction = (change) => {
         const newProps = {};
@@ -239,4 +248,65 @@ export function isValidAnnotation(annotation, dataConfig) {
   };
 
   return Object.keys(item).every((field) => isFieldValid(field, item[field]));
+}
+
+function dvidBookmarkToAnnotation(bookmark) {
+  if (bookmark.Kind === 'Note') {
+    const annotation = {
+      kind: 'point',
+      pos: bookmark.Pos,
+    };
+
+    const prop = bookmark.Prop;
+    if (prop) {
+      if (prop.comment) {
+        annotation.description = prop.comment;
+        delete prop.comment;
+      }
+
+      delete prop.custom;
+
+      Object.keys(prop).forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(prop, key)) {
+          if (!prop[key]) {
+            delete prop[key];
+          }
+        }
+      });
+    }
+    annotation.prop = prop;
+
+    return annotation;
+  }
+
+  return null;
+}
+
+export function toAnnotationPayload(buffer, user) {
+  const obj = JSON.parse(buffer);
+  const annotations = [];
+  Object.values(obj).forEach((entry) => {
+    let newEntry = null;
+    if ('pos' in entry) {
+      newEntry = entry;
+    } else if ('Pos' in entry) {
+      newEntry = dvidBookmarkToAnnotation(entry);
+    }
+    if (!newEntry.prop) {
+      newEntry.prop = {};
+    }
+
+    if (newEntry.user && newEntry.user !== user) {
+      newEntry.prop.user = newEntry.user;
+    }
+    if (user) {
+      newEntry.user = user;
+    } else {
+      delete newEntry.user;
+    }
+
+    annotations.push(newEntry);
+  });
+
+  return JSON.stringify(annotations);
 }

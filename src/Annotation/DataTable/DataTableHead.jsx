@@ -11,7 +11,8 @@ export default function DataTableHead(props) {
     props.handleFilterChange(column, event.target.value);
   };
 
-  const { config } = props;
+  const { config, makeRow } = props;
+
   const filterRow = config.columns.map((column) => (
     <TableCell key={column.field}>
       <TextField
@@ -22,12 +23,22 @@ export default function DataTableHead(props) {
     </TableCell>
   ));
 
-  return (
-    <TableHead>
+  let headers = null;
+  if (makeRow) {
+    headers = makeRow(filterRow);
+  } else {
+    headers = (
       <TableRow>
         <TableCell />
         {filterRow}
+        <TableCell />
       </TableRow>
+    );
+  }
+
+  return (
+    <TableHead>
+      {headers}
     </TableHead>
   );
 }
@@ -41,4 +52,9 @@ DataTableHead.propTypes = {
     })),
   }).isRequired,
   handleFilterChange: PropTypes.func.isRequired, // Function of filtering a given column
+  makeRow: PropTypes.func,
+};
+
+DataTableHead.defaultProps = {
+  makeRow: null,
 };

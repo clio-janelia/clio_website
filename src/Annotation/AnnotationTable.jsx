@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
+
 import {
   getAnnotationSource,
   getAnnotationLayer,
@@ -8,11 +9,21 @@ import {
   addLayerSignalRemover,
 } from '@janelia-flyem/react-neuroglancer';
 
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
+import Box from '@material-ui/core/Box';
 import DataTable from './DataTable/DataTable';
 import {
-  getRowItemFromAnnotation, isValidAnnotation, getAnnotationPos, getAnnotationIcon,
+  getRowItemFromAnnotation,
+  isValidAnnotation,
+  getAnnotationPos,
+  getAnnotationIcon,
+  toAnnotationPayload,
 } from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
+import ImportAnnotation from './ImportAnnotation';
+import ExportAnnotation from './ExportAnnotation';
+import debounce from '../utils/debounce';
 
 function AnnotationTable(props) {
   const {
@@ -34,13 +45,60 @@ function AnnotationTable(props) {
     }), [layerName, actions],
   );
 
-  const updateTableRows = React.useCallback(() => {
+  const uploadAnnotations = React.useCallback((payload) => {
+    const source = getAnnotationSource(undefined, layerName);
+    if (source) {
+      const { parameters } = source;
+      const url = `${parameters.baseUrl}/${parameters.api}/annotations/${parameters.dataset}`;
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (parameters.authServer === 'neurohub') {
+        headers.Authorization = `Bearer ${dataConfig.token}`;
+      }
+      return fetch(url, {
+        method: 'POST',
+        body: toAnnotationPayload(payload),
+        headers,
+      }).then((response) => {
+        source.invalidateCache();
+        if (!response.ok) {
+          throw new Error(`Failed to upload annotations: ${response.statusText}`);
+        }
+      });
+    }
+
+    return Promise.reject(new Error('Failed to get annotation source.'));
+  }, [layerName, dataConfig]);
+
+  const getAnnotations = React.useCallback(() => {
+    const source = getAnnotationSource(undefined, layerName);
+    if (source) {
+      const { parameters } = source;
+      const url = `${parameters.baseUrl}/${parameters.api}/annotations/${parameters.dataset}`;
+      return fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${dataConfig.token}`,
+        },
+      }).then((response) => response.json());
+      // return Promise.resolve(source.parameters);
+    }
+
+    return Promise.reject(new Error('Failed to get annotation source.'));
+  }, [layerName, dataConfig]);
+
+  const updateTableRows = React.useCallback(debounce((newId) => {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const newData = [];
       source.references.forEach((ref) => {
         if (ref.value) {
           const item = annotationToItem(ref.value);
+          if (item.id === newId) { // A newly added annotation
+            item.defaultEditing = true;
+          }
           newData.push(item);
         }
       });
@@ -51,21 +109,21 @@ function AnnotationTable(props) {
         setSelectedAnnotation(layer.selectedAnnotation.value.id);
       }
     }
-  }, [layerName, annotationToItem]);
+  }, 250, false), [layerName, annotationToItem]);
 
   const onAnnotationAdded = React.useCallback((annotation) => {
     // console.log(annotation);
-    if (!annotation.source || annotation.source === 'downloaded:last') {
-      updateTableRows();
-      if (!annotation.source) {
-        const isValid = isValidAnnotation(annotation, dataConfig);
-        actions.addAlert({
-          severity: isValid ? 'success' : 'info',
-          message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
-          duration: 1000,
-        });
-      }
+    // if (!annotation.source || annotation.source === 'downloaded:last') {
+    updateTableRows(annotation.source ? undefined : annotation.id);
+    if (!annotation.source) {
+      const isValid = isValidAnnotation(annotation, dataConfig);
+      actions.addAlert({
+        severity: isValid ? 'success' : 'info',
+        message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
+        duration: 1000,
+      });
     }
+    // }
   }, [updateTableRows, dataConfig, layerName, actions]);
 
   const onAnnotationDeleted = React.useCallback((id) => {
@@ -129,6 +187,24 @@ function AnnotationTable(props) {
 
   const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected)), []);
 
+  const makeTableHeaderRow = React.useCallback((dataHeaders) => (
+    <TableRow>
+      <TableCell padding="none">
+        <Box display="flex" flexDirection="row">
+          {dataConfig.allowingImport ? (
+            <ImportAnnotation
+              upload={uploadAnnotations}
+              addAlert={actions.addAlert}
+            />
+          ) : null}
+          {dataConfig.allowingExport ? <ExportAnnotation getData={getAnnotations} /> : null}
+        </Box>
+      </TableCell>
+      {dataHeaders}
+      <TableCell />
+    </TableRow>
+  ), [dataConfig, uploadAnnotations, getAnnotations, actions.addAlert]);
+
   return (
     <div>
       <DataTable
@@ -137,6 +213,7 @@ function AnnotationTable(props) {
         config={dataConfig}
         getId={React.useCallback((row) => row.id, [])}
         getLocateIcon={getLocateIcon}
+        makeHeaderRow={makeTableHeaderRow}
       />
       <hr />
       {tools ? <AnnotationToolControl tools={tools} actions={actions} defaultTool="annotatePoint" onToolChanged={handleToolChange} /> : null}

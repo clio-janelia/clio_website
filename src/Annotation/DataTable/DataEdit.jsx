@@ -63,7 +63,7 @@ export default function DataEdit(props) {
         value={data[column.field]}
         placeholder={column.placeholder}
       />
-    ) : null;
+    ) : data[column.field];
   };
 
   return (
