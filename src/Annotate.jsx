@@ -94,12 +94,17 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
   useEffect(() => {
     if (dataset && user) {
+      let datasetUrl = dataset.location;
+      if (!dataset.location.match(/^dvid/)) {
+        datasetUrl = `precomputed://${dataset.location}`;
+      }
+
       const layers = [
         {
           name: dataset.name,
           type: 'image',
           source: {
-            url: `precomputed://${dataset.location}`,
+            url: datasetUrl,
           },
         },
         {
@@ -124,11 +129,15 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
       if ('layers' in dataset) {
         dataset.layers.forEach((layer) => {
+          let layerUrl = layer.location;
+          if (!layer.location.match(/^dvid/)) {
+            layerUrl = `precomputed://${layer.location}`;
+          }
           layers.push({
             name: layer.name,
             type: layer.type || inferredLayerType(layer),
             source: {
-              url: `precomputed://${layer.location}`,
+              url: layerUrl,
             },
           });
         });

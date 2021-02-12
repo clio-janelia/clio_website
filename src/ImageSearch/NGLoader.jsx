@@ -24,12 +24,17 @@ export default function NGLoader({
 
   useEffect(() => {
     if (dataset) {
+      let datasetUrl = dataset.location;
+      if (!dataset.location.match(/^dvid/)) {
+        datasetUrl = `precomputed://${dataset.location}`;
+      }
+
       const layers = [
         {
           name: dataset.name,
           type: 'image',
           source: {
-            url: `precomputed://${dataset.location}`,
+            url: datasetUrl,
           },
         },
         {
@@ -43,11 +48,15 @@ export default function NGLoader({
 
       if ('layers' in dataset) {
         dataset.layers.forEach((layer) => {
+          let layerUrl = layer.location;
+          if (!layer.location.match(/^dvid/)) {
+            layerUrl = `precomputed://${layer.location}`;
+          }
           layers.push({
             name: layer.name,
             type: layer.type,
             source: {
-              url: `precomputed://${layer.location}`,
+              url: layerUrl,
             },
           });
         });

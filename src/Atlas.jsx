@@ -97,12 +97,18 @@ export default function Atlas(props) {
   useEffect(() => {
     if (selectedAnnotation) {
       const selectedDataset = dsLookup[selectedAnnotation.dataset];
+
+      let selectedLocation = selectedDataset.location;
+      if (!selectedDataset.location.match(/^dvid/)) {
+        selectedLocation = `precomputed://${selectedDataset.location}`;
+      }
+
       const layers = [
         {
           name: selectedDataset.name,
           type: 'image',
           source: {
-            url: `precomputed://${selectedDataset.location}`,
+            url: selectedLocation,
           },
         },
         {
@@ -116,11 +122,16 @@ export default function Atlas(props) {
 
       if ('layers' in selectedDataset) {
         selectedDataset.layers.forEach((layer) => {
+          let layerUrl = layer.location;
+          if (!layer.location.match(/^dvid/)) {
+            layerUrl = `precomputed://${layer.location}`;
+          }
+
           layers.push({
             name: layer.name,
             type: layer.type,
             source: {
-              url: `precomputed://${layer.location}`,
+              url: layerUrl,
             },
           });
         });
