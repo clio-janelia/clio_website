@@ -310,3 +310,7 @@ export function toAnnotationPayload(buffer, user) {
 
   return JSON.stringify(annotations);
 }
+
+export function getAnnotationUrl(sourceParameters) {
+  return `${sourceParameters.baseUrl}/${sourceParameters.api}/${(sourceParameters.kind === 'Atlas') ? 'atlas' : 'annotations'}/${sourceParameters.dataset}`;
+}
