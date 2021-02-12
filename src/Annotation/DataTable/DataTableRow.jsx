@@ -88,15 +88,19 @@ function DataTableRow(props) {
   }
 
   const editButton = (
-    <IconButton onClick={handleEditClicked}>
-      <EditIcon />
-    </IconButton>
+    <Tooltip enterDelay={500} title="Edit">
+      <IconButton onClick={handleEditClicked}>
+        <EditIcon />
+      </IconButton>
+    </Tooltip>
   );
 
   const deleteButton = (
-    <IconButton onClick={row.deleteAction}>
-      <DeleteIcon />
-    </IconButton>
+    <Tooltip enterDelay={500} title="Delete">
+      <IconButton onClick={row.deleteAction}>
+        <DeleteIcon />
+      </IconButton>
+    </Tooltip>
   );
 
   const getCellElement = (column) => {

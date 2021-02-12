@@ -19,6 +19,7 @@ import {
   getAnnotationPos,
   getAnnotationIcon,
   toAnnotationPayload,
+  getAnnotationUrl,
 } from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
 import ImportAnnotation from './ImportAnnotation';
@@ -49,7 +50,7 @@ function AnnotationTable(props) {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const { parameters } = source;
-      const url = `${parameters.baseUrl}/${parameters.api}/annotations/${parameters.dataset}`;
+      const url = getAnnotationUrl(parameters);
       const headers = {
         'Content-Type': 'application/json',
       };
@@ -75,7 +76,7 @@ function AnnotationTable(props) {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const { parameters } = source;
-      const url = `${parameters.baseUrl}/${parameters.api}/annotations/${parameters.dataset}`;
+      const url = getAnnotationUrl(parameters);
       return fetch(url, {
         method: 'GET',
         headers: {
@@ -193,11 +194,17 @@ function AnnotationTable(props) {
         <Box display="flex" flexDirection="row">
           {dataConfig.allowingImport ? (
             <ImportAnnotation
+              kind={dataConfig.kind}
               upload={uploadAnnotations}
               addAlert={actions.addAlert}
             />
           ) : null}
-          {dataConfig.allowingExport ? <ExportAnnotation getData={getAnnotations} /> : null}
+          {dataConfig.allowingExport ? (
+            <ExportAnnotation
+              kind={dataConfig.kind}
+              getData={getAnnotations}
+            />
+          ) : null}
         </Box>
       </TableCell>
       {dataHeaders}
