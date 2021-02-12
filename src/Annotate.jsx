@@ -206,14 +206,26 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
 
   if (dataset) {
+    const pointTool = {
+      name: 'annotatePoint',
+      label: 'Point',
+      tooltip: 'Ctrl+Click in the data viewer to add a point.',
+    };
+    const lineTool = {
+      name: 'annotateLine',
+      label: 'Line',
+      tooltip: 'Ctrl+Click in the data viewer to start adding a line. Ctrl+Click again to finish the line.',
+    };
+
     const annotationConfig = {
       width: `${SIDEBAR_WIDTH_PX}px`,
       layers: [
         {
           name: 'annotations',
-          tools: ['annotatePoint', 'annotateLine'],
+          tools: [pointTool, lineTool],
           dataConfig: {
             columns: ANNOTATION_COLUMNS,
+            kind: 'Annotation',
             allowingImport: true,
             allowingExport: true,
             token: user.getAuthResponse().id_token,
@@ -221,8 +233,10 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
         },
         {
           name: 'atlas',
+          tools: [pointTool],
           dataConfig: {
             columns: ATLAS_COLUMNS,
+            kind: 'Atlas',
             allowingImport: false,
             allowingExport: true,
             token: user.getAuthResponse().id_token,

@@ -7,11 +7,7 @@ import Radio from '@material-ui/core/Radio';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-
-const toolLabels = {
-  annotatePoint: 'Point',
-  annotateLine: 'Line',
-};
+import Tooltip from '@material-ui/core/Tooltip';
 
 function AnnotationToolControl(props) {
   const { defaultTool, tools, onToolChanged } = props;
@@ -22,8 +18,10 @@ function AnnotationToolControl(props) {
     onToolChanged(event.target.value);
   };
 
-  const buttons = tools.map((toolName) => (
-    <FormControlLabel value={toolName} key={toolName} control={<Radio color="primary" />} label={toolLabels[toolName]} />
+  const buttons = tools.map((atool) => (
+    <Tooltip key={atool.name} title={atool.tooltip}>
+      <FormControlLabel value={atool.name} control={<Radio color="primary" />} label={atool.label} />
+    </Tooltip>
   ));
 
   return (

@@ -193,11 +193,17 @@ function AnnotationTable(props) {
         <Box display="flex" flexDirection="row">
           {dataConfig.allowingImport ? (
             <ImportAnnotation
+              kind={dataConfig.kind}
               upload={uploadAnnotations}
               addAlert={actions.addAlert}
             />
           ) : null}
-          {dataConfig.allowingExport ? <ExportAnnotation getData={getAnnotations} /> : null}
+          {dataConfig.allowingExport ? (
+            <ExportAnnotation
+              kind={dataConfig.kind}
+              getData={getAnnotations}
+            />
+          ) : null}
         </Box>
       </TableCell>
       {dataHeaders}
