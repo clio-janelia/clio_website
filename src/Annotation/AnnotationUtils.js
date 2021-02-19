@@ -250,6 +250,26 @@ export function isValidAnnotation(annotation, dataConfig) {
   return Object.keys(item).every((field) => isFieldValid(field, item[field]));
 }
 
+function getAnnotationFormat(entry) {
+  if ('pos' in entry) {
+    return 'clio';
+  }
+
+  if ('Pos' in entry && entry.Kind === 'Note') {
+    return 'dvid';
+  }
+
+  if (entry.type === 'point') {
+    return 'ngpoint';
+  }
+
+  if (entry.type === 'line') {
+    return 'ngline';
+  }
+
+  return undefined;
+}
+
 function dvidBookmarkToAnnotation(bookmark) {
   if (bookmark.Kind === 'Note') {
     const annotation = {
@@ -282,30 +302,76 @@ function dvidBookmarkToAnnotation(bookmark) {
   return null;
 }
 
+function round(array) {
+  return array.map((v) => Math.round(v));
+}
+
+const convertAnnotation = {
+  clio: (entry) => entry,
+  dvid: dvidBookmarkToAnnotation,
+  ngpoint: (entry) => {
+    if ('point' in entry) {
+      const annotation = {
+        kind: 'point',
+        pos: round(entry.point),
+      };
+      if (entry.description) {
+        annotation.description = entry.description;
+      }
+      return annotation;
+    }
+
+    return null;
+  },
+  ngline: (entry) => {
+    if ('pointA' in entry && 'pointB' in entry) {
+      const annotation = {
+        kind: 'lineseg',
+        pos: round([...entry.pointA, ...entry.pointB]),
+      };
+      if (entry.description) {
+        annotation.description = entry.description;
+      }
+      return annotation;
+    }
+
+    return null;
+  },
+};
+
+function entryToAnnotation(entry) {
+  const convert = convertAnnotation[getAnnotationFormat(entry)];
+  if (convert) {
+    return convert(entry);
+  }
+
+  return null;
+}
+
 export function toAnnotationPayload(buffer, user) {
   const obj = JSON.parse(buffer);
   const annotations = [];
   Object.values(obj).forEach((entry) => {
-    let newEntry = null;
-    if ('pos' in entry) {
-      newEntry = entry;
-    } else if ('Pos' in entry) {
-      newEntry = dvidBookmarkToAnnotation(entry);
-    }
-    if (!newEntry.prop) {
-      newEntry.prop = {};
-    }
+    const newEntry = entryToAnnotation(entry);
 
-    if (newEntry.user && newEntry.user !== user) {
-      newEntry.prop.user = newEntry.user;
-    }
-    if (user) {
-      newEntry.user = user;
+    if (newEntry) {
+      if (!newEntry.prop) {
+        newEntry.prop = {};
+      }
+
+      if (newEntry.user && newEntry.user !== user) {
+        newEntry.prop.user = newEntry.user;
+      }
+      if (user) {
+        newEntry.user = user;
+      } else {
+        delete newEntry.user;
+      }
+
+      annotations.push(newEntry);
     } else {
-      delete newEntry.user;
+      console.log(`Skipping ${entry}`);
     }
-
-    annotations.push(newEntry);
   });
 
   return JSON.stringify(annotations);
