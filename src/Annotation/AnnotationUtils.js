@@ -7,6 +7,7 @@ import LineLocateIconSelected from '@material-ui/icons/PinDrop';
 
 import {
   getAnnotationSource,
+  parseUrlHash,
 } from '@janelia-flyem/react-neuroglancer';
 
 export const ANNOTATION_COLUMNS = [
@@ -348,9 +349,53 @@ function entryToAnnotation(entry) {
   return null;
 }
 
+function extractAnnotationArray(obj) {
+  if (Array.isArray(obj)) {
+    return obj;
+  }
+
+  if ('annotations' in obj) {
+    return obj.annotations;
+  }
+
+  if ('layers' in obj) {
+    const { layers } = obj;
+    let annotations = [];
+    layers.forEach((layer) => {
+      if (layer.source && layer.source.url === 'local://annotations') {
+        annotations = annotations.concat(extractAnnotationArray(layer));
+      }
+    });
+    return annotations;
+  }
+
+  return [];
+}
+
+function extractAnnotationJsonFromUrls(buffer) {
+  const lines = buffer.split('\n');
+  let annotations = [];
+  lines.forEach((line) => {
+    const spec = parseUrlHash(line);
+    const annotationGroup = extractAnnotationArray(spec);
+    if (annotationGroup) {
+      annotations = annotations.concat(annotationGroup);
+    }
+  });
+
+  return annotations;
+}
+
 export function toAnnotationPayload(buffer, user) {
-  const obj = JSON.parse(buffer);
+  let obj = [];
+  try {
+    obj = extractAnnotationArray(JSON.parse(buffer));
+  } catch (_) {
+    obj = extractAnnotationJsonFromUrls(buffer);
+  }
+
   const annotations = [];
+
   Object.values(obj).forEach((entry) => {
     const newEntry = entryToAnnotation(entry);
 
