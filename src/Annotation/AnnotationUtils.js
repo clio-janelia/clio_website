@@ -369,7 +369,7 @@ function extractAnnotationArray(obj) {
     return annotations;
   }
 
-  return [];
+  return obj;
 }
 
 function extractAnnotationJsonFromUrls(buffer) {
