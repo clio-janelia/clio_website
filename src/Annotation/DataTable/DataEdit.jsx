@@ -43,8 +43,6 @@ export default function DataEdit(props) {
     Object.keys(newData).some((field) => dataForEditing[field] !== newData[field])
   ), [newData, dataForEditing]);
 
-  console.log(isNewDataValid());
-
   const columnToCell = (column) => {
     if (column.cell) {
       return column.cell;

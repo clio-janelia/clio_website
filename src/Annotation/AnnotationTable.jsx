@@ -141,8 +141,8 @@ function AnnotationTable(props) {
     updateTableRows();
   }, [updateTableRows, actions, layerName]);
 
-  const onAnnotationUpdated = React.useCallback((annotation) => {
-    console.log(annotation);
+  const onAnnotationUpdated = React.useCallback(() => {
+    // console.log(annotation);
     updateTableRows();
   }, [updateTableRows]);
 
