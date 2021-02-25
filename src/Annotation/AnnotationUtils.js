@@ -68,8 +68,8 @@ export const ANNOTATION_SHADER = `
 #uicontrol float opacity3D slider(min=0, max=1, step=0.1, default=0.2)
 #uicontrol vec3 defaultPointColor color(default="#FF0000")
 #uicontrol vec3 lineColor color(default="#FF0000")
-#uicontrol vec3 sphereColor color(default="red")
-#uicontrol float sphereAnnotationOpacity slider(min=0, max=1, step=0.1, default=1)
+//#uicontrol vec3 sphereColor color(default="red")
+//#uicontrol float sphereAnnotationOpacity slider(min=0, max=1, step=0.1, default=1)
 void main() {
   setPointMarkerSize(pointRadius);
   setEndpointMarkerSize(lineEndRadius);
@@ -87,6 +87,7 @@ void main() {
   }
   setLineColor(lineColor, lineColor);
   setEndpointMarkerColor(lineColor);
+  /*
   float finalSphereAnnotationOpacity = sphereAnnotationOpacity;
   if (prop_rendering_attribute() != 11) {
     finalSphereAnnotationOpacity = 1.0;
@@ -94,6 +95,7 @@ void main() {
   setSphereColor(vec4(sphereColor, finalSphereAnnotationOpacity));
   setAxisColor(vec4(sphereColor, finalSphereAnnotationOpacity));
   setAxisEndpointMarkerColor(vec4(sphereColor, finalSphereAnnotationOpacity));
+  */
 }`;
 
 export const ATLAS_SHADER = `

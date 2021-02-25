@@ -3,10 +3,11 @@ import React, { useEffect } from 'react';
 
 import {
   getAnnotationSource,
-  getAnnotationLayer,
+  getAnnotationSelectionHost,
   configureAnnotationLayerChanged,
   configureLayersChangedSignals,
   addLayerSignalRemover,
+  getSelectedAnnotationId,
 } from '@janelia-flyem/react-neuroglancer';
 
 import TableRow from '@material-ui/core/TableRow';
@@ -28,7 +29,7 @@ import debounce from '../utils/debounce';
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, actions, tools,
+    layerName, dataConfig, actions, tools, setSelectionChangedCallback,
   } = props;
   const [data, setData] = React.useState({ rows: [] });
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
@@ -40,6 +41,7 @@ function AnnotationTable(props) {
         actions.setViewerAnnotationSelection({
           layerName: targetLayerName,
           annotationId: id,
+          host: getAnnotationSelectionHost(),
         });
         actions.setViewerCameraPosition(pos);
       },
@@ -105,10 +107,13 @@ function AnnotationTable(props) {
       });
       setData({ rows: newData });
 
+      setSelectedAnnotation(getSelectedAnnotationId(undefined, layerName));
+      /*
       const layer = getAnnotationLayer(undefined, layerName);
       if (layer.selectedAnnotation && layer.selectedAnnotation.value) {
         setSelectedAnnotation(layer.selectedAnnotation.value.id);
       }
+      */
     }
   }, 250, false), [layerName, annotationToItem]);
 
@@ -144,11 +149,21 @@ function AnnotationTable(props) {
   const onAnnotationSelectionChanged = React.useCallback((annotation) => {
     // console.log('selected:', annotation);
     if (annotation) {
-      setSelectedAnnotation(annotation.id);
+      if (typeof annotation === 'string') {
+        setSelectedAnnotation(annotation);
+      } else {
+        setSelectedAnnotation(annotation.id);
+      }
     } else {
       setSelectedAnnotation(null);
     }
   }, [setSelectedAnnotation]);
+
+  if (setSelectionChangedCallback) {
+    setSelectionChangedCallback(() => {
+      onAnnotationSelectionChanged(getSelectedAnnotationId(undefined, layerName));
+    });
+  }
 
   useEffect(() => {
     if (data.rows.length === 0) {
@@ -231,12 +246,14 @@ function AnnotationTable(props) {
 AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
-  tools: PropTypes.arrayOf(PropTypes.string),
+  tools: PropTypes.arrayOf(PropTypes.object),
   actions: PropTypes.object.isRequired,
+  setSelectionChangedCallback: PropTypes.func,
 };
 
 AnnotationTable.defaultProps = {
   tools: null,
+  setSelectionChangedCallback: null,
 };
 
 export default AnnotationTable;

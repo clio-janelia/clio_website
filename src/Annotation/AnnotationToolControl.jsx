@@ -38,7 +38,7 @@ function AnnotationToolControl(props) {
 
 AnnotationToolControl.propTypes = {
   defaultTool: PropTypes.string.isRequired,
-  tools: PropTypes.arrayOf(PropTypes.string).isRequired,
+  tools: PropTypes.arrayOf(PropTypes.object).isRequired,
   onToolChanged: PropTypes.func.isRequired,
 };
 
