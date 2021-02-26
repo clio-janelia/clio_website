@@ -132,7 +132,16 @@ export function getAnnotationIcon(kind, action, selected) {
 
 export function getNewAnnotation(annotation, prop) {
   const newAnnotation = { ...annotation };
-  newAnnotation.prop = { ...newAnnotation.prop, ...prop };
+  if (newAnnotation.ext) {
+    newAnnotation.ext = { ...newAnnotation.ext, ...prop };
+    if (newAnnotation.ext.comment) {
+      newAnnotation.ext.description = newAnnotation.ext.comment;
+    }
+    delete newAnnotation.ext.comment;
+  } else {
+    newAnnotation.prop = { ...newAnnotation.prop, ...prop };
+  }
+
   return newAnnotation;
 }
 
@@ -169,7 +178,13 @@ export function getAnnotationPos(annotation) {
 function getRowItemWithoutAction(annotation) {
   const { id } = annotation;
   const pos = getAnnotationPos(annotation);
-  const { comment, type, title } = annotation.prop ? annotation.prop : { comment: '', type: '', title: '' };
+  const prop = {
+    comment: '', type: '', title: '', ...annotation.prop, ...annotation.ext,
+  };
+  if (prop.description) {
+    prop.comment = prop.description;
+  }
+  const { comment, type, title } = prop;
 
   return {
     id,
