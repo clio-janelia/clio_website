@@ -18,9 +18,6 @@ export default function NGLoader({
   coords,
 }) {
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const ngState = useSelector((state) => state.viewer.get('ngState'), shallowEqual);
-
-  const { crossSectionScale } = ngState;
 
   useEffect(() => {
     if (dataset) {
@@ -92,7 +89,7 @@ export default function NGLoader({
 
       actions.initViewer(viewerOptions);
     }
-  }, [actions, dataset, projectUrl, coords, crossSectionScale]);
+  }, [actions, dataset, projectUrl, coords]);
 
 
   const classes = useStyles();
