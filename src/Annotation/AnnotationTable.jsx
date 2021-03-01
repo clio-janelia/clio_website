@@ -105,7 +105,7 @@ function AnnotationTable(props) {
           newData.push(item);
         }
       });
-      setData({ rows: newData });
+      setData({ rows: newData.sort((r1, r2) => r2.timestamp - r1.timestamp) });
 
       setSelectedAnnotation(getSelectedAnnotationId(undefined, layerName));
       /*

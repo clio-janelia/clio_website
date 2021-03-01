@@ -175,6 +175,14 @@ export function getAnnotationPos(annotation) {
   return null;
 }
 
+function getAnnotationTimestamp(annotation) {
+  if (annotation.prop && annotation.prop.timestamp) {
+    return Number(annotation.prop.timestamp);
+  }
+
+  return 0;
+}
+
 function getRowItemWithoutAction(annotation) {
   const { id } = annotation;
   const pos = getAnnotationPos(annotation);
@@ -193,6 +201,7 @@ function getRowItemWithoutAction(annotation) {
     title: title || '',
     comment: comment || '',
     type: type || '',
+    timestamp: getAnnotationTimestamp(annotation),
     defaultEditing: false,
   };
 }
