@@ -68,8 +68,8 @@ export const ANNOTATION_SHADER = `
 #uicontrol float opacity3D slider(min=0, max=1, step=0.1, default=0.2)
 #uicontrol vec3 defaultPointColor color(default="#FF0000")
 #uicontrol vec3 lineColor color(default="#FF0000")
-#uicontrol vec3 sphereColor color(default="red")
-#uicontrol float sphereAnnotationOpacity slider(min=0, max=1, step=0.1, default=1)
+//#uicontrol vec3 sphereColor color(default="red")
+//#uicontrol float sphereAnnotationOpacity slider(min=0, max=1, step=0.1, default=1)
 void main() {
   setPointMarkerSize(pointRadius);
   setEndpointMarkerSize(lineEndRadius);
@@ -87,6 +87,7 @@ void main() {
   }
   setLineColor(lineColor, lineColor);
   setEndpointMarkerColor(lineColor);
+  /*
   float finalSphereAnnotationOpacity = sphereAnnotationOpacity;
   if (prop_rendering_attribute() != 11) {
     finalSphereAnnotationOpacity = 1.0;
@@ -94,6 +95,7 @@ void main() {
   setSphereColor(vec4(sphereColor, finalSphereAnnotationOpacity));
   setAxisColor(vec4(sphereColor, finalSphereAnnotationOpacity));
   setAxisEndpointMarkerColor(vec4(sphereColor, finalSphereAnnotationOpacity));
+  */
 }`;
 
 export const ATLAS_SHADER = `
@@ -130,7 +132,16 @@ export function getAnnotationIcon(kind, action, selected) {
 
 export function getNewAnnotation(annotation, prop) {
   const newAnnotation = { ...annotation };
-  newAnnotation.prop = { ...newAnnotation.prop, ...prop };
+  if (newAnnotation.ext) {
+    newAnnotation.ext = { ...newAnnotation.ext, ...prop };
+    if (newAnnotation.ext.comment) {
+      newAnnotation.ext.description = newAnnotation.ext.comment;
+    }
+    delete newAnnotation.ext.comment;
+  } else {
+    newAnnotation.prop = { ...newAnnotation.prop, ...prop };
+  }
+
   return newAnnotation;
 }
 
@@ -164,10 +175,24 @@ export function getAnnotationPos(annotation) {
   return null;
 }
 
+function getAnnotationTimestamp(annotation) {
+  if (annotation.prop && annotation.prop.timestamp) {
+    return Number(annotation.prop.timestamp);
+  }
+
+  return 0;
+}
+
 function getRowItemWithoutAction(annotation) {
   const { id } = annotation;
   const pos = getAnnotationPos(annotation);
-  const { comment, type, title } = annotation.prop ? annotation.prop : { comment: '', type: '', title: '' };
+  const prop = {
+    comment: '', type: '', title: '', ...annotation.prop, ...annotation.ext,
+  };
+  if (prop.description) {
+    prop.comment = prop.description;
+  }
+  const { comment, type, title } = prop;
 
   return {
     id,
@@ -176,6 +201,7 @@ function getRowItemWithoutAction(annotation) {
     title: title || '',
     comment: comment || '',
     type: type || '',
+    timestamp: getAnnotationTimestamp(annotation),
     defaultEditing: false,
   };
 }

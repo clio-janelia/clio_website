@@ -207,9 +207,16 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     onVisibleChangedMerge(segments, layer, mergeManager.current);
   };
 
+  const selectionDetailsStateChangedHandlers = [];
+  const onSelectionDetailsStateChanged = () => {
+    selectionDetailsStateChangedHandlers.forEach((handler) => {
+      handler();
+    });
+  };
+
   // Add `onVisibleChanged` to the props of the child, which is a react-neuroglancer viewer.
   const childrenWithMoreProps = React.Children.map(children, (child) => (
-    React.cloneElement(child, { onVisibleChanged }, null)
+    React.cloneElement(child, { onVisibleChanged, onSelectionDetailsStateChanged }, null)
   ));
 
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
@@ -226,6 +233,20 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       tooltip: 'Ctrl+Click in the data viewer to start adding a line. Ctrl+Click again to finish the line.',
     };
 
+    const setSelectionChangedCallback = (callback) => {
+      selectionDetailsStateChangedHandlers.splice(
+        0, selectionDetailsStateChangedHandlers.length,
+      );
+      selectionDetailsStateChangedHandlers.push(callback);
+
+      return () => {
+        const index = selectionDetailsStateChangedHandlers.indexOf(callback);
+        if (index !== -1) {
+          selectionDetailsStateChangedHandlers.splice(index, 1);
+        }
+      };
+    };
+
     const annotationConfig = {
       width: `${SIDEBAR_WIDTH_PX}px`,
       layers: [
@@ -239,6 +260,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             allowingExport: true,
             token: user.getAuthResponse().id_token,
           },
+          setSelectionChangedCallback,
         },
         {
           name: 'atlas',
@@ -250,6 +272,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             allowingExport: true,
             token: user.getAuthResponse().id_token,
           },
+          setSelectionChangedCallback,
         },
       ],
     };
@@ -268,6 +291,9 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           className={sidebarOpen ? classes.ngSidebarOpen : classes.ngSidebarClosed}
           tabIndex={0}
           onKeyPress={onKeyPress}
+          onContextMenu={(event) => {
+            event.preventDefault();
+          }}
         >
           {childrenWithMoreProps}
         </div>

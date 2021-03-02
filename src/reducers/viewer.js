@@ -122,6 +122,19 @@ export default function viewerReducer(state = viewerState, action) {
       return setInLayerArray(syncedState(state), 'todos', ['defaultAnnotationProperties', 'point', 'hint'], action.payload);
     }
     case C.SET_VIEWER_ANNOTATION_SELECTION: {
+      if (action.payload.host === 'viewer') {
+        return syncedState(state).setIn(
+          ['ngState'], {
+            selection: {
+              layers: {
+                [action.payload.layerName]: {
+                  annotationId: action.payload.annotationId,
+                },
+              },
+            },
+          },
+        );
+      }
       return setInLayerArray(syncedState(state), action.payload.layerName, ['selectedAnnotation'], { id: action.payload.annotationId });
     }
     case C.SET_VIEWER_ANNOTATION_TOOL: {

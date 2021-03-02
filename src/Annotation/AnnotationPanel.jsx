@@ -53,6 +53,7 @@ export default function AnnotationPanel(props) {
         tools={layer.tools}
         layerName={layer.name}
         locateItem={layer.locateItem}
+        setSelectionChangedCallback={layer.setSelectionChangedCallback}
         actions={actions}
       />
     </TabPanel>
