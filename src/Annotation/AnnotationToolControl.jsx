@@ -26,7 +26,7 @@ function AnnotationToolControl(props) {
 
   return (
     <FormControl component="fieldset">
-      <FormLabel component="legend">Annotate</FormLabel>
+      <FormLabel component="legend">Annotate (by Ctrl+Click in the viewer)</FormLabel>
       <FormGroup row>
         <RadioGroup row value={tool} onChange={handleChange}>
           {buttons}
