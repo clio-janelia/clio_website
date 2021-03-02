@@ -79,7 +79,6 @@ export default function ImageSearch({ actions, datasets, selectedDatasetName, ch
       name: 'coords',
       event: 'alt+click0',
       function: (e) => {
-        actions.setViewerCameraPosition([...e.mouseState.position]);
         setMousePosition([...e.mouseState.position]);
       },
     },
