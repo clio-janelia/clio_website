@@ -398,7 +398,9 @@ export default function Atlas(props) {
         </Grid>
       </div>
 
-      {selectedAnnotation && <div className={classes.window}>{children}</div>}
+      {selectedAnnotation && (
+        <div className={classes.window} onContextMenu={(e) => e.preventDefault()}>{children}</div>
+      )}
     </div>
   );
 }
