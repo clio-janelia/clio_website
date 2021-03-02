@@ -94,7 +94,7 @@ export default function NGLoader({
 
   const classes = useStyles();
   return (
-    <div className={classes.window}>
+    <div className={classes.window} onContextMenu={(e) => e.preventDefault()}>
       {children}
     </div>
   );
