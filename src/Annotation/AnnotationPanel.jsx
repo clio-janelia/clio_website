@@ -35,6 +35,8 @@ export default function AnnotationPanel(props) {
     const index = parseInt(newValue, 10);
     if (config.layers[index]) {
       actions.selectViewerLayer(config.layers[index].name);
+    } else {
+      actions.selectViewerLayer('');
     }
   };
 
