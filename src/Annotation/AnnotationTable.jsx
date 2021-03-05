@@ -169,6 +169,7 @@ function AnnotationTable(props) {
     if (data.rows.length === 0) {
       updateTableRows();
     }
+    return updateTableRows.cancel;
   }, [
     data,
     updateTableRows,
