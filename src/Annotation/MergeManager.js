@@ -280,6 +280,10 @@ export default class MergeManager {
       });
   };
 
+  pullRequest = () => (
+    this.backend.pullRequest()
+  )
+
   typeMerged = (id) => {
     if (id in this.mainToTypeMerged) {
       return this.mainToTypeMerged[id];
