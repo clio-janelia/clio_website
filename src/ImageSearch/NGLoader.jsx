@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
+import { makeLayersFromDataset } from '../utils/neuroglancer';
 
 const useStyles = makeStyles({
   window: {
@@ -41,23 +42,8 @@ export default function NGLoader({
             url: `clio://${projectUrl}/${dataset.name}?auth=neurohub`,
           },
         },
+        ...makeLayersFromDataset(dataset, false),
       ];
-
-      if ('layers' in dataset) {
-        dataset.layers.forEach((layer) => {
-          let layerUrl = layer.location;
-          if (!layer.location.match(/^dvid/)) {
-            layerUrl = `precomputed://${layer.location}`;
-          }
-          layers.push({
-            name: layer.name,
-            type: layer.type,
-            source: {
-              url: layerUrl,
-            },
-          });
-        });
-      }
 
       const viewerOptions = {
         position: coords,

@@ -13,5 +13,10 @@ export default (func, wait, immediate) => {
     timeout = setTimeout(later, wait);
     if (callNow) func.apply(context, args);
   }
+
+  Object.assign(debounced, {
+    cancel() { clearTimeout(timeout); },
+  });
+
   return debounced;
 };

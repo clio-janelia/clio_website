@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
+import { makeLayersFromDataset } from './utils/neuroglancer';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import {
   ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
@@ -75,16 +76,6 @@ const useStyles = makeStyles((theme) => {
   });
 });
 
-const inferredLayerType = (layer) => {
-  if (layer.name.includes('segmentation')) {
-    return 'segmentation';
-  }
-  if (layer.location.includes('segmentation')) {
-    return 'segmentation';
-  }
-  return undefined;
-};
-
 // eslint-disable-next-line object-curly-newline
 export default function Annotate({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
@@ -125,23 +116,8 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           shader: ATLAS_SHADER,
           tool: 'annotatePoint',
         },
+        ...makeLayersFromDataset(dataset, true),
       ];
-
-      if ('layers' in dataset) {
-        dataset.layers.forEach((layer) => {
-          let layerUrl = layer.location;
-          if (!layer.location.match(/^dvid/)) {
-            layerUrl = `precomputed://${layer.location}`;
-          }
-          layers.push({
-            name: layer.name,
-            type: layer.type || inferredLayerType(layer),
-            source: {
-              url: layerUrl,
-            },
-          });
-        });
-      }
 
       const viewerOptions = {
         position: [],
