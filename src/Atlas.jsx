@@ -13,7 +13,7 @@ import FilterType from './Atlas/FilterType';
 import VerifyType from './Atlas/VerifyType';
 import { addAlert } from './actions/alerts';
 import { canWrite } from './utils/permissions';
-import { addLayersFromDataset } from './utils/neuroglancer';
+import { makeLayersFromDataset } from './utils/neuroglancer';
 
 const useStyles = makeStyles({
   window: {
@@ -119,9 +119,8 @@ export default function Atlas(props) {
             url: `clio://${projectUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
           },
         },
+        ...makeLayersFromDataset(selectedDataset, false),
       ];
-
-      addLayersFromDataset(layers, selectedDataset, false);
 
       const viewerOptions = {
         position: selectedAnnotation.location,

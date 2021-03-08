@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
-import { addLayersFromDataset } from './utils/neuroglancer';
+import { makeLayersFromDataset } from './utils/neuroglancer';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import {
   ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
@@ -116,9 +116,8 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           shader: ATLAS_SHADER,
           tool: 'annotatePoint',
         },
+        ...makeLayersFromDataset(dataset, true),
       ];
-
-      addLayersFromDataset(layers, dataset, true);
 
       const viewerOptions = {
         position: [],

@@ -10,9 +10,9 @@ function inferredLayerType(layer) {
 }
 
 /* eslint-disable-next-line  import/prefer-default-export */
-export function addLayersFromDataset(layers, dataset, inferringType) {
+export function makeLayersFromDataset(dataset, inferringType) {
   if ('layers' in dataset) {
-    dataset.layers.forEach((layer) => {
+    return dataset.layers.map((layer) => {
       let layerUrl = layer.location;
       if (!layer.location.match(/^dvid/)) {
         layerUrl = `precomputed://${layer.location}`;
@@ -40,7 +40,9 @@ export function addLayersFromDataset(layers, dataset, inferringType) {
         layerConfig.source.enableDefaultSubsources = false;
       }
 
-      layers.push(layerConfig);
+      return layerConfig;
     });
   }
+
+  return [];
 }
