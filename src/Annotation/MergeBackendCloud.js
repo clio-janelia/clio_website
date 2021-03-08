@@ -83,6 +83,31 @@ export default class MergeBackendCloud {
       }));
   }
 
+  pullRequest = () => {
+    const options = {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
+    };
+    options.body = JSON.stringify({
+      pull: this.pullRequestBody(),
+    });
+    const url = this.urlPullRequest();
+    return (fetch(url, options)
+      .then((res) => {
+        if (res.ok) {
+          return (res.json());
+        }
+        const err = `Posting to ${url} failed: ${res.statusText}`;
+        throw new Error(err);
+      })
+      .catch((exc) => {
+        this.addAlert({ severity: 'error', message: exc.message });
+      }));
+  }
+
   // Internal
 
   datasetName = () => {
@@ -99,4 +124,8 @@ export default class MergeBackendCloud {
   urlMainToOthers = () => `${this.urlBase()}/mainToOthers`;
 
   urlOtherToMain = () => `${this.urlBase()}/otherToMain`;
+
+  urlPullRequest = () => `${this.projectUrl}/pull-request`;
+
+  pullRequestBody = () => `kv/${this.scope()}/mainToOthers`;
 }
