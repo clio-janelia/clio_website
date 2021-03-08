@@ -13,6 +13,7 @@ import FilterType from './Atlas/FilterType';
 import VerifyType from './Atlas/VerifyType';
 import { addAlert } from './actions/alerts';
 import { canWrite } from './utils/permissions';
+import { addLayersFromDataset } from './utils/neuroglancer';
 
 const useStyles = makeStyles({
   window: {
@@ -120,22 +121,7 @@ export default function Atlas(props) {
         },
       ];
 
-      if ('layers' in selectedDataset) {
-        selectedDataset.layers.forEach((layer) => {
-          let layerUrl = layer.location;
-          if (!layer.location.match(/^dvid/)) {
-            layerUrl = `precomputed://${layer.location}`;
-          }
-
-          layers.push({
-            name: layer.name,
-            type: layer.type,
-            source: {
-              url: layerUrl,
-            },
-          });
-        });
-      }
+      addLayersFromDataset(layers, selectedDataset, false);
 
       const viewerOptions = {
         position: selectedAnnotation.location,
