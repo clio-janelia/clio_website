@@ -33,11 +33,9 @@ export function makeLayersFromDataset(dataset, inferringType) {
 
       if (type === 'segmentation') {
         layerConfig.source.subsources = {
-          default: true,
-          meshes: true,
-          bounds: true,
+          skeletons: false,
         };
-        layerConfig.source.enableDefaultSubsources = false;
+        layerConfig.source.enableDefaultSubsources = true;
       }
 
       return layerConfig;
