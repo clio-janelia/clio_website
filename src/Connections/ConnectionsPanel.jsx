@@ -72,6 +72,7 @@ export default function ConnectionsPanel(props) {
       setSelected(mergeManager.selection.length > 0);
     };
     setSelected(mergeManager.selection.length > 0);
+    return (() => { mergeManager.onSelectionChanged = undefined; });
   }, [mergeManager]);
 
   const updateTable = React.useCallback(() => {
