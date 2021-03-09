@@ -225,6 +225,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
     const annotationConfig = {
       width: `${SIDEBAR_WIDTH_PX}px`,
+      datasetName: dataset.name,
       layers: [
         {
           name: 'annotations',
@@ -237,6 +238,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             token: user.getAuthResponse().id_token,
           },
           setSelectionChangedCallback,
+          dataSource: dataset.name,
         },
         {
           name: 'atlas',
@@ -249,6 +251,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             token: user.getAuthResponse().id_token,
           },
           setSelectionChangedCallback,
+          dataSource: dataset.name,
         },
       ],
     };

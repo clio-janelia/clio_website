@@ -29,7 +29,7 @@ import debounce from '../utils/debounce';
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, actions, tools, setSelectionChangedCallback,
+    layerName, dataConfig, actions, tools, setSelectionChangedCallback, dataSource,
   } = props;
   const [data, setData] = React.useState({});
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
@@ -178,6 +178,10 @@ function AnnotationTable(props) {
   ]);
 
   useEffect(() => {
+    setData({});
+  }, [dataSource]);
+
+  useEffect(() => {
     const configureAnnotationLayerFunc = (layer) => configureAnnotationLayerChanged(layer, {
       onAnnotationAdded,
       onAnnotationDeleted,
@@ -249,8 +253,9 @@ function AnnotationTable(props) {
 AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
-  tools: PropTypes.arrayOf(PropTypes.object),
+  dataSource: PropTypes.string.isRequired,
   actions: PropTypes.object.isRequired,
+  tools: PropTypes.arrayOf(PropTypes.object),
   setSelectionChangedCallback: PropTypes.func,
 };
 
