@@ -29,9 +29,9 @@ import debounce from '../utils/debounce';
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, actions, tools, setSelectionChangedCallback,
+    layerName, dataConfig, actions, tools, setSelectionChangedCallback, dataSource,
   } = props;
-  const [data, setData] = React.useState({ rows: [] });
+  const [data, setData] = React.useState({});
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
 
   const annotationToItem = React.useCallback(
@@ -107,7 +107,9 @@ function AnnotationTable(props) {
       });
       setData({ rows: newData.sort((r1, r2) => r2.timestamp - r1.timestamp) });
 
-      setSelectedAnnotation(getSelectedAnnotationId(undefined, layerName));
+      if (newData.length > 0) {
+        setSelectedAnnotation(getSelectedAnnotationId(undefined, layerName));
+      }
       /*
       const layer = getAnnotationLayer(undefined, layerName);
       if (layer.selectedAnnotation && layer.selectedAnnotation.value) {
@@ -166,7 +168,7 @@ function AnnotationTable(props) {
   }
 
   useEffect(() => {
-    if (data.rows.length === 0) {
+    if (data.rows === undefined) { // For remount initialization
       updateTableRows();
     }
     return updateTableRows.cancel;
@@ -174,6 +176,10 @@ function AnnotationTable(props) {
     data,
     updateTableRows,
   ]);
+
+  useEffect(() => {
+    setData({});
+  }, [dataSource]);
 
   useEffect(() => {
     const configureAnnotationLayerFunc = (layer) => configureAnnotationLayerChanged(layer, {
@@ -231,7 +237,7 @@ function AnnotationTable(props) {
   return (
     <div>
       <DataTable
-        data={data}
+        data={{ rows: data.rows || [] }}
         selectedId={selectedAnnotation}
         config={dataConfig}
         getId={React.useCallback((row) => row.id, [])}
@@ -247,8 +253,9 @@ function AnnotationTable(props) {
 AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
-  tools: PropTypes.arrayOf(PropTypes.object),
+  dataSource: PropTypes.string.isRequired,
   actions: PropTypes.object.isRequired,
+  tools: PropTypes.arrayOf(PropTypes.object),
   setSelectionChangedCallback: PropTypes.func,
 };
 

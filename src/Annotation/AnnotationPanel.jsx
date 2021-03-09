@@ -40,6 +40,10 @@ export default function AnnotationPanel(props) {
     }
   };
 
+  React.useEffect(() => {
+    setTabValue('0');
+  }, [config.datasetName]);
+
   const numTabs = config.layers.length + (children ? children.length : 0);
   const totalWidth = config.width.replace(/\D/g, '');
   const tabWidth = Math.max(totalWidth / numTabs, 100);
@@ -56,6 +60,7 @@ export default function AnnotationPanel(props) {
         layerName={layer.name}
         locateItem={layer.locateItem}
         setSelectionChangedCallback={layer.setSelectionChangedCallback}
+        dataSource={layer.dataSource}
         actions={actions}
       />
     </TabPanel>
@@ -92,9 +97,11 @@ export default function AnnotationPanel(props) {
 
 AnnotationPanel.propTypes = {
   config: PropTypes.shape({
+    datasetName: PropTypes.string.isRequired,
     layers: PropTypes.arrayOf(PropTypes.shape({
       dataConfig: PropTypes.object,
       name: PropTypes.string,
+      dataSource: PropTypes.string,
     })),
     width: PropTypes.string,
   }).isRequired,
