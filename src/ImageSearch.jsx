@@ -60,6 +60,10 @@ export default function ImageSearch({ actions, datasets, selectedDatasetName, ch
 
   const updatedActions = { ...actions, setMousePosition };
 
+  React.useEffect(() => {
+    setMousePosition([]);
+  }, [selectedDatasetName]);
+
   const handleChange = (event) => {
     // make sure the mouse position gets cleared out so that we don't
     // try to load the data at that point when switching pick modes
