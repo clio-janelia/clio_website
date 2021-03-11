@@ -17,28 +17,20 @@ takes a lot of training data and tuning of deep learning algorithms to start per
 meaningful science.  Consequently, the barrier of entry to work with EM can be an impediment
 to science and often constrain scientific hypotheses to be narrow in scope. 
 
-The purpose of Clio is to provide a more turn-key ecosystem to facilitate application-agnostic analysis
+The purpose of Clio is to provide an ecosystem to facilitate application-agnostic analysis
 and hypothesis generation in multi-terabyte image datasets.  Since deploying state of the art machine learning
 strategies to a new dataset remains an active area of research, a key feature of Clio
 is to provide a set of goal-invariant tools that will faciliate general purpose analysis
-and collaboration.  The Clio ecosystem has two main areas: 1) a set of cloud-based ingestion
-tools to load a multi-TB dataset into a cloud storage in a manner to facilitate easy collaboration
-and publishing and 2) UI tools to enable low-level exploration and annotation in
-the dataset.  The focus of this documentation will be on the UI tools.
+and collaboration.  The Clio ecosystem includes UI tools to enable low-level exploration and annotation in
+the dataset.
 
 Clio does not aim to provide state-of-the-art algorithms for object classification and segmentation
-but it does provide tools that leverage them.  Also, as this ecosystem matures the goal
-is to provide users the ability to do interactive object prediction and reuse pre-trained
+but it does provide tools that leverage them.  As this ecosystem matures, the goal
+is to provide users the ability to perform interactive object prediction and reuse pre-trained
 classifiers to faciliate "first pass" analysis of the dataset.  The motivation is
 that Clio can allow users to form initial hypotheses in the dataset and then follow
 those insights with more rigor.  For users familiar with the EM connectomics and the [neuprint](https://neuprint.janelia.org)
 ecosystem, Clio can be considered as a complementary, lower-level entry point into EM data.
-
-## Clio data ingestion
-
-Clio contains an ingestion workflow that uses cloud tools to align, contrast adjust, and store EM data
-in the cloud.  Some details can be found [clio_ingest](https://github.com/clio-janelia/clio_ingest)
-and more documntation about how to load data, dessiminate, and manage it will be provided in the future.
 
 ## Clio web application
 
