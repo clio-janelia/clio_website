@@ -20,14 +20,14 @@ to science and often constrain scientific hypotheses to be narrow in scope.
 The purpose of Clio is to provide an ecosystem to facilitate application-agnostic analysis
 and hypothesis generation in multi-terabyte image datasets.  Since deploying state of the art machine learning
 strategies to a new dataset remains an active area of research, a key feature of Clio
-is to provide a set of goal-invariant tools that will faciliate general purpose analysis
+is to provide a set of goal-invariant tools that will facilitate general purpose analysis
 and collaboration.  The Clio ecosystem includes UI tools to enable low-level exploration and annotation in
 the dataset.
 
 Clio does not aim to provide state-of-the-art algorithms for object classification and segmentation
 but it does provide tools that leverage them.  As this ecosystem matures, the goal
 is to provide users the ability to perform interactive object prediction and reuse pre-trained
-classifiers to faciliate "first pass" analysis of the dataset.  The motivation is
+classifiers to facilitate "first pass" analysis of the dataset.  The motivation is
 that Clio can allow users to form initial hypotheses in the dataset and then follow
 those insights with more rigor.  For users familiar with the EM connectomics and the [neuprint](https://neuprint.janelia.org)
 ecosystem, Clio can be considered as a complementary, lower-level entry point into EM data.
@@ -76,7 +76,7 @@ labels or arbitrary manual drawings, see Napari section below) with annotations 
 ### Atlas
 
 The atlas plugin provides a community forum for sharing and viewing parts of the dataset that
-people find interesting.  For instansce, it might be used to highlight a strangely shaped membrane,
+people find interesting.  For instance, it might be used to highlight a strangely shaped membrane,
 an organelle, or imaging artifacts.  The UI, shown below, shows 2D snapshots of each
 annotation.  By clicking on one of these 2D snapshots, the user navigates to that location 
 in the dataset.  The UI also enables filtering based on dataset and keyword.
@@ -88,7 +88,7 @@ The user is able to see his unverified atlas annotations, as well as, global, ve
 
 In the absence of cell segmentation or other supervised data mining, it is often
 hard to navigate a very large dataset and find interesting motifs.  We designed an unsupervised
-deep learning strategy that encodes small patche of image data with a smaller 64-bit
+deep learning strategy that encodes small patches of image data with a smaller 64-bit
 signature to facilitate fast image searching.  More information about the algorithm
 can be found [here](https://arxiv.org/abs/2012.12175).
 
@@ -100,7 +100,7 @@ billions of image signatures in around one second by using a combination of hash
 bitwise arithmetic within Google's BigQuery cloud service.  This tool can be used to try to find
 multiple examples of a given phenomenon.  Future research aims 1) to enable some light-weight object prediction
 based on real-time, interactive training 2) to combine predicted objects with other layers
-of image segmentation for data mininig and 3D visualization, 3) and to provide programmatic API to do more complex analyses.
+of image segmentation for data mining and 3D visualization, 3) and to provide programmatic API to do more complex analyses.
 Searches can be saved locally.
 
 ### Napari (TBD)
