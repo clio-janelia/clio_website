@@ -219,7 +219,11 @@ export function getRowItemFromAnnotation(annotation, config) {
         locate(layerName, id, pos);
       },
     };
-    if (!annotation.verified) {
+    let { verified } = annotation;
+    if (verified === undefined) {
+      verified = annotation.ext ? annotation.ext.verified : false;
+    }
+    if (!verified) {
       item.deleteAction = () => {
         const source = getAnnotationSource(undefined, layerName);
         // console.log(source);
