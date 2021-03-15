@@ -27,7 +27,7 @@ import NGLoader from './ImageSearch/NGLoader';
 
 const initialCoordinates = []; // [24646, 15685, 17376];
 
-const keyboardText = navigator.appVersion.indexOf('Mac') ? 'option' : 'alt';
+const keyboardText = /Mac/.test(navigator.platform) ? 'option' : 'alt';
 
 const useStyles = makeStyles({
   window: {

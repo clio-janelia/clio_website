@@ -7,7 +7,6 @@ import annotateImage from './Help/annotate_plugin.png';
 import atlasImage from './Help/atlas_plugin.png';
 import searchImage from './Help/search_plugin.png';
 
-
 const useStyles = makeStyles({
   root: {
     margin: '1em',
@@ -54,35 +53,23 @@ export default function Help() {
             scientific hypotheses to be narrow in scope.
           </Typography>
           <Typography variant="body1" paragraph>
-            The purpose of Clio is to provide a more turn-key ecosystem to facilitate
-            application-agnostic analysis and hypothesis generation in multi-terabyte image
-            datasets. Since deploying state of the art machine learning strategies to a new dataset
-            remains an active area of research, a key feature of Clio is to provide a set of
-            goal-invariant tools that will facilitate general purpose analysis and collaboration.
-            The Clio ecosystem has two main areas: 1) a set of cloud-based ingestion tools to load a
-            multi-TB dataset into a cloud storage in a manner to facilitate easy collaboration and
-            publishing and 2) UI tools to enable low-level exploration and annotation in the
-            dataset. The focus of this documentation will be on the UI tools.
+            The purpose of Clio is to provide an ecosystem to facilitate application-agnostic
+            analysis and hypothesis generation in multi-terabyte image datasets. Since deploying
+            state of the art machine learning strategies to a new dataset remains an active area of
+            research, a key feature of Clio is to provide a set of goal-invariant tools that will
+            facilitate general purpose analysis and collaboration. The Clio ecosystem includes UI
+            tools to enable low-level exploration and annotation in the dataset.
           </Typography>
           <Typography variant="body1" paragraph>
             Clio does not aim to provide state-of-the-art algorithms for object classification and
-            segmentation but it does provide tools that leverage them. Also, as this ecosystem
-            matures the goal is to provide users the ability to do interactive object prediction and
+            segmentation but it does provide tools that leverage them. As this ecosystem matures,
+            the goal is to provide users the ability to perform interactive object prediction and
             reuse pre-trained classifiers to facilitate &quot;first pass&quot; analysis of the
             dataset. The motivation is that Clio can allow users to form initial hypotheses in the
             dataset and then follow those insights with more rigor. For users familiar with the EM
-            connectomics and the <a href="https://neuprint.janelia.org">neuprint</a> ecosystem, Clio
-            can be considered as a complementary, lower-level entry point into EM data.
-          </Typography>
-          <Typography variant="h3" gutterBottom>
-            Clio data ingestion
-          </Typography>
-          <Typography variant="body1" paragraph>
-            Clio contains an ingestion workflow that uses cloud tools to align, contrast adjust, and
-            store EM data in the cloud. Some details can be found in our{' '}
-            <a href="https://github.com/clio-janelia/clio_ingest">clio_ingest github repository</a>{' '}
-            and more documentation about how to load data, disseminate, and manage it will be
-            provided in the future.
+            connectomics and the <a href="https://neuprint.janelia.org">neuprint</a>
+            ecosystem, Clio can be considered as a complementary, lower-level entry point into EM
+            data.
           </Typography>
           <Typography variant="h3" gutterBottom>
             Clio web application
@@ -141,7 +128,7 @@ export default function Help() {
           </Typography>
           <Typography variant="body1" paragraph>
             The atlas plugin provides a community forum for sharing and viewing parts of the dataset
-            that people find interesting. For instansce, it might be used to highlight a strangely
+            that people find interesting. For instance, it might be used to highlight a strangely
             shaped membrane, an organelle, or imaging artifacts. The UI, shown below, shows 2D
             snapshots of each annotation. By clicking on one of these 2D snapshots, the user
             navigates to that location in the dataset. The UI also enables filtering based on
@@ -155,7 +142,7 @@ export default function Help() {
           <Typography variant="body1" paragraph>
             In the absence of cell segmentation or other supervised data mining, it is often hard to
             navigate a very large dataset and find interesting motifs. We designed an unsupervised
-            deep learning strategy that encodes small patche of image data with a smaller 64-bit
+            deep learning strategy that encodes small patches of image data with a smaller 64-bit
             signature to facilitate fast image searching. More information about the algorithm can
             be found in this <a href="https://arxiv.org/abs/2012.12175">arXiv submission</a>.
           </Typography>
@@ -168,7 +155,7 @@ export default function Help() {
             This tool can be used to try to find multiple examples of a given phenomenon. Future
             research aims 1) to enable some light-weight object prediction based on real-time,
             interactive training 2) to combine predicted objects with other layers of image
-            segmentation for data mininig and 3D visualization, 3) and to provide programmatic API
+            segmentation for data mining and 3D visualization, 3) and to provide programmatic API
             to do more complex analyses. Searches can be saved locally.
           </Typography>
           <Typography variant="h4" gutterBottom>

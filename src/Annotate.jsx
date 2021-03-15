@@ -297,6 +297,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             <MergePanel
               tabName="merges"
               mergeManager={mergeManager.current}
+              addAlert={actions.addAlert}
             />
             <ConnectionsPanel
               tabName="connections"

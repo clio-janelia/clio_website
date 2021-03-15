@@ -82,26 +82,32 @@ function MergePanel(props) {
     updateTable();
   }, [mergeManager, updateTable]);
 
-  const [confirmationOpen, setConfirmationOpen] = React.useState(false);
-
-  const handleConfirmationOK = () => {
+  const [clearConfirmationOpen, setClearConfirmationOpen] = React.useState(false);
+  const handleClearConfirmationOK = () => {
     mergeManager.clear();
-    setConfirmationOpen(false);
+    setClearConfirmationOpen(false);
   };
-  const handleConfirmationCancel = () => setConfirmationOpen(false);
+  const handleClearConfirmationCancel = () => setClearConfirmationOpen(false);
+
+  const [pullRequestConfirmationOpen, setPullRequestConfirmationOpen] = React.useState(false);
+  const handlePullRequestConfirmationOK = () => {
+    setPullRequestConfirmationOpen(false);
+    mergeManager.pullRequest()
+      .then(() => {
+        const message = 'Pull request submitted.';
+        props.addAlert({ severity: 'info', message });
+      });
+  };
+  const handlePullRequestConfirmationCancel = () => setPullRequestConfirmationOpen(false);
 
   const onClickButtonMerge = () => mergeManager.merge();
   const onClickButtonUnmerge = () => mergeManager.unmerge();
   const onClickButtonClear = () => {
     if (Object.keys(mergeManager.mainToOthers).length > 0) {
-      setConfirmationOpen(true);
+      setClearConfirmationOpen(true);
     }
   };
-  const onClickButtonPullRequest = () => {
-    // TODO: Support pull requests.
-    const message = 'Pull requests are not yet supported.';
-    mergeManager.actions.addAlert({ severity: 'warning', message });
-  };
+  const onClickButtonPullRequest = () => setPullRequestConfirmationOpen(true);
 
   return (
     <div>
@@ -122,13 +128,25 @@ function MergePanel(props) {
         getId={React.useCallback((row) => row.id, [])}
       />
 
-      <Dialog open={confirmationOpen} disableEnforceFocus>
+      <Dialog open={clearConfirmationOpen} disableEnforceFocus>
         <DialogContent>
           <DialogContentText>Clear all local merges?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleConfirmationOK} color="primary">OK</Button>
-          <Button autoFocus onClick={handleConfirmationCancel} color="primary">Cancel</Button>
+          <Button onClick={handleClearConfirmationOK} color="primary">OK</Button>
+          <Button autoFocus onClick={handleClearConfirmationCancel} color="primary">Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={pullRequestConfirmationOpen} disableEnforceFocus>
+        <DialogContent>
+          <DialogContentText>
+            Submit a pull request to include local merges in the next data release?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handlePullRequestConfirmationOK} color="primary">OK</Button>
+          <Button autoFocus onClick={handlePullRequestConfirmationCancel} color="primary">Cancel</Button>
         </DialogActions>
       </Dialog>
     </div>
@@ -137,6 +155,7 @@ function MergePanel(props) {
 
 MergePanel.propTypes = {
   mergeManager: PropTypes.object.isRequired,
+  addAlert: PropTypes.func.isRequired,
 };
 
 function onKeyPressMerge(event, mergeManager) {
