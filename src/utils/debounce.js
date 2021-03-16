@@ -15,7 +15,9 @@ export default (func, wait, immediate) => {
   }
 
   Object.assign(debounced, {
-    cancel() { clearTimeout(timeout); },
+    cancel() {
+      clearTimeout(timeout);
+    },
   });
 
   return debounced;

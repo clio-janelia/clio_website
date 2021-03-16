@@ -2,7 +2,7 @@ export default {
   // project: 'FlyEM Private',
   project: 'clio-294722',
   projectBaseUrlDefault: 'https://clio-store-vwzoicitea-uk.a.run.app',
-  top_level_function: 'v3',
+  top_level_function: 'test',
   imageSliceUrlTemplate: 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>',
   google_auth: {
     // client_id: '833853795110-2eu65hnvthhcibk64ibftemb0i1tlu97.apps.googleusercontent.com',

@@ -17,8 +17,8 @@ import Box from '@material-ui/core/Box';
 import DataTable from './DataTable/DataTable';
 import {
   getRowItemFromAnnotation,
-  isValidAnnotation,
-  getAnnotationPos,
+  // isValidAnnotation,
+  // getAnnotationPos,
   getAnnotationIcon,
   toAnnotationPayload,
   getAnnotationUrl,
@@ -31,6 +31,8 @@ import AnnotationUserGroup from './AnnotationUserGroup';
 import ImportAnnotation from './ImportAnnotation';
 import ExportAnnotation from './ExportAnnotation';
 import debounce from '../utils/debounce';
+
+const DEBUG = false;
 
 function AnnotationTable(props) {
   const {
@@ -122,8 +124,14 @@ function AnnotationTable(props) {
 
   const updateTableRows = React.useCallback(debounce((newId) => {
     const source = getAnnotationSource(undefined, layerName);
+    if (DEBUG) {
+      console.log('updateTableRows:', source);
+    }
     if (source) {
       const newData = [];
+      if (DEBUG) {
+        console.log('updateTableRows:', source.references);
+      }
       source.references.forEach((ref) => {
         if (ref.value) {
           const item = annotationToItem(ref.value);
@@ -138,15 +146,10 @@ function AnnotationTable(props) {
       if (newData.length > 0) {
         setSelectedAnnotation(getSelectedAnnotationId(undefined, layerName));
       }
-      /*
-      const layer = getAnnotationLayer(undefined, layerName);
-      if (layer.selectedAnnotation && layer.selectedAnnotation.value) {
-        setSelectedAnnotation(layer.selectedAnnotation.value.id);
-      }
-      */
     }
   }, 250, false), [layerName, annotationToItem]);
 
+  /*
   const onAnnotationAdded = React.useCallback((annotation) => {
     // console.log(annotation);
     // if (!annotation.source || annotation.source === 'downloaded:last') {
@@ -155,13 +158,16 @@ function AnnotationTable(props) {
       const isValid = isValidAnnotation(annotation, dataConfig);
       actions.addAlert({
         severity: isValid ? 'success' : 'info',
-        message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
+        message: `${isValid ? 'New' : ' Temporary'} annotation added `
+          `@(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
         duration: 1000,
       });
     }
     // }
-  }, [updateTableRows, dataConfig, layerName, actions]);
+  }, [dataConfig, layerName, actions]);
+  */
 
+  /*
   const onAnnotationDeleted = React.useCallback((id) => {
     actions.addAlert({
       severity: 'success',
@@ -170,11 +176,14 @@ function AnnotationTable(props) {
     });
     updateTableRows();
   }, [updateTableRows, actions, layerName]);
+  */
 
+  /*
   const onAnnotationUpdated = React.useCallback(() => {
     // console.log(annotation);
     updateTableRows();
   }, [updateTableRows]);
+  */
 
   const onAnnotationSelectionChanged = React.useCallback((annotation) => {
     // console.log('selected:', annotation);
@@ -189,6 +198,14 @@ function AnnotationTable(props) {
     }
   }, [setSelectedAnnotation]);
 
+  const onAnnotationChanged = React.useCallback((source) => {
+    if (['update', 'updated', 'deleted'].includes(source.action)) {
+      updateTableRows();
+    } else if (source.action === 'added') {
+      updateTableRows(source.id);
+    }
+  }, [updateTableRows]);
+
   if (setSelectionChangedCallback) {
     setSelectionChangedCallback(() => {
       onAnnotationSelectionChanged(getSelectedAnnotationId(undefined, layerName));
@@ -199,7 +216,7 @@ function AnnotationTable(props) {
     if (data.rows === undefined) { // For remount initialization
       updateTableRows();
     }
-    return updateTableRows.cancel;
+    // return updateTableRows.cancel; // This can cause premature cancel
   }, [
     data,
     updateTableRows,
@@ -215,10 +232,8 @@ function AnnotationTable(props) {
       // FIXME: ideally it should be triggered by source switch directly.
       updateTableRows();
       return configureAnnotationLayerChanged(layer, {
-        onAnnotationAdded,
-        onAnnotationDeleted,
-        onAnnotationUpdated,
         onAnnotationSelectionChanged,
+        onAnnotationChanged,
       }, (remover) => addLayerSignalRemover(undefined, layerName, remover));
     };
 
@@ -229,10 +244,8 @@ function AnnotationTable(props) {
     });
   }, [
     layerName,
-    onAnnotationAdded,
-    onAnnotationDeleted,
-    onAnnotationUpdated,
     onAnnotationSelectionChanged,
+    onAnnotationChanged,
     updateTableRows,
   ]);
 
