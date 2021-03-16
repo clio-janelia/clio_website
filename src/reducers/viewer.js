@@ -91,6 +91,22 @@ const setInLayerArray = (state, layerName, propPathArray, propValue, adding) => 
   return state.setIn(['ngState', 'layers', i, ...propPathArray], propValue);
 };
 
+const hasLayer = (state, layerName) => {
+  const layers = state.getIn(['ngState', 'layers']);
+  const i = layers.findIndex((value) => (value.name === layerName));
+
+  return i !== -1;
+};
+
+const getInLayerArray = (state, layerName, propPathArray) => {
+  const layers = state.getIn(['ngState', 'layers']);
+  const i = layers.findIndex((value) => (value.name === layerName));
+  if (i === -1) {
+    return undefined;
+  }
+  return state.getIn(['ngState', 'layers', i, ...propPathArray]);
+};
+
 export default function viewerReducer(state = viewerState, action) {
   switch (action.type) {
     case C.VIEWER_RESET: {
@@ -105,6 +121,18 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_GRAYSCALE_SOURCE: {
       return setInLayerArray(syncedState(state), 'grayscale', ['source'], action.payload);
+    }
+    case C.SET_VIEWER_LAYER_SOURCE: {
+      const { layerName, source } = action.payload;
+      if (hasLayer(state, layerName)) {
+        let newSource = source;
+        if (typeof source === 'function') {
+          newSource = source(getInLayerArray(state, layerName, ['source']));
+        }
+        return setInLayerArray(syncedState(state), layerName, ['source'], newSource);
+      }
+
+      return syncedState(state);
     }
     case C.SET_VIEWER_SEGMENTATION_SOURCE: {
       return setInLayerArray(syncedState(state), 'segmentation', ['source'], action.payload);
@@ -123,16 +151,20 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_ANNOTATION_SELECTION: {
       if (action.payload.host === 'viewer') {
+        let selection = syncedState(state).getIn(['ngState', 'selection']);
+        if (!selection) {
+          selection = {};
+        }
+        if (!selection.layers) {
+          selection.layers = {};
+        }
+
+        selection.layers[action.payload.layerName] = {
+          annotationId: action.payload.annotationId,
+        };
+
         return syncedState(state).setIn(
-          ['ngState'], {
-            selection: {
-              layers: {
-                [action.payload.layerName]: {
-                  annotationId: action.payload.annotationId,
-                },
-              },
-            },
-          },
+          ['ngState', 'selection'], selection,
         );
       }
       return setInLayerArray(syncedState(state), action.payload.layerName, ['selectedAnnotation'], { id: action.payload.annotationId });

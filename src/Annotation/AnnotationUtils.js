@@ -455,3 +455,49 @@ export function toAnnotationPayload(buffer, user) {
 export function getAnnotationUrl(sourceParameters) {
   return `${sourceParameters.baseUrl}/${sourceParameters.api}/${(sourceParameters.kind === 'Atlas') ? 'atlas' : 'annotations'}/${sourceParameters.dataset}`;
 }
+
+export function getAnnotationUrlWithGroups(url, groups) {
+  const matched = url.match(/(.*:\/\/)(.*:\/\/.*)/);
+  const newUrl = new URL(matched ? matched[2] : url);
+  if (groups && groups.length > 0) {
+    newUrl.searchParams.set('groups', groups.join(','));
+  } else {
+    newUrl.searchParams.delete('groups');
+  }
+
+  return `${(matched ? matched[1] : '') + newUrl.href}`;
+}
+
+export function getGroupsFromAnnotationUrl(aurl) {
+  if (aurl) {
+    const matched = aurl.match(/(.*:\/\/)(.*:\/\/.*)/);
+    const url = new URL(matched ? matched[2] : aurl);
+    const groupQuery = url.searchParams.get('groups');
+    if (groupQuery) {
+      return groupQuery.split(',');
+    }
+  }
+
+  return [];
+}
+
+export function getUrlFromLayer(layer) {
+  if (layer && layer.source) {
+    if (typeof layer.source === 'string') {
+      return layer.source;
+    }
+
+    return layer.source.url;
+  }
+
+  return undefined;
+}
+
+export function getGroupsFromAnnotationLayer(layer) {
+  const url = getUrlFromLayer(layer);
+  if (url) {
+    return getGroupsFromAnnotationUrl(url);
+  }
+
+  return [];
+}

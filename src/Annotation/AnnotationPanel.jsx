@@ -101,7 +101,7 @@ AnnotationPanel.propTypes = {
     layers: PropTypes.arrayOf(PropTypes.shape({
       dataConfig: PropTypes.object,
       name: PropTypes.string,
-      dataSource: PropTypes.string,
+      dataSource: PropTypes.object,
     })),
     width: PropTypes.string,
   }).isRequired,

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 
 import {
   getAnnotationSource,
@@ -21,8 +22,12 @@ import {
   getAnnotationIcon,
   toAnnotationPayload,
   getAnnotationUrl,
+  getAnnotationUrlWithGroups,
+  getGroupsFromAnnotationUrl,
+  getUrlFromLayer,
 } from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
+import AnnotationUserGroup from './AnnotationUserGroup';
 import ImportAnnotation from './ImportAnnotation';
 import ExportAnnotation from './ExportAnnotation';
 import debounce from '../utils/debounce';
@@ -33,6 +38,29 @@ function AnnotationTable(props) {
   } = props;
   const [data, setData] = React.useState({});
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
+
+  const sourceUrl = useSelector((state) => {
+    const layers = state.viewer.getIn(['ngState', 'layers']);
+    const layer = layers.find((e) => (e.name === layerName));
+    return getUrlFromLayer(layer);
+  }, shallowEqual);
+
+  const setSelectedGroups = React.useCallback((groups) => {
+    actions.setViewerLayerSource({
+      layerName,
+      source: (s) => ({ url: getAnnotationUrlWithGroups(s.url || s, groups) }),
+    });
+  }, [actions, layerName]);
+
+  const getSelectedGroups = React.useCallback(
+    () => getGroupsFromAnnotationUrl(sourceUrl),
+    [sourceUrl],
+  );
+
+  useEffect(() => {
+    const groups = getSelectedGroups();
+    setSelectedGroups(groups);
+  }, [getSelectedGroups, setSelectedGroups]);
 
   const annotationToItem = React.useCallback(
     (annotation) => getRowItemFromAnnotation(annotation, {
@@ -179,19 +207,25 @@ function AnnotationTable(props) {
 
   useEffect(() => {
     setData({});
-  }, [dataSource]);
+  }, [dataSource.name]);
 
   useEffect(() => {
-    const configureAnnotationLayerFunc = (layer) => configureAnnotationLayerChanged(layer, {
-      onAnnotationAdded,
-      onAnnotationDeleted,
-      onAnnotationUpdated,
-      onAnnotationSelectionChanged,
-    }, (remover) => addLayerSignalRemover(undefined, layerName, remover));
+    const configureAnnotationLayerFunc = (layer) => {
+      // Update rows here to make sure the table is updated after switching to a cached source.
+      // FIXME: ideally it should be triggered by source switch directly.
+      updateTableRows();
+      return configureAnnotationLayerChanged(layer, {
+        onAnnotationAdded,
+        onAnnotationDeleted,
+        onAnnotationUpdated,
+        onAnnotationSelectionChanged,
+      }, (remover) => addLayerSignalRemover(undefined, layerName, remover));
+    };
 
     return configureLayersChangedSignals(undefined, {
       layerName,
       process: configureAnnotationLayerFunc,
+      cancel: updateTableRows.cancel,
     });
   }, [
     layerName,
@@ -199,6 +233,7 @@ function AnnotationTable(props) {
     onAnnotationDeleted,
     onAnnotationUpdated,
     onAnnotationSelectionChanged,
+    updateTableRows,
   ]);
 
   const handleToolChange = React.useCallback((tool) => {
@@ -234,6 +269,16 @@ function AnnotationTable(props) {
     </TableRow>
   ), [dataConfig, uploadAnnotations, getAnnotations, actions.addAlert]);
 
+  const { groups } = dataSource;
+  const groupSelection = groups && groups.length > 0
+    ? (
+      <AnnotationUserGroup
+        groups={groups}
+        selectedGroups={getSelectedGroups()}
+        onChange={(value) => { setSelectedGroups(value); }}
+      />
+    ) : null;
+
   return (
     <div>
       <DataTable
@@ -243,6 +288,7 @@ function AnnotationTable(props) {
         getId={React.useCallback((row) => row.id, [])}
         getLocateIcon={getLocateIcon}
         makeHeaderRow={makeTableHeaderRow}
+        tableControls={groupSelection}
       />
       <hr />
       {tools ? <AnnotationToolControl tools={tools} actions={actions} defaultTool="annotatePoint" onToolChanged={handleToolChange} /> : null}
@@ -253,7 +299,7 @@ function AnnotationTable(props) {
 AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
-  dataSource: PropTypes.string.isRequired,
+  dataSource: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired,
   tools: PropTypes.arrayOf(PropTypes.object),
   setSelectionChangedCallback: PropTypes.func,
