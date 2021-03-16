@@ -19,10 +19,13 @@ export default class NeuPrintManager {
 
     return (this.doQuery(cypher)
       .then((resJson) => {
-        const result = resJson.data.map((item) => (
-          { id: item[0], type: item[1], weight: item[2] }
-        ));
-        return new Promise((resolve) => { resolve(result); });
+        if (resJson) {
+          const result = resJson.data.map((item) => (
+            { id: item[0], type: item[1], weight: item[2] }
+          ));
+          return new Promise((resolve) => { resolve(result); });
+        }
+        return new Promise((resolve) => { resolve([]); });
       })
     );
   }
@@ -34,10 +37,13 @@ export default class NeuPrintManager {
 
     return (this.doQuery(cypher)
       .then((resJson) => {
-        const result = resJson.data.map((item) => (
-          { id: item[0], type: item[1] }
-        ));
-        return new Promise((resolve) => { resolve(result); });
+        if (resJson) {
+          const result = resJson.data.map((item) => (
+            { id: item[0], type: item[1] }
+          ));
+          return new Promise((resolve) => { resolve(result); });
+        }
+        return new Promise((resolve) => { resolve([]); });
       })
     );
   }

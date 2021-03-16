@@ -13,7 +13,7 @@ import Typography from '@material-ui/core/Typography';
 
 import MouseCoordinates from './MouseCoordinates';
 
-const keyboardText = navigator.appVersion.indexOf('Mac') ? 'option' : 'alt';
+const keyboardText = /Mac/.test(navigator.platform) ? 'option' : 'alt';
 const noMatches = (
   <div>
     <p>No matches found</p>
