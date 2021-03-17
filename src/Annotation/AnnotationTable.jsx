@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 
 import {
   getAnnotationSource,
@@ -16,16 +17,22 @@ import Box from '@material-ui/core/Box';
 import DataTable from './DataTable/DataTable';
 import {
   getRowItemFromAnnotation,
-  isValidAnnotation,
-  getAnnotationPos,
+  // isValidAnnotation,
+  // getAnnotationPos,
   getAnnotationIcon,
   toAnnotationPayload,
   getAnnotationUrl,
+  getAnnotationUrlWithGroups,
+  getGroupsFromAnnotationUrl,
+  getUrlFromLayer,
 } from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
+import AnnotationUserGroup from './AnnotationUserGroup';
 import ImportAnnotation from './ImportAnnotation';
 import ExportAnnotation from './ExportAnnotation';
 import debounce from '../utils/debounce';
+
+const DEBUG = false;
 
 function AnnotationTable(props) {
   const {
@@ -33,6 +40,29 @@ function AnnotationTable(props) {
   } = props;
   const [data, setData] = React.useState({});
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
+
+  const sourceUrl = useSelector((state) => {
+    const layers = state.viewer.getIn(['ngState', 'layers']);
+    const layer = layers.find((e) => (e.name === layerName));
+    return getUrlFromLayer(layer);
+  }, shallowEqual);
+
+  const setSelectedGroups = React.useCallback((groups) => {
+    actions.setViewerLayerSource({
+      layerName,
+      source: (s) => ({ url: getAnnotationUrlWithGroups(s.url || s, groups) }),
+    });
+  }, [actions, layerName]);
+
+  const getSelectedGroups = React.useCallback(
+    () => getGroupsFromAnnotationUrl(sourceUrl),
+    [sourceUrl],
+  );
+
+  useEffect(() => {
+    const groups = getSelectedGroups();
+    setSelectedGroups(groups);
+  }, [getSelectedGroups, setSelectedGroups]);
 
   const annotationToItem = React.useCallback(
     (annotation) => getRowItemFromAnnotation(annotation, {
@@ -94,8 +124,14 @@ function AnnotationTable(props) {
 
   const updateTableRows = React.useCallback(debounce((newId) => {
     const source = getAnnotationSource(undefined, layerName);
+    if (DEBUG) {
+      console.log('updateTableRows:', source);
+    }
     if (source) {
       const newData = [];
+      if (DEBUG) {
+        console.log('updateTableRows:', source.references);
+      }
       source.references.forEach((ref) => {
         if (ref.value) {
           const item = annotationToItem(ref.value);
@@ -110,15 +146,10 @@ function AnnotationTable(props) {
       if (newData.length > 0) {
         setSelectedAnnotation(getSelectedAnnotationId(undefined, layerName));
       }
-      /*
-      const layer = getAnnotationLayer(undefined, layerName);
-      if (layer.selectedAnnotation && layer.selectedAnnotation.value) {
-        setSelectedAnnotation(layer.selectedAnnotation.value.id);
-      }
-      */
     }
   }, 250, false), [layerName, annotationToItem]);
 
+  /*
   const onAnnotationAdded = React.useCallback((annotation) => {
     // console.log(annotation);
     // if (!annotation.source || annotation.source === 'downloaded:last') {
@@ -127,13 +158,16 @@ function AnnotationTable(props) {
       const isValid = isValidAnnotation(annotation, dataConfig);
       actions.addAlert({
         severity: isValid ? 'success' : 'info',
-        message: `${isValid ? 'New' : ' Temporary'} annotation added @(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
+        message: `${isValid ? 'New' : ' Temporary'} annotation added `
+          `@(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
         duration: 1000,
       });
     }
     // }
-  }, [updateTableRows, dataConfig, layerName, actions]);
+  }, [dataConfig, layerName, actions]);
+  */
 
+  /*
   const onAnnotationDeleted = React.useCallback((id) => {
     actions.addAlert({
       severity: 'success',
@@ -142,11 +176,14 @@ function AnnotationTable(props) {
     });
     updateTableRows();
   }, [updateTableRows, actions, layerName]);
+  */
 
+  /*
   const onAnnotationUpdated = React.useCallback(() => {
     // console.log(annotation);
     updateTableRows();
   }, [updateTableRows]);
+  */
 
   const onAnnotationSelectionChanged = React.useCallback((annotation) => {
     // console.log('selected:', annotation);
@@ -161,6 +198,14 @@ function AnnotationTable(props) {
     }
   }, [setSelectedAnnotation]);
 
+  const onAnnotationChanged = React.useCallback((source) => {
+    if (['update', 'updated', 'deleted'].includes(source.action)) {
+      updateTableRows();
+    } else if (source.action === 'added') {
+      updateTableRows(source.id);
+    }
+  }, [updateTableRows]);
+
   if (setSelectionChangedCallback) {
     setSelectionChangedCallback(() => {
       onAnnotationSelectionChanged(getSelectedAnnotationId(undefined, layerName));
@@ -171,7 +216,7 @@ function AnnotationTable(props) {
     if (data.rows === undefined) { // For remount initialization
       updateTableRows();
     }
-    return updateTableRows.cancel;
+    // return updateTableRows.cancel; // This can cause premature cancel
   }, [
     data,
     updateTableRows,
@@ -179,26 +224,29 @@ function AnnotationTable(props) {
 
   useEffect(() => {
     setData({});
-  }, [dataSource]);
+  }, [dataSource.name]);
 
   useEffect(() => {
-    const configureAnnotationLayerFunc = (layer) => configureAnnotationLayerChanged(layer, {
-      onAnnotationAdded,
-      onAnnotationDeleted,
-      onAnnotationUpdated,
-      onAnnotationSelectionChanged,
-    }, (remover) => addLayerSignalRemover(undefined, layerName, remover));
+    const configureAnnotationLayerFunc = (layer) => {
+      // Update rows here to make sure the table is updated after switching to a cached source.
+      // FIXME: ideally it should be triggered by source switch directly.
+      updateTableRows();
+      return configureAnnotationLayerChanged(layer, {
+        onAnnotationSelectionChanged,
+        onAnnotationChanged,
+      }, (remover) => addLayerSignalRemover(undefined, layerName, remover));
+    };
 
     return configureLayersChangedSignals(undefined, {
       layerName,
       process: configureAnnotationLayerFunc,
+      cancel: updateTableRows.cancel,
     });
   }, [
     layerName,
-    onAnnotationAdded,
-    onAnnotationDeleted,
-    onAnnotationUpdated,
     onAnnotationSelectionChanged,
+    onAnnotationChanged,
+    updateTableRows,
   ]);
 
   const handleToolChange = React.useCallback((tool) => {
@@ -234,6 +282,16 @@ function AnnotationTable(props) {
     </TableRow>
   ), [dataConfig, uploadAnnotations, getAnnotations, actions.addAlert]);
 
+  const { groups } = dataSource;
+  const groupSelection = groups && groups.length > 0
+    ? (
+      <AnnotationUserGroup
+        groups={groups}
+        selectedGroups={getSelectedGroups()}
+        onChange={(value) => { setSelectedGroups(value); }}
+      />
+    ) : null;
+
   return (
     <div>
       <DataTable
@@ -243,6 +301,7 @@ function AnnotationTable(props) {
         getId={React.useCallback((row) => row.id, [])}
         getLocateIcon={getLocateIcon}
         makeHeaderRow={makeTableHeaderRow}
+        tableControls={groupSelection}
       />
       <hr />
       {tools ? <AnnotationToolControl tools={tools} actions={actions} defaultTool="annotatePoint" onToolChanged={handleToolChange} /> : null}
@@ -253,7 +312,7 @@ function AnnotationTable(props) {
 AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
-  dataSource: PropTypes.string.isRequired,
+  dataSource: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired,
   tools: PropTypes.arrayOf(PropTypes.object),
   setSelectionChangedCallback: PropTypes.func,

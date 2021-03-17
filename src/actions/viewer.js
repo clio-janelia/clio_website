@@ -15,6 +15,13 @@ export function syncViewer() {
   };
 }
 
+export function setViewerLayerSource(payload) {
+  return {
+    type: C.SET_VIEWER_LAYER_SOURCE,
+    payload,
+  };
+}
+
 export function setViewerGrayscaleSource(payload) {
   return {
     type: C.SET_VIEWER_GRAYSCALE_SOURCE,

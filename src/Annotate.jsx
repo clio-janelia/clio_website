@@ -83,6 +83,19 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const classes = useStyles();
 
+  const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
+  let { groups } = roles;
+  if (groups && groups.length > 0) {
+    if (!roles.global_roles || roles.global_roles.indexOf('admin') === -1) {
+      groups = groups.filter((group) => !group.startsWith('.'));
+    }
+  }
+
+  const getAnnotationUrl = React.useCallback(
+    (isAtlas) => `clio://${projectUrl}/${dataset.name}?auth=neurohub${isAtlas ? '&kind=atlas' : ''}`,
+    [projectUrl, dataset],
+  );
+
   useEffect(() => {
     if (dataset && user) {
       let datasetUrl = dataset.location;
@@ -102,7 +115,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           name: 'annotations',
           type: 'annotation',
           source: {
-            url: `clio://${projectUrl}/${dataset.name}?auth=neurohub`,
+            url: getAnnotationUrl(false),
           },
           shader: ANNOTATION_SHADER,
           tool: 'annotatePoint',
@@ -111,7 +124,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           name: 'atlas',
           type: 'annotation',
           source: {
-            url: `clio://${projectUrl}/${dataset.name}?auth=neurohub&kind=atlas`,
+            url: getAnnotationUrl(true),
           },
           shader: ATLAS_SHADER,
           tool: 'annotatePoint',
@@ -151,7 +164,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
       actions.initViewer(viewerOptions);
     }
-  }, [user, actions, dataset, projectUrl]);
+  }, [user, actions, dataset, getAnnotationUrl]);
 
   const neuPrintManager = React.useRef(new NeuPrintManager());
   useEffect(() => {
@@ -238,7 +251,11 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             token: user.getAuthResponse().id_token,
           },
           setSelectionChangedCallback,
-          dataSource: dataset.name,
+          dataSource: {
+            name: dataset.name,
+            url: getAnnotationUrl(false),
+            groups,
+          },
         },
         {
           name: 'atlas',
@@ -251,7 +268,11 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             token: user.getAuthResponse().id_token,
           },
           setSelectionChangedCallback,
-          dataSource: dataset.name,
+          dataSource: {
+            name: dataset.name,
+            url: getAnnotationUrl(true),
+            groups,
+          },
         },
       ],
     };
