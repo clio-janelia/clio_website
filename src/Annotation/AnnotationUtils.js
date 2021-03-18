@@ -206,6 +206,10 @@ function getRowItemWithoutAction(annotation) {
   };
 }
 
+function getAnnotationUser(annotation) {
+  return annotation && (annotation.user || (annotation.ext && annotation.ext.user));
+}
+
 export function getRowItemFromAnnotation(annotation, config) {
   let item = getRowItemWithoutAction(annotation);
   if (item) { // point annotation
@@ -223,7 +227,7 @@ export function getRowItemFromAnnotation(annotation, config) {
     if (verified === undefined) {
       verified = annotation.ext ? annotation.ext.verified : false;
     }
-    if (!verified) {
+    if (!verified && config.user && (config.user === getAnnotationUser(annotation))) {
       item.deleteAction = () => {
         const source = getAnnotationSource(undefined, layerName);
         // console.log(source);

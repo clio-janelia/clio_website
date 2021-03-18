@@ -17,8 +17,6 @@ import Box from '@material-ui/core/Box';
 import DataTable from './DataTable/DataTable';
 import {
   getRowItemFromAnnotation,
-  // isValidAnnotation,
-  // getAnnotationPos,
   getAnnotationIcon,
   toAnnotationPayload,
   getAnnotationUrl,
@@ -36,7 +34,7 @@ const DEBUG = false;
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, actions, tools, setSelectionChangedCallback, dataSource,
+    layerName, dataConfig, actions, tools, user, setSelectionChangedCallback, dataSource,
   } = props;
   const [data, setData] = React.useState({});
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
@@ -67,6 +65,7 @@ function AnnotationTable(props) {
   const annotationToItem = React.useCallback(
     (annotation) => getRowItemFromAnnotation(annotation, {
       layerName,
+      user,
       locate: (targetLayerName, id, pos) => {
         actions.setViewerAnnotationSelection({
           layerName: targetLayerName,
@@ -75,7 +74,7 @@ function AnnotationTable(props) {
         });
         actions.setViewerCameraPosition(pos);
       },
-    }), [layerName, actions],
+    }), [layerName, user, actions],
   );
 
   const uploadAnnotations = React.useCallback((payload) => {
@@ -313,6 +312,7 @@ AnnotationTable.propTypes = {
   layerName: PropTypes.string.isRequired,
   dataConfig: PropTypes.object.isRequired,
   dataSource: PropTypes.object.isRequired,
+  user: PropTypes.string.isRequired,
   actions: PropTypes.object.isRequired,
   tools: PropTypes.arrayOf(PropTypes.object),
   setSelectionChangedCallback: PropTypes.func,
