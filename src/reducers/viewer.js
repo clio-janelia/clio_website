@@ -151,7 +151,8 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_ANNOTATION_SELECTION: {
       if (action.payload.host === 'viewer') {
-        let selection = syncedState(state).getIn(['ngState', 'selection']);
+        const newState = syncedState(state);
+        let selection = newState.getIn(['ngState', 'selection']);
         if (!selection) {
           selection = {};
         }
@@ -163,7 +164,7 @@ export default function viewerReducer(state = viewerState, action) {
           annotationId: action.payload.annotationId,
         };
 
-        return syncedState(state).setIn(
+        return newState.setIn(
           ['ngState', 'selection'], selection,
         );
       }
