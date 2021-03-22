@@ -61,6 +61,7 @@ export default function AnnotationPanel(props) {
         locateItem={layer.locateItem}
         setSelectionChangedCallback={layer.setSelectionChangedCallback}
         dataSource={layer.dataSource}
+        user={config.user}
         actions={actions}
       />
     </TabPanel>
@@ -98,6 +99,7 @@ export default function AnnotationPanel(props) {
 AnnotationPanel.propTypes = {
   config: PropTypes.shape({
     datasetName: PropTypes.string.isRequired,
+    user: PropTypes.string.isRequired,
     layers: PropTypes.arrayOf(PropTypes.shape({
       dataConfig: PropTypes.object,
       name: PropTypes.string,
