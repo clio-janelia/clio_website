@@ -33,7 +33,7 @@
     "identity-obj-proxy": "3.0.0",
     "immutable": "^4.0.0-rc.12",
     "is-wsl": "^1.1.0",
-    "jest": "24.7.1",
+    "jest": "^26.6.3",
     "jest-environment-jsdom-fourteen": "0.1.0",
     "jest-resolve": "24.7.1",
     "jest-watch-typeahead": "0.3.0",
