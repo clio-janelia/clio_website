@@ -114,10 +114,10 @@ export default function DataTable(props) {
             makeRow={makeHeaderRow}
           />
           <TableBody>
-            {filteredRows.slice(
+            {(rowsPerPage > 0 ? filteredRows.slice(
               actualPage * rowsPerPage,
               actualPage * rowsPerPage + rowsPerPage,
-            ).map(
+            ) : filteredRows).map(
               (row) => (
                 <DataTableRow
                   key={getId(row)}
