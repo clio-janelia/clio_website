@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 
 import {
+  closeSelectionTab,
   getAnnotationSource,
   getAnnotationSelectionHost,
   configureAnnotationLayerChanged,
@@ -46,6 +47,8 @@ function AnnotationTable(props) {
   }, shallowEqual);
 
   const setSelectedGroups = React.useCallback((groups) => {
+    // Need to clear selection to avoid incorrect deref
+    closeSelectionTab();
     actions.setViewerLayerSource({
       layerName,
       source: (s) => ({ url: getAnnotationUrlWithGroups(s.url || s, groups) }),
