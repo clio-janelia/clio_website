@@ -71,6 +71,17 @@ const syncedState = (state) => {
       ngState.crossSectionScale = state.getIn(['ngState', 'crossSectionScale']);
     }
 
+    // Clear up undefined layer selection to make sure that the state is valid for Neuroglancer.
+    // This problem is caused by the way of handling states in Neuroglancer.
+    // The state JSON obtained from Neuroglancer may be rejected by Neuroglancer itself.
+    if (ngState.selection && ngState.selection.layers) {
+      Object.keys(ngState.selection.layers).forEach((layerName) => {
+        if (ngState.selection.layers[layerName] === undefined) {
+          delete ngState.selection.layers[layerName];
+        }
+      });
+    }
+
     return state.set('ngState', ngState);
   }
   return state;
