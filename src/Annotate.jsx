@@ -8,10 +8,13 @@ import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
-import { makeLayersFromDataset } from './utils/neuroglancer';
+import {
+  makeLayersFromDataset,
+  hasMergeableLayer,
+} from './utils/neuroglancer';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import {
-  ANNOTATION_COLUMNS, ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER,
+  ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER, getAnnotationColumnSetting,
 } from './Annotation/AnnotationUtils';
 import NeuPrintManager from './Connections/NeuPrintManager';
 import ConnectionsPanel from './Connections/ConnectionsPanel';
@@ -245,7 +248,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           name: 'annotations',
           tools: [pointTool, lineTool],
           dataConfig: {
-            columns: ANNOTATION_COLUMNS,
+            columns: getAnnotationColumnSetting(dataset),
             kind: 'Normal',
             allowingImport: true,
             allowingExport: true,
@@ -316,11 +319,15 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           }}
         >
           <AnnotationPanel config={annotationConfig} actions={actions}>
-            <MergePanel
-              tabName="merges"
-              mergeManager={mergeManager.current}
-              addAlert={actions.addAlert}
-            />
+            {
+              hasMergeableLayer(dataset) ? (
+                <MergePanel
+                  tabName="merges"
+                  mergeManager={mergeManager.current}
+                  addAlert={actions.addAlert}
+                />
+              ) : null
+            }
             <ConnectionsPanel
               tabName="connections"
               neuPrintManager={neuPrintManager.current}

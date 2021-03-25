@@ -25,11 +25,13 @@ export function makeLayersFromDataset(dataset, inferringType) {
 
       const layerConfig = {
         name: layer.name,
-        type,
         source: {
           url: layerUrl,
         },
+        ...layer,
       };
+
+      layerConfig.type = type;
 
       if (type === 'segmentation') {
         layerConfig.source.subsources = {
@@ -43,4 +45,22 @@ export function makeLayersFromDataset(dataset, inferringType) {
   }
 
   return [];
+}
+
+export function isMergeableLayer(layer) {
+  if (layer && layer.roles) {
+    return layer.roles.includes('mergeable');
+  }
+
+  return false;
+}
+
+export function hasMergeableLayer(dataset) {
+  const { layers } = dataset;
+
+  if (layers) {
+    return layers.some((layer) => isMergeableLayer(layer));
+  }
+
+  return false;
 }

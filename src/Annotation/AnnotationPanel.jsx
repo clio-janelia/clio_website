@@ -30,6 +30,11 @@ export default function AnnotationPanel(props) {
   const classes = useStyles({ width: config.width });
   const [tabValue, setTabValue] = React.useState('0');
 
+  let validChildren = [];
+  if (children) {
+    validChildren = Array.isArray(children) ? children.filter((child) => child) : [children];
+  }
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
     const index = parseInt(newValue, 10);
@@ -44,7 +49,7 @@ export default function AnnotationPanel(props) {
     setTabValue('0');
   }, [config.datasetName]);
 
-  const numTabs = config.layers.length + (children ? children.length : 0);
+  const numTabs = config.layers.length + validChildren.length;
   const totalWidth = config.width.replace(/\D/g, '');
   const tabWidth = Math.max(totalWidth / numTabs, 100);
   const tabStyle = { minWidth: `${tabWidth}px`, maxWidth: `${tabWidth}px` };
@@ -67,17 +72,13 @@ export default function AnnotationPanel(props) {
     </TabPanel>
   ));
 
-  if (children) {
-    let childArray = children;
-    if (!Array.isArray(childArray)) {
-      childArray = [children];
-    }
+  if (validChildren) {
     const startIndex = tabs.length;
-    tabs = tabs.concat(childArray.map((child, index) => (
+    tabs = tabs.concat(validChildren.map((child, index) => (
       <Tab label={child.props.tabName} key={child.props.tabName} value={`${startIndex + index}`} style={tabStyle} />
     )));
 
-    tabPanels = tabPanels.concat(childArray.map((child, index) => (
+    tabPanels = tabPanels.concat(validChildren.map((child, index) => (
       <TabPanel key={child.props.tabName} value={`${startIndex + index}`} className={classes.tabPanel}>
         {child}
       </TabPanel>
