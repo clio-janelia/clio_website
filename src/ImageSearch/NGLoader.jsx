@@ -22,19 +22,8 @@ export default function NGLoader({
 
   useEffect(() => {
     if (dataset) {
-      let datasetUrl = dataset.location;
-      if (!dataset.location.match(/^dvid/)) {
-        datasetUrl = `precomputed://${dataset.location}`;
-      }
-
       const layers = [
-        {
-          name: dataset.name,
-          type: 'image',
-          source: {
-            url: datasetUrl,
-          },
-        },
+        ...makeLayersFromDataset(dataset, false),
         {
           name: 'annotations',
           type: 'annotation',
@@ -42,7 +31,6 @@ export default function NGLoader({
             url: `clio://${projectUrl}/${dataset.name}?auth=neurohub`,
           },
         },
-        ...makeLayersFromDataset(dataset, false),
       ];
 
       const viewerOptions = {

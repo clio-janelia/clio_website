@@ -10,7 +10,31 @@ import {
   parseUrlHash,
 } from '@janelia-flyem/react-neuroglancer';
 
+import { hasMergeableLayer } from '../utils/neuroglancer';
+
 export const ANNOTATION_COLUMNS = [
+  {
+    title: 'Type',
+    field: 'type',
+    filterEnabled: true,
+    editElement: {
+      type: 'select',
+      options: [
+        {
+          label: 'None',
+          value: null,
+        },
+        {
+          label: 'Merge',
+          value: 'Merge',
+        },
+        {
+          label: 'Split',
+          value: 'Split',
+        },
+      ],
+    },
+  },
   {
     title: 'Description',
     field: 'comment',
@@ -130,17 +154,77 @@ export function getAnnotationIcon(kind, action, selected) {
   return null;
 }
 
+export function getAnnotationColumnSetting(dataset) {
+  const columns = [];
+  if (hasMergeableLayer(dataset)) {
+    columns.push(
+      {
+        title: 'Type',
+        field: 'type',
+        filterEnabled: true,
+        editElement: {
+          type: 'select',
+          options: [
+            {
+              label: 'None',
+              value: null,
+            },
+            {
+              label: 'Merge',
+              value: 'Merge',
+            },
+            {
+              label: 'Split',
+              value: 'Split',
+            },
+          ],
+        },
+      },
+    );
+  }
+
+  columns.push(
+    {
+      title: 'Description',
+      field: 'comment',
+      filterEnabled: true,
+      editElement: {
+        type: 'input',
+      },
+    },
+  );
+  columns.push(
+    {
+      title: 'Position',
+      field: 'pos',
+    },
+  );
+
+  return columns;
+}
+
 export function getNewAnnotation(annotation, prop) {
   const newAnnotation = { ...annotation };
+  const newProp = { ...prop };
   if (newAnnotation.ext) {
-    newAnnotation.ext = { ...newAnnotation.ext, ...prop };
-    if (newAnnotation.ext.comment) {
-      newAnnotation.ext.description = newAnnotation.ext.comment;
+    // newAnnotation.ext = { ...newAnnotation.ext, ...prop };
+    if (newProp.comment) {
+      newAnnotation.ext.description = newProp.comment;
+      delete newProp.comment;
     }
-    delete newAnnotation.ext.comment;
-  } else {
-    newAnnotation.prop = { ...newAnnotation.prop, ...prop };
+    if (newProp.title) {
+      newAnnotation.ext.title = newProp.title;
+      delete newProp.title;
+    }
+    if (!newProp.type) {
+      delete newProp.type;
+      if (newAnnotation.prop) {
+        delete newAnnotation.prop.type;
+      }
+    }
   }
+
+  newAnnotation.prop = { ...newAnnotation.prop, ...newProp };
 
   return newAnnotation;
 }
@@ -242,21 +326,13 @@ export function getRowItemFromAnnotation(annotation, config) {
         }
       };
       item.updateAction = (change) => {
-        const newProps = {};
-        if (change.title !== undefined) {
-          newProps.title = change.title;
-        }
-        if (change.comment !== undefined) {
-          newProps.comment = change.comment;
-        }
-        if (change.type !== undefined) {
-          newProps.type = change.type;
-        }
-        if (newProps) {
+        if (Object.keys(change).length > 0) {
           const source = getAnnotationSource(undefined, layerName);
-          source.update(source.getReference(id), getNewAnnotation(newAnnotation, newProps));
-          source.commit(source.getReference(id));
-          locate(layerName, id, pos);
+          if (source) {
+            source.update(source.getReference(id), getNewAnnotation(newAnnotation, change));
+            source.commit(source.getReference(id));
+            locate(layerName, id, pos);
+          }
         }
       };
     }

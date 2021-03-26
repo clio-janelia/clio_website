@@ -48,6 +48,24 @@ export default function DataEdit(props) {
       return column.cell;
     }
 
+    if (column.editElement) {
+      return (
+        <DataCellEdit
+          config={column.editElement}
+          onValueChange={
+            (value) => {
+              setNewData({ ...newData, [column.field]: value });
+            }
+          }
+          value={data[column.field]}
+          placeholder={column.placeholder}
+        />
+      );
+    }
+
+    return data[column.field];
+
+    /*
     return (column.editElement && column.editElement.type === 'input') ? (
       <DataCellEdit
         config={column}
@@ -62,6 +80,7 @@ export default function DataEdit(props) {
         placeholder={column.placeholder}
       />
     ) : data[column.field];
+    */
   };
 
   return (
