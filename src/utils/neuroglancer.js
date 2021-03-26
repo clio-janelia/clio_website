@@ -10,13 +10,31 @@ function inferredLayerType(layer) {
 }
 
 /* eslint-disable-next-line  import/prefer-default-export */
+export function getLayerSourceUrl(layer) {
+  let sourceUrl = layer.location || layer.source;
+  // FIXME: we should expect explicit format info from the layer to determine the right format.
+  // No such information is provided in the current database.
+  if (sourceUrl && (sourceUrl.startsWith('gs://') || sourceUrl.startsWith('https://'))) {
+    sourceUrl = `precomputed://${sourceUrl}`;
+  }
+
+  return sourceUrl;
+}
+
+function hasMainImageLayer(dataset) {
+  if (dataset.layers) {
+    const mainImageUrl = getLayerSourceUrl(dataset);
+    return dataset.layers.some((layer) => getLayerSourceUrl(layer) === mainImageUrl);
+  }
+
+  return false;
+}
+
 export function makeLayersFromDataset(dataset, inferringType) {
+  let layers = [];
   if ('layers' in dataset) {
-    return dataset.layers.map((layer) => {
-      let layerUrl = layer.location;
-      if (!layer.location.match(/^dvid/)) {
-        layerUrl = `precomputed://${layer.location}`;
-      }
+    layers = dataset.layers.map((layer) => {
+      const layerUrl = getLayerSourceUrl(layer);
 
       let { type } = layer;
       if (!type && inferringType) {
@@ -25,11 +43,15 @@ export function makeLayersFromDataset(dataset, inferringType) {
 
       const layerConfig = {
         name: layer.name,
+        ...layer,
         source: {
           url: layerUrl,
         },
-        ...layer,
       };
+
+      if (layerConfig.shader) {
+        layerConfig.shader = layerConfig.shader.replaceAll('\\n', '\n');
+      }
 
       layerConfig.type = type;
 
@@ -44,7 +66,20 @@ export function makeLayersFromDataset(dataset, inferringType) {
     });
   }
 
-  return [];
+  if (!hasMainImageLayer(dataset)) {
+    layers = [
+      {
+        name: dataset.name,
+        type: 'image',
+        source: {
+          url: getLayerSourceUrl(dataset),
+        },
+      },
+      ...layers,
+    ];
+  }
+
+  return layers;
 }
 
 export function isMergeableLayer(layer) {
