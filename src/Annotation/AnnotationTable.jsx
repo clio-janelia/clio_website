@@ -24,6 +24,7 @@ import {
   getAnnotationUrlWithGroups,
   getGroupsFromAnnotationUrl,
   getUrlFromLayer,
+  getAnnotationToolFromLayer,
 } from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
 import AnnotationUserGroup from './AnnotationUserGroup';
@@ -33,6 +34,13 @@ import debounce from '../utils/debounce';
 
 const DEBUG = false;
 
+function getLayerFromState(state, layerName) {
+  const layers = state.viewer.getIn(['ngState', 'layers']);
+  const layer = layers.find((e) => (e.name === layerName));
+
+  return layer;
+}
+
 function AnnotationTable(props) {
   const {
     layerName, dataConfig, actions, tools, user, setSelectionChangedCallback, dataSource,
@@ -41,9 +49,13 @@ function AnnotationTable(props) {
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
 
   const sourceUrl = useSelector((state) => {
-    const layers = state.viewer.getIn(['ngState', 'layers']);
-    const layer = layers.find((e) => (e.name === layerName));
+    const layer = getLayerFromState(state, layerName);
     return getUrlFromLayer(layer);
+  }, shallowEqual);
+
+  const annotationTool = useSelector((state) => {
+    const layer = getLayerFromState(state, layerName);
+    return getAnnotationToolFromLayer(layer);
   }, shallowEqual);
 
   const setSelectedGroups = React.useCallback((groups) => {
@@ -150,42 +162,6 @@ function AnnotationTable(props) {
       }
     }
   }, 250, false), [layerName, annotationToItem]);
-
-  /*
-  const onAnnotationAdded = React.useCallback((annotation) => {
-    // console.log(annotation);
-    // if (!annotation.source || annotation.source === 'downloaded:last') {
-    updateTableRows(annotation.source ? undefined : annotation.id);
-    if (!annotation.source) {
-      const isValid = isValidAnnotation(annotation, dataConfig);
-      actions.addAlert({
-        severity: isValid ? 'success' : 'info',
-        message: `${isValid ? 'New' : ' Temporary'} annotation added `
-          `@(${getAnnotationPos(annotation).join(', ')}) in [${layerName}]`,
-        duration: 1000,
-      });
-    }
-    // }
-  }, [dataConfig, layerName, actions]);
-  */
-
-  /*
-  const onAnnotationDeleted = React.useCallback((id) => {
-    actions.addAlert({
-      severity: 'success',
-      message: `Annotation ${id} deleted in [${layerName}]`,
-      duration: 2000,
-    });
-    updateTableRows();
-  }, [updateTableRows, actions, layerName]);
-  */
-
-  /*
-  const onAnnotationUpdated = React.useCallback(() => {
-    // console.log(annotation);
-    updateTableRows();
-  }, [updateTableRows]);
-  */
 
   const onAnnotationSelectionChanged = React.useCallback((annotation) => {
     // console.log('selected:', annotation);
@@ -306,7 +282,14 @@ function AnnotationTable(props) {
         tableControls={groupSelection}
       />
       <hr />
-      {tools ? <AnnotationToolControl tools={tools} actions={actions} defaultTool="annotatePoint" onToolChanged={handleToolChange} /> : null}
+      {tools ? (
+        <AnnotationToolControl
+          tools={tools}
+          actions={actions}
+          selectedTool={annotationTool}
+          onToolChanged={handleToolChange}
+        />
+      ) : null}
     </div>
   );
 }
