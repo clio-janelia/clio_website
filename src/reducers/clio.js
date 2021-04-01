@@ -1,8 +1,13 @@
 import Immutable from 'immutable';
 import C from './constants';
+import config from '../config';
+
+const clioUrl = `${config.projectBaseUrlDefault}/${
+  config.top_level_function
+}`;
 
 const clioState = Immutable.Map({
-  projectUrl: null,
+  projectUrl: clioUrl,
 });
 
 export default function clioReducer(state = clioState, action) {
