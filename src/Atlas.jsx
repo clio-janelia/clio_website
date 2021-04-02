@@ -99,19 +99,8 @@ export default function Atlas(props) {
     if (selectedAnnotation) {
       const selectedDataset = dsLookup[selectedAnnotation.dataset];
 
-      let selectedLocation = selectedDataset.location;
-      if (!selectedDataset.location.match(/^dvid/)) {
-        selectedLocation = `precomputed://${selectedDataset.location}`;
-      }
-
       const layers = [
-        {
-          name: selectedDataset.name,
-          type: 'image',
-          source: {
-            url: selectedLocation,
-          },
-        },
+        ...makeLayersFromDataset(selectedDataset, false),
         {
           name: 'annotations',
           type: 'annotation',
@@ -119,7 +108,6 @@ export default function Atlas(props) {
             url: `clio://${projectUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
           },
         },
-        ...makeLayersFromDataset(selectedDataset, false),
       ];
 
       const viewerOptions = {

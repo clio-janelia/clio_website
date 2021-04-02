@@ -9,8 +9,23 @@ function inferredLayerType(layer) {
   return undefined;
 }
 
-/* eslint-disable-next-line  import/prefer-default-export */
-export function getLayerSourceUrl(layer) {
+function getLayersFromDataset(dataset) {
+  let layers = [];
+  if (dataset.layers) {
+    layers = dataset.layers;
+  } else if (dataset.neuroglancer) {
+    layers = dataset.neuroglancer.layers;
+  }
+
+  return layers;
+}
+
+function getLayerFromDataset(dataset, name) {
+  const layers = getLayersFromDataset(dataset);
+  return layers.find((layer) => layer.name === name);
+}
+
+function getLayerSourceUrl(layer) {
   let sourceUrl = layer.location || layer.source;
   // FIXME: we should expect explicit format info from the layer to determine the right format.
   // No such information is provided in the current database.
@@ -21,41 +36,71 @@ export function getLayerSourceUrl(layer) {
   return sourceUrl;
 }
 
-function hasMainImageLayer(dataset) {
-  if (dataset.layers) {
-    const mainImageUrl = getLayerSourceUrl(dataset);
-    return dataset.layers.some((layer) => getLayerSourceUrl(layer) === mainImageUrl);
+function getMainImageLayer(dataset) {
+  let newLayer = null;
+  const layers = getLayersFromDataset(dataset);
+  if (dataset.mainLayer) {
+    const layer = layers.find((_layer) => _layer.name === dataset.mainLayer);
+    if (layer) {
+      newLayer = { ...layer };
+    }
   }
 
-  return false;
+  if (!newLayer) {
+    const mainImageUrl = getLayerSourceUrl(dataset);
+    const layer = layers.find((_layer) => getLayerSourceUrl(_layer) === mainImageUrl);
+    newLayer = layer ? { ...layer } : { source: { url: mainImageUrl } };
+  }
+
+  if (newLayer) {
+    newLayer.name = newLayer.name || dataset.name;
+    if (!newLayer.source.url) {
+      newLayer.source = {
+        url: getLayerSourceUrl(newLayer),
+      };
+    }
+  }
+
+  return newLayer;
+}
+
+/* eslint-disable-next-line  import/prefer-default-export */
+export function getDatasetLocation(dataset) {
+  if ('location' in dataset) {
+    return dataset.location;
+  }
+
+  if (dataset.mainLayer) {
+    const layer = getLayerFromDataset(dataset);
+    if (layer) {
+      return layer.source;
+    }
+  }
+
+  return '';
 }
 
 export function makeLayersFromDataset(dataset, inferringType) {
-  let layers = [];
-  if ('layers' in dataset) {
-    layers = dataset.layers.map((layer) => {
-      const layerUrl = getLayerSourceUrl(layer);
+  let layers = getLayersFromDataset(dataset);
 
-      let { type } = layer;
-      if (!type && inferringType) {
-        type = inferredLayerType(layer);
-      }
+  const mainImageLayer = getMainImageLayer(dataset);
 
+  layers = layers.map((layer) => {
+    const layerUrl = getLayerSourceUrl(layer);
+
+    if (mainImageLayer && (layerUrl !== mainImageLayer.source.url)) {
       const layerConfig = {
-        name: layer.name,
         ...layer,
         source: {
           url: layerUrl,
         },
       };
 
-      if (layerConfig.shader) {
-        layerConfig.shader = layerConfig.shader.replaceAll('\\n', '\n');
+      if (!layer.type && inferringType) {
+        layerConfig.type = inferredLayerType(layer);
       }
 
-      layerConfig.type = type;
-
-      if (type === 'segmentation') {
+      if (layerConfig.type === 'segmentation') {
         layerConfig.source.subsources = {
           skeletons: false,
         };
@@ -63,18 +108,14 @@ export function makeLayersFromDataset(dataset, inferringType) {
       }
 
       return layerConfig;
-    });
-  }
+    }
 
-  if (!hasMainImageLayer(dataset)) {
+    return undefined;
+  }).filter((layer) => layer);
+
+  if (mainImageLayer) {
     layers = [
-      {
-        name: dataset.name,
-        type: 'image',
-        source: {
-          url: getLayerSourceUrl(dataset),
-        },
-      },
+      mainImageLayer,
       ...layers,
     ];
   }
@@ -91,11 +132,7 @@ export function isMergeableLayer(layer) {
 }
 
 export function hasMergeableLayer(dataset) {
-  const { layers } = dataset;
-
-  if (layers) {
-    return layers.some((layer) => isMergeableLayer(layer));
-  }
-
-  return false;
+  return getLayersFromDataset(dataset).some(
+    (layer) => isMergeableLayer(layer),
+  );
 }
