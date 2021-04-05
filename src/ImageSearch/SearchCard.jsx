@@ -17,6 +17,7 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
 import MouseCoordinates from './MouseCoordinates';
 import config from '../config';
+import { applyDatasetLocation } from '../utils/config';
 
 import './Matches.css';
 
@@ -29,10 +30,7 @@ export default function SearchCard({ search, actions, dataset }) {
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = config.imageSliceUrlTemplate.replace(
-      '<location>',
-      dataset.location.replace('gs://', ''),
-    );
+    imageRootUrl = applyDatasetLocation(config.imageSliceUrlTemplate, dataset);
   }
 
   function handleSelect(point) {

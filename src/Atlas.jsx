@@ -13,7 +13,7 @@ import FilterType from './Atlas/FilterType';
 import VerifyType from './Atlas/VerifyType';
 import { addAlert } from './actions/alerts';
 import { canWrite } from './utils/permissions';
-import { makeLayersFromDataset } from './utils/neuroglancer';
+import { makeLayersFromDataset, makeViewOptionsFromDataset } from './utils/neuroglancer';
 
 const useStyles = makeStyles({
   window: {
@@ -99,19 +99,8 @@ export default function Atlas(props) {
     if (selectedAnnotation) {
       const selectedDataset = dsLookup[selectedAnnotation.dataset];
 
-      let selectedLocation = selectedDataset.location;
-      if (!selectedDataset.location.match(/^dvid/)) {
-        selectedLocation = `precomputed://${selectedDataset.location}`;
-      }
-
       const layers = [
-        {
-          name: selectedDataset.name,
-          type: 'image',
-          source: {
-            url: selectedLocation,
-          },
-        },
+        ...makeLayersFromDataset(selectedDataset, false),
         {
           name: 'annotations',
           type: 'annotation',
@@ -119,36 +108,15 @@ export default function Atlas(props) {
             url: `clio://${projectUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
           },
         },
-        ...makeLayersFromDataset(selectedDataset, false),
       ];
 
-      const viewerOptions = {
+      const viewerOptions = makeViewOptionsFromDataset(selectedDataset, {
         position: selectedAnnotation.location,
         crossSectionScale: 2,
         projectionScale: 2600,
         layers,
         layout: 'xy',
-        showSlices: true,
-      };
-
-      // because the initViewer action makes some assumptions about the dimensions
-      // of the dataset, we have to check for the mb20 dataset and change the
-      // dimensions used. This should ideally be fixed in the initViewer action or
-      // the dimensions should be passed as part of the dataset object from the clio
-      // backend.
-      if (selectedDataset.name === 'mb20') {
-        viewerOptions.dimensions = {
-          x: [4e-9, 'm'],
-          y: [4e-9, 'm'],
-          z: [4e-9, 'm'],
-        };
-      } else {
-        viewerOptions.dimensions = {
-          x: [8e-9, 'm'],
-          y: [8e-9, 'm'],
-          z: [8e-9, 'm'],
-        };
-      }
+      });
 
       actions.initViewer(viewerOptions);
     }

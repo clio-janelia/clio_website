@@ -12,6 +12,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import MouseCoordinates from './MouseCoordinates';
+import { applyDatasetLocation } from '../utils/config';
 
 const keyboardText = /Mac/.test(navigator.platform) ? 'option' : 'alt';
 const noMatches = (
@@ -94,10 +95,7 @@ export default function TransferResults({
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = imageSliceUrlTemplate.replace(
-      '<location>',
-      dataset.location.replace('gs://', ''),
-    );
+    imageRootUrl = applyDatasetLocation(imageSliceUrlTemplate, dataset);
   }
 
   // take a slice of the array before reversing it so that we don't change the

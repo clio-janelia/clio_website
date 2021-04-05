@@ -573,6 +573,10 @@ export function getUrlFromLayer(layer) {
   return undefined;
 }
 
+export function getAnnotationToolFromLayer(layer) {
+  return layer && layer.tool;
+}
+
 export function getGroupsFromAnnotationLayer(layer) {
   const url = getUrlFromLayer(layer);
   if (url) {

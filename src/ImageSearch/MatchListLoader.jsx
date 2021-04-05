@@ -14,6 +14,7 @@ import Matches from './Matches';
 import MouseCoordinates from './MouseCoordinates';
 import { addAlert } from '../actions/alerts';
 import config from '../config';
+import { applyDatasetLocation } from '../utils/config';
 
 const useStyles = makeStyles({
   matchText: {
@@ -141,10 +142,7 @@ export default function MatchListLoader({
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = config.imageSliceUrlTemplate.replace(
-      '<location>',
-      dataset.location.replace('gs://', ''),
-    );
+    imageRootUrl = applyDatasetLocation(config.imageSliceUrlTemplate, dataset);
   }
 
   return (

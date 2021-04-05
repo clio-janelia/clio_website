@@ -10,17 +10,15 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Tooltip from '@material-ui/core/Tooltip';
 
 function AnnotationToolControl(props) {
-  const { defaultTool, tools, onToolChanged } = props;
-  const [tool, setTool] = React.useState(defaultTool);
+  const { selectedTool, tools, onToolChanged } = props;
 
   const handleChange = (event) => {
-    setTool(event.target.value);
     onToolChanged(event.target.value);
   };
 
-  const buttons = tools.map((atool) => (
-    <Tooltip key={atool.name} title={atool.tooltip}>
-      <FormControlLabel value={atool.name} control={<Radio color="primary" />} label={atool.label} />
+  const buttons = tools.map((tool) => (
+    <Tooltip key={tool.name} title={tool.tooltip}>
+      <FormControlLabel value={tool.name} control={<Radio color="primary" />} label={tool.label} />
     </Tooltip>
   ));
 
@@ -28,7 +26,7 @@ function AnnotationToolControl(props) {
     <FormControl component="fieldset">
       <FormLabel component="legend">Annotate (by Ctrl+Click in the viewer)</FormLabel>
       <FormGroup row>
-        <RadioGroup row value={tool} onChange={handleChange}>
+        <RadioGroup row value={selectedTool} onChange={handleChange}>
           {buttons}
         </RadioGroup>
       </FormGroup>
@@ -37,9 +35,13 @@ function AnnotationToolControl(props) {
 }
 
 AnnotationToolControl.propTypes = {
-  defaultTool: PropTypes.string.isRequired,
+  selectedTool: PropTypes.string,
   tools: PropTypes.arrayOf(PropTypes.object).isRequired,
   onToolChanged: PropTypes.func.isRequired,
+};
+
+AnnotationToolControl.defaultProps = {
+  selectedTool: null,
 };
 
 export default AnnotationToolControl;

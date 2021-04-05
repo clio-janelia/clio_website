@@ -15,6 +15,7 @@ import Chip from '@material-ui/core/Chip';
 import DoneIcon from '@material-ui/icons/Done';
 
 import { makeStyles } from '@material-ui/core/styles';
+import { getDatasetLocation } from '../utils/neuroglancer';
 
 const useStyles = makeStyles((theme) => ({
   selected: {
@@ -69,7 +70,7 @@ export default function AnnotationsList({
     let thumbnailUrl = '';
     const selectedDataSet = datasets[dataSet] || {};
     if (selectedDataSet && 'location' in selectedDataSet) {
-      const datasetLocation = selectedDataSet.location.replace('gs://', '');
+      const datasetLocation = getDatasetLocation(selectedDataSet).replace('gs://', '');
       const xyzString = `${location[0] - 128}_${location[1] - 128}_${location[2]}`;
 
       thumbnailUrl = imageSliceUrlTemplate

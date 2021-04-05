@@ -2,7 +2,10 @@ import React, { useEffect } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
-import { makeLayersFromDataset } from '../utils/neuroglancer';
+import {
+  makeLayersFromDataset,
+  makeViewOptionsFromDataset,
+} from '../utils/neuroglancer';
 
 const useStyles = makeStyles({
   window: {
@@ -33,34 +36,14 @@ export default function NGLoader({
         },
       ];
 
-      const viewerOptions = {
-        position: coords,
-        crossSectionScale: 2,
-        projectionScale: 2600,
-        layers,
-        layout: 'xy',
-        showSlices: true,
-      };
-
-      // because the initViewer action makes some assumptions about the dimensions
-      // of the dataset, we have to check for the mb20 dataset and change the
-      // dimensions used. This should ideally be fixed in the initViewer action or
-      // the dimensions should be passed as part of the dataset object from the clio
-      // backend.
-      if (dataset.name === 'mb20') {
-        viewerOptions.dimensions = {
-          x: [4e-9, 'm'],
-          y: [4e-9, 'm'],
-          z: [4e-9, 'm'],
-        };
-      } else {
-        viewerOptions.dimensions = {
-          x: [8e-9, 'm'],
-          y: [8e-9, 'm'],
-          z: [8e-9, 'm'],
-        };
-      }
-
+      const viewerOptions = makeViewOptionsFromDataset(
+        dataset,
+        {
+          position: coords,
+          layers,
+          layout: 'xy',
+        },
+      );
       actions.initViewer(viewerOptions);
     }
   }, [actions, dataset, projectUrl, coords]);
