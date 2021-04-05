@@ -81,12 +81,23 @@ export function getDatasetLocation(dataset) {
 }
 
 export function makeViewOptionsFromDataset(dataset, customOptions) {
+  let dimensions = {
+    x: [8e-9, 'm'],
+    y: [8e-9, 'm'],
+    z: [8e-9, 'm'],
+  };
+  if (dataset.dimensions) {
+    dimensions = {
+      // Make sure the order is in 'x', 'y', 'z'.
+      // A different order can cause incorrect coordinate transform in Neuroglancer.
+      x: dataset.dimensions.x,
+      y: dataset.dimensions.y,
+      z: dataset.dimensions.z,
+      ...dataset.dimensions,
+    };
+  }
   return {
-    dimensions: dataset.dimensions || {
-      x: [8e-9, 'm'],
-      y: [8e-9, 'm'],
-      z: [8e-9, 'm'],
-    },
+    dimensions,
     position: dataset.position || [],
     crossSectionScale: dataset.crossSectionScale || 2,
     projectionScale: dataset.projectionScale || 2600,
