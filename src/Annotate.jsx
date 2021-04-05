@@ -11,6 +11,7 @@ import activeElementNeedsKeypress from './utils/events';
 import {
   makeLayersFromDataset,
   hasMergeableLayer,
+  makeViewOptionsFromDataset,
 } from './utils/neuroglancer';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import {
@@ -123,37 +124,17 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
         },
       ];
 
-      const viewerOptions = {
-        position: [],
-        crossSectionScale: 100,
-        projectionScale: 2600,
-        layers,
-        selectedLayer: {
-          layer: 'annotations',
+      const viewerOptions = makeViewOptionsFromDataset(
+        dataset,
+        {
+          crossSectionScale: null,
+          projectionScale: null,
+          layers,
+          selectedLayer: {
+            layer: 'annotations',
+          },
         },
-        layout: '4panel',
-        showSlices: true,
-      };
-      // Because the initViewer action makes some assumptions about the dimensions
-      // of the dataset, we have to check for the mb20 dataset and change the
-      // dimensions used. This should ideally be fixed in the initViewer action or
-      // the dimensions should be passed as part of the dataset object from the clio
-      // backend.
-      if (dataset.dimensions) {
-        viewerOptions.dimensions = dataset.dimensions;
-      } else if (dataset.name === 'mb20') {
-        viewerOptions.dimensions = {
-          x: [4e-9, 'm'],
-          y: [4e-9, 'm'],
-          z: [4e-9, 'm'],
-        };
-      } else {
-        viewerOptions.dimensions = {
-          x: [8e-9, 'm'],
-          y: [8e-9, 'm'],
-          z: [8e-9, 'm'],
-        };
-      }
+      );
 
       actions.initViewer(viewerOptions);
     }

@@ -80,6 +80,28 @@ export function getDatasetLocation(dataset) {
   return '';
 }
 
+export function makeViewOptionsFromDataset(dataset, customOptions) {
+  return {
+    dimensions: dataset.dimensions || {
+      x: [8e-9, 'm'],
+      y: [8e-9, 'm'],
+      z: [8e-9, 'm'],
+    },
+    position: dataset.position || [],
+    crossSectionScale: dataset.crossSectionScale || 2,
+    projectionScale: dataset.projectionScale || 2600,
+    projectionOrientation: [
+      -0.2363949418067932,
+      -0.28796303272247314,
+      0.011459439061582088,
+      0.927935004234314,
+    ],
+    layout: '4panel',
+    showSlices: true,
+    ...customOptions,
+  };
+}
+
 export function makeLayersFromDataset(dataset, inferringType) {
   let layers = getLayersFromDataset(dataset);
 

@@ -64,11 +64,16 @@ const syncedState = (state) => {
 
     // For some reason, the state returned by Neuroglancer is missing `dimensions`
     // in some cases, which adversely affects the value of `projectionScale`.
+    // This is caused by layer update, which resets the global coordinate space
+    // temporarily when clearing up the layers in an intermediate step.
     if (ngState.dimensions === undefined) {
       ngState.dimensions = JSON.parse(JSON.stringify(state.getIn(['ngState', 'dimensions'])));
       // When `dimensions` is missing, then `crossSectionScale` seems to have a
       // bogus value.
-      ngState.crossSectionScale = state.getIn(['ngState', 'crossSectionScale']);
+      // 'projectionScale' has the same issue.
+      // Simply removing the unreliable fields should be good enough to solve the problem.
+      delete ngState.crossSectionScale;
+      delete ngState.projectionScale;
     }
 
     // Clear up undefined layer selection to make sure that the state is valid for Neuroglancer.
