@@ -27,7 +27,7 @@ export default () => {
 
 export const loadState = () => {
   try {
-    const serializedState = localStorage.getItem('clio_state');
+    const serializedState = localStorage.getItem('clio_web_state');
     if (serializedState === null) {
       return undefined;
     }
@@ -47,7 +47,7 @@ export const loadState = () => {
 export const saveState = (state) => {
   try {
     const serializedState = JSON.stringify(state);
-    localStorage.setItem('clio_state', serializedState);
+    localStorage.setItem('clio_web_state', serializedState);
   } catch (err) {
     console.log(err);
     // Ignore write errors.
