@@ -20,7 +20,7 @@ function getLayersFromDataset(dataset) {
   return layers;
 }
 
-function getLayerFromDataset(dataset, name) {
+export function getLayerFromDataset(dataset, name) {
   const layers = getLayersFromDataset(dataset);
   return layers.find((layer) => layer.name === name);
 }
