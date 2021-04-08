@@ -17,6 +17,7 @@ import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
 import { loginGoogleUser } from './actions/user';
 import config from './config';
+import { expandDatasets } from './utils/config';
 
 import './App.css';
 
@@ -140,11 +141,14 @@ function App() {
       fetch(datasetUrl, options)
         .then((result) => result.json())
         .then((res) => {
+          const datasetsArray = expandDatasets(res);
+          /*
           const datasetsArray = Object.entries(res).map(([name, meta]) => {
             const updated = meta;
             updated.name = name;
             return updated;
           });
+          */
           setDatasets(datasetsArray);
         })
         .catch((err) => console.log(err));

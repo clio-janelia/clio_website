@@ -112,9 +112,9 @@ export default class MergeBackendCloud {
 
   datasetName = () => {
     if (this.dataset.tag) {
-      return `${this.dataset.name}-${this.dataset.tag}`;
+      return `${this.dataset.key}-${this.dataset.tag}`;
     }
-    return this.dataset.name;
+    return this.dataset.key;
   }
 
   scope = () => `merges-${this.datasetName()}`;

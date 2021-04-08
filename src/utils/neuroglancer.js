@@ -53,7 +53,7 @@ function getMainImageLayer(dataset) {
   }
 
   if (newLayer) {
-    newLayer.name = newLayer.name || dataset.name;
+    newLayer.name = newLayer.name || dataset.key;
     if (!newLayer.source.url) {
       newLayer.source = {
         url: getLayerSourceUrl(newLayer),
@@ -156,15 +156,25 @@ export function makeLayersFromDataset(dataset, inferringType) {
   return layers;
 }
 
-export function isMergeableLayer(layer) {
-  if (layer && layer.roles) {
-    return layer.roles.includes('mergeable');
+export function hasMergeableLayer(dataset) {
+  let isMergeableLayer = (layer) => {
+    if (layer && layer.roles) {
+      return layer.roles.includes('mergeable');
+    }
+
+    return false;
+  };
+
+  if (dataset.roles) { // roles moved out of layer in the new format
+    isMergeableLayer = (layer) => {
+      const layerRoles = dataset.roles[layer.name];
+      if (layerRoles) {
+        return layerRoles.includes('mergeable');
+      }
+      return false;
+    };
   }
 
-  return false;
-}
-
-export function hasMergeableLayer(dataset) {
   return getLayersFromDataset(dataset).some(
     (layer) => isMergeableLayer(layer),
   );

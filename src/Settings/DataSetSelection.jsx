@@ -49,25 +49,28 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
   if (forNav) {
     const altOptions = datasets.map((dataset) => ({
       value: dataset.name,
-      label: `${dataset.name} - ${dataset.description}`,
+      label: `${dataset.title} - ${dataset.description}`,
     }));
-    return (
-      <ReactSelect
-        onChange={handleAltChange}
-        value={{ value: selected, label: selected }}
-        className={classes.select}
-        styles={selectStyles}
-        options={altOptions}
-        noOptionsMessage={() => 'You are not authorized to view any datasets in this project'}
-        placeholder="Select a dataset..."
-      />
-    );
+    const selectedDataset = datasets.find((dataset) => dataset.name === selected);
+    return selectedDataset ? (
+      <div style={{ display: 'flex' }}>
+        <ReactSelect
+          onChange={handleAltChange}
+          value={{ value: selected, label: selectedDataset.title }}
+          className={classes.select}
+          styles={selectStyles}
+          options={altOptions}
+          noOptionsMessage={() => 'You are not authorized to view any datasets in this project'}
+          placeholder="Select a dataset..."
+        />
+      </div>
+    ) : null;
   }
 
   /* eslint-disable react/jsx-one-expression-per-line */
   const options = datasets.map((dataset) => (
     <MenuItem key={dataset.name} value={dataset.name}>
-      {dataset.name} - {dataset.description}
+      {dataset.title} - {dataset.description}
     </MenuItem>
   ));
   /* eslint-enable */

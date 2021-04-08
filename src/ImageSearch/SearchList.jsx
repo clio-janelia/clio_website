@@ -11,7 +11,7 @@ export default function SearchList({
   clioUrl,
   actions,
 }) {
-  const savedSearchesUrl = `${clioUrl}/savedsearches/${dataset.name}`; // dataset
+  const savedSearchesUrl = `${clioUrl}/savedsearches/${dataset.key}`; // dataset
   const options = {
     headers: {
       Authorization: `Bearer ${user.getAuthResponse().id_token}`,
@@ -24,7 +24,7 @@ export default function SearchList({
     data,
     error,
   } = useQuery(
-    ['savedSearches', dataset.name],
+    ['savedSearches', dataset.key],
     () => fetch(savedSearchesUrl, options).then((response) => response.json()),
     { staleTime: 30000 },
   );
