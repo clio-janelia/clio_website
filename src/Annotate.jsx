@@ -162,7 +162,9 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     if (activeElementNeedsKeypress()) {
       return;
     }
-    onKeyPressMerge(event, mergeManager.current);
+    if (hasMergeableLayer(dataset)) {
+      onKeyPressMerge(event, mergeManager.current);
+    }
   };
 
   // Neuroglancer's notion of "visible" corresponds to other applications' notion of "selected".
