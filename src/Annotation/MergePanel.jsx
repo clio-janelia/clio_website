@@ -8,6 +8,7 @@ import React from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import DataTable from './DataTable/DataTable';
+import { getLayerFromDataset, isMergeableLayer } from '../utils/neuroglancer';
 import './MergePanel.css';
 
 const useStyles = makeStyles((theme) => ({
@@ -172,9 +173,14 @@ function onKeyPressMerge(event, mergeManager) {
 
 // Neuroglancer's notion of "visible" corresponds to other applications' notion of "selected".
 function onVisibleChangedMerge(segments, layer, mergeManager) {
-  const selectionStrings = segments.toJSON();
-  const selectionNow = selectionStrings.map((s) => parseInt(s, 10));
-  mergeManager.select(selectionNow);
+  const { dataset } = mergeManager.backend;
+  const datasetLayer = dataset && getLayerFromDataset(dataset, layer.name);
+  const mergeable = datasetLayer && isMergeableLayer(datasetLayer);
+  if (mergeable) {
+    const selectionStrings = segments.toJSON();
+    const selectionNow = selectionStrings.map((s) => parseInt(s, 10));
+    mergeManager.select(selectionNow);
+  }
 }
 
 export { MergePanel, onKeyPressMerge, onVisibleChangedMerge };
