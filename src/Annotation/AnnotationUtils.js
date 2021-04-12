@@ -155,37 +155,45 @@ export function getAnnotationIcon(kind, action, selected) {
 }
 
 export function getBodyAnnotationColumnSetting(dataset) {
-  if (!dataset) {
-    return [];
+  if (dataset) {
+    // FIXME: Temporary schema handling
+    if (dataset.schema === 'hemibrain') {
+      return [
+        {
+          title: 'Body ID',
+          field: 'bodyid',
+          filterEnabled: true,
+        },
+        {
+          title: 'Type',
+          field: 'type',
+          filterEnabled: true,
+        },
+        {
+          title: 'Instance',
+          field: 'instance',
+          filterEnabled: true,
+        },
+        {
+          title: 'Cell Body Fiber',
+          field: 'cell_body_fiber',
+          filterEnabled: true,
+        },
+        {
+          title: 'Status',
+          field: 'flyem_status',
+          filterEnabled: true,
+        },
+        {
+          title: 'Comment',
+          field: 'comment',
+          filterEnabled: true,
+        },
+      ];
+    }
   }
 
-  return [
-    {
-      title: 'Body ID',
-      field: 'bodyid',
-      filterEnabled: true,
-    },
-    {
-      title: 'Type',
-      field: 'type',
-      filterEnabled: true,
-    },
-    {
-      title: 'Instance',
-      field: 'instance',
-      filterEnabled: true,
-    },
-    {
-      title: 'Status',
-      field: 'flyem_status',
-      filterEnabled: true,
-    },
-    {
-      title: 'Comment',
-      field: 'comment',
-      filterEnabled: true,
-    },
-  ];
+  return null;
 }
 
 export function getAnnotationColumnSetting(dataset) {

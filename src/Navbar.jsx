@@ -90,8 +90,12 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
   Navbar.propTypes = {
     history: PropTypes.object.isRequired,
     datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
-    selectedDatasetName: PropTypes.string.isRequired,
+    selectedDatasetName: PropTypes.string,
     setSelectedDataset: PropTypes.func.isRequired,
+  };
+
+  Navbar.defaultProps = {
+    selectedDatasetName: null,
   };
 
   const workspaceOptions = ['annotate', 'image search', 'atlas'].map((dataset) => ({

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import Drawer from '@material-ui/core/Drawer';
@@ -19,14 +19,14 @@ import {
   ANNOTATION_SHADER,
   ATLAS_SHADER,
   getAnnotationColumnSetting,
-  // getBodyAnnotationColumnSetting,
+  getBodyAnnotationColumnSetting,
 } from './Annotation/AnnotationUtils';
 import NeuPrintManager from './Connections/NeuPrintManager';
 import ConnectionsPanel from './Connections/ConnectionsPanel';
 import MergeBackendCloud from './Annotation/MergeBackendCloud';
 import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
-// import BodyAnnotation from './Annotation/BodyAnnotation';
+import BodyAnnotation from './Annotation/BodyAnnotation';
 
 import './Neuroglancer.css';
 
@@ -91,6 +91,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const classes = useStyles();
+  const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState(null);
 
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   let { groups } = roles;
@@ -215,16 +216,14 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       };
     };
 
-    /*
     const bodyAnnotationConfig = {
       width: `${SIDEBAR_WIDTH_PX}px`,
-      datasetName: dataset.name,
+      // datasetName: dataset.name,
       user: roles.email,
       dataConfig: {
         columns: getBodyAnnotationColumnSetting(dataset),
       },
     };
-    */
 
     const annotationConfig = {
       width: `${SIDEBAR_WIDTH_PX}px`,
@@ -309,7 +308,20 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             config={annotationConfig}
             actions={actions}
           >
-            {/* <BodyAnnotation tabName="bodies" config={bodyAnnotationConfig} /> */}
+            {
+              bodyAnnotationConfig.dataConfig.columns ? (
+                <BodyAnnotation
+                  tabName="bodies"
+                  config={bodyAnnotationConfig}
+                  dataset={dataset}
+                  projectUrl={projectUrl}
+                  token={user ? user.getAuthResponse().id_token : ''}
+                  query={bodyAnnotatinQuery}
+                  onQueryChanged={(query) => setBodyAnnotationQuery(query)}
+                  actions={actions}
+                />
+              ) : null
+            }
             {
               hasMergeableLayer(dataset) ? (
                 <MergePanel
@@ -336,5 +348,9 @@ Annotate.propTypes = {
   children: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired,
   datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
-  selectedDatasetName: PropTypes.string.isRequired,
+  selectedDatasetName: PropTypes.string,
+};
+
+Annotate.defaultProps = {
+  selectedDatasetName: null,
 };

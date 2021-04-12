@@ -37,7 +37,7 @@ export default class NeuPrintManager {
 
     return (this.doQuery(cypher)
       .then((resJson) => {
-        if (resJson) {
+        if (resJson && resJson.data) {
           const result = resJson.data.map((item) => (
             { id: item[0], type: item[1] }
           ));

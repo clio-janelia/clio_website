@@ -52,11 +52,11 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
       label: `${dataset.title} - ${dataset.description}`,
     }));
     const selectedDataset = datasets.find((dataset) => dataset.name === selected);
-    return selectedDataset ? (
+    return (
       <div style={{ display: 'flex' }}>
         <ReactSelect
           onChange={handleAltChange}
-          value={{ value: selected, label: selectedDataset.title }}
+          value={{ value: selected, label: selectedDataset ? selectedDataset.title : '' }}
           className={classes.select}
           styles={selectStyles}
           options={altOptions}
@@ -64,7 +64,7 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
           placeholder="Select a dataset..."
         />
       </div>
-    ) : null;
+    );
   }
 
   /* eslint-disable react/jsx-one-expression-per-line */
@@ -84,8 +84,12 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
 DataSetSelection.propTypes = {
   datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
   onChange: PropTypes.func.isRequired,
-  selected: PropTypes.string.isRequired,
+  selected: PropTypes.string,
   forNav: PropTypes.bool,
+};
+
+DataSetSelection.defaultProps = {
+  selected: null,
 };
 
 DataSetSelection.defaultProps = {

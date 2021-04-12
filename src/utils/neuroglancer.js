@@ -156,8 +156,8 @@ export function makeLayersFromDataset(dataset, inferringType) {
   return layers;
 }
 
-export function hasMergeableLayer(dataset) {
-  let isMergeableLayer = (layer) => {
+function mergeableLayerChecker(dataset) {
+  let isMergeable = (layer) => {
     if (layer && layer.roles) {
       return layer.roles.includes('mergeable');
     }
@@ -166,7 +166,7 @@ export function hasMergeableLayer(dataset) {
   };
 
   if (dataset.roles) { // roles moved out of layer in the new format
-    isMergeableLayer = (layer) => {
+    isMergeable = (layer) => {
       const layerRoles = dataset.roles[layer.name];
       if (layerRoles) {
         return layerRoles.includes('mergeable');
@@ -175,7 +175,34 @@ export function hasMergeableLayer(dataset) {
     };
   }
 
-  return getLayersFromDataset(dataset).some(
-    (layer) => isMergeableLayer(layer),
+  return isMergeable;
+}
+
+export function getMergeableLayerFromDataset(dataset) {
+  return getLayersFromDataset(dataset).find(
+    (layer) => mergeableLayerChecker(dataset)(layer),
   );
+}
+
+export function hasMergeableLayer(dataset) {
+  return getLayersFromDataset(dataset).some(
+    (layer) => mergeableLayerChecker(dataset)(layer),
+  );
+}
+
+const defaultDvidService = 'https://ngsupport-bmcp5imp6q-uk.a.run.app';
+const defaultLocateService = `${defaultDvidService}/locate-body`;
+
+export function getLocateServiceUrl(sourceUrl, user) {
+  if (sourceUrl) {
+    const urlPattern = /^dvid:\/\/((http|https):\/\/[^/]+)\/([^/]+)\/([^/]+)(\?.*)?$/;
+    const match = sourceUrl.match(urlPattern);
+    if (match) {
+      const baseUrl = match[1];
+      const nodeKey = match[3];
+      return `${defaultLocateService}?dvid=${baseUrl}&uuid=${nodeKey}&${(user ? `&u=${user}` : '')}`;
+    }
+  }
+
+  return null;
 }

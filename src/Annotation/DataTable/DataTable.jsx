@@ -61,7 +61,7 @@ export default function DataTable(props) {
       setFilteredRows(
         data.rows.filter(
           (row) => Object.keys(filter).every(
-            (key) => (!filter[key]) || row[key].includes(filter[key]),
+            (key) => (!filter[key]) || (row[key] && row[key].includes(filter[key])),
           ),
         ),
       );
