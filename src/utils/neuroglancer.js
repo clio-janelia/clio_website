@@ -156,23 +156,36 @@ export function makeLayersFromDataset(dataset, inferringType) {
   return layers;
 }
 
+function hasMergeableRole(roles) {
+  return roles && roles.includes('mergeable');
+}
+
+export function isMergeableLayer(dataset, layerName) {
+  if (dataset.roles) {
+    const layerRoles = dataset.roles[layerName];
+    if (layerRoles) {
+      return hasMergeableRole(layerRoles);
+    }
+
+    return false;
+  }
+
+  const layer = getLayerFromDataset(dataset, layerName);
+
+  return hasMergeableRole(layer.roles);
+}
+
 function mergeableLayerChecker(dataset) {
   let isMergeable = (layer) => {
     if (layer && layer.roles) {
-      return layer.roles.includes('mergeable');
+      return hasMergeableRole(layer.roles);
     }
 
     return false;
   };
 
   if (dataset.roles) { // roles moved out of layer in the new format
-    isMergeable = (layer) => {
-      const layerRoles = dataset.roles[layer.name];
-      if (layerRoles) {
-        return layerRoles.includes('mergeable');
-      }
-      return false;
-    };
+    isMergeable = (layer) => hasMergeableRole(dataset.roles[layer.name]);
   }
 
   return isMergeable;
