@@ -173,13 +173,16 @@ function onKeyPressMerge(event, mergeManager) {
 
 // Neuroglancer's notion of "visible" corresponds to other applications' notion of "selected".
 function onVisibleChangedMerge(segments, layer, mergeManager) {
-  const { dataset } = mergeManager.backend;
-  const datasetLayer = dataset && getLayerFromDataset(dataset, layer.name);
-  const mergeable = datasetLayer && isMergeableLayer(datasetLayer);
-  if (mergeable) {
-    const selectionStrings = segments.toJSON();
-    const selectionNow = selectionStrings.map((s) => parseInt(s, 10));
-    mergeManager.select(selectionNow);
+  // Need to make sure that 'backend' is ready before retrieving the dataset
+  if (mergeManager.backend) {
+    const { dataset } = mergeManager.backend;
+    const datasetLayer = dataset && getLayerFromDataset(dataset, layer.name);
+    const mergeable = datasetLayer && isMergeableLayer(dataset, layer.name);
+    if (mergeable) {
+      const selectionStrings = segments.toJSON();
+      const selectionNow = selectionStrings.map((s) => parseInt(s, 10));
+      mergeManager.select(selectionNow);
+    }
   }
 }
 

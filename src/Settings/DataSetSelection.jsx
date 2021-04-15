@@ -49,12 +49,16 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
   if (forNav) {
     const altOptions = datasets.map((dataset) => ({
       value: dataset.name,
-      label: `${dataset.name} - ${dataset.description}`,
+      label: `${dataset.title} - ${dataset.description}`,
     }));
+    const selectedDataset = datasets.find((dataset) => dataset.name === selected);
+    const value = selected
+      ? { value: selected, label: selectedDataset ? selectedDataset.title : '' }
+      : null;
     return (
       <ReactSelect
         onChange={handleAltChange}
-        value={{ value: selected, label: selected }}
+        value={value}
         className={classes.select}
         styles={selectStyles}
         options={altOptions}
@@ -67,7 +71,7 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
   /* eslint-disable react/jsx-one-expression-per-line */
   const options = datasets.map((dataset) => (
     <MenuItem key={dataset.name} value={dataset.name}>
-      {dataset.name} - {dataset.description}
+      {dataset.title} - {dataset.description}
     </MenuItem>
   ));
   /* eslint-enable */
@@ -81,8 +85,12 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
 DataSetSelection.propTypes = {
   datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
   onChange: PropTypes.func.isRequired,
-  selected: PropTypes.string.isRequired,
+  selected: PropTypes.string,
   forNav: PropTypes.bool,
+};
+
+DataSetSelection.defaultProps = {
+  selected: null,
 };
 
 DataSetSelection.defaultProps = {

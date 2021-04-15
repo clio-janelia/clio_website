@@ -95,8 +95,12 @@ WorkSpaces.propTypes = {
   viewerState: PropTypes.object.isRequired,
   user: PropTypes.object.isRequired,
   datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
-  selectedDatasetName: PropTypes.string.isRequired,
+  selectedDatasetName: PropTypes.string,
   actions: PropTypes.object.isRequired,
+};
+
+WorkSpaces.defaultProps = {
+  selectedDatasetName: null,
 };
 
 const WorkSpacesState = (state) => ({

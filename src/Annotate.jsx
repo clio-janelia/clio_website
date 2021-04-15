@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import Drawer from '@material-ui/core/Drawer';
@@ -15,13 +15,18 @@ import {
 } from './utils/neuroglancer';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import {
-  ATLAS_COLUMNS, ANNOTATION_SHADER, ATLAS_SHADER, getAnnotationColumnSetting,
+  ATLAS_COLUMNS,
+  ANNOTATION_SHADER,
+  ATLAS_SHADER,
+  getAnnotationColumnSetting,
+  getBodyAnnotationColumnSetting,
 } from './Annotation/AnnotationUtils';
 import NeuPrintManager from './Connections/NeuPrintManager';
 import ConnectionsPanel from './Connections/ConnectionsPanel';
 import MergeBackendCloud from './Annotation/MergeBackendCloud';
 import MergeManager from './Annotation/MergeManager';
 import { MergePanel, onKeyPressMerge, onVisibleChangedMerge } from './Annotation/MergePanel';
+import BodyAnnotation from './Annotation/BodyAnnotation';
 
 import './Neuroglancer.css';
 
@@ -86,6 +91,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const classes = useStyles();
+  const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState(null);
 
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   let { groups } = roles;
@@ -96,7 +102,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   }
 
   const getAnnotationUrl = React.useCallback(
-    (isAtlas) => `clio://${projectUrl}/${dataset.name}?auth=neurohub${isAtlas ? '&kind=atlas' : ''}`,
+    (isAtlas) => `clio://${projectUrl}/${dataset.key}?auth=neurohub${isAtlas ? '&kind=atlas' : ''}`,
     [projectUrl, dataset],
   );
 
@@ -212,6 +218,15 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       };
     };
 
+    const bodyAnnotationConfig = {
+      width: `${SIDEBAR_WIDTH_PX}px`,
+      // datasetName: dataset.name,
+      user: roles.email,
+      dataConfig: {
+        columns: getBodyAnnotationColumnSetting(dataset),
+      },
+    };
+
     const annotationConfig = {
       width: `${SIDEBAR_WIDTH_PX}px`,
       datasetName: dataset.name,
@@ -291,7 +306,24 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             paper: classes.drawerPaper,
           }}
         >
-          <AnnotationPanel config={annotationConfig} actions={actions}>
+          <AnnotationPanel
+            config={annotationConfig}
+            actions={actions}
+          >
+            {
+              bodyAnnotationConfig.dataConfig.columns ? (
+                <BodyAnnotation
+                  tabName="bodies"
+                  config={bodyAnnotationConfig}
+                  dataset={dataset}
+                  projectUrl={projectUrl}
+                  token={user ? user.getAuthResponse().id_token : ''}
+                  query={bodyAnnotatinQuery}
+                  onQueryChanged={(query) => setBodyAnnotationQuery(query)}
+                  actions={actions}
+                />
+              ) : null
+            }
             {
               hasMergeableLayer(dataset) ? (
                 <MergePanel
@@ -318,5 +350,9 @@ Annotate.propTypes = {
   children: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired,
   datasets: PropTypes.arrayOf(PropTypes.object).isRequired,
-  selectedDatasetName: PropTypes.string.isRequired,
+  selectedDatasetName: PropTypes.string,
+};
+
+Annotate.defaultProps = {
+  selectedDatasetName: null,
 };

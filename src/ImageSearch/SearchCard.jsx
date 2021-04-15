@@ -42,7 +42,7 @@ export default function SearchCard({ search, actions, dataset }) {
 
   const { mutate } = useMutation((point) => {
     const xyz = `x=${point[0]}&y=${point[1]}&z=${point[2]}`;
-    const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
+    const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.key}?${xyz}`;
     const options = {
       method: 'Delete',
       headers: {

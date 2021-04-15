@@ -70,7 +70,7 @@ export default function TransferResults({
         },
         method: 'POST',
         body: JSON.stringify({
-          dataset: dataset.name,
+          dataset: dataset.key,
           model_name: model,
           center: roundedPosition,
         }),

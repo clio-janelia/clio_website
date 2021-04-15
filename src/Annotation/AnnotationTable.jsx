@@ -31,6 +31,7 @@ import AnnotationUserGroup from './AnnotationUserGroup';
 import ImportAnnotation from './ImportAnnotation';
 import ExportAnnotation from './ExportAnnotation';
 import debounce from '../utils/debounce';
+// import BodyAnnotationTable from './BodyAnnotationTable';
 
 const DEBUG = false;
 
@@ -43,7 +44,13 @@ function getLayerFromState(state, layerName) {
 
 function AnnotationTable(props) {
   const {
-    layerName, dataConfig, actions, tools, user, setSelectionChangedCallback, dataSource,
+    layerName,
+    dataConfig,
+    actions,
+    tools,
+    user,
+    setSelectionChangedCallback,
+    dataSource,
   } = props;
   const [data, setData] = React.useState({});
   const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
@@ -290,6 +297,9 @@ function AnnotationTable(props) {
           onToolChanged={handleToolChange}
         />
       ) : null}
+      {/* {dataConfig.bodyAnnotation ? (
+        <BodyAnnotationTable config={dataConfig.bodyAnnotation} />
+      ) : null} */}
     </div>
   );
 }

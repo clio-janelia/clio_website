@@ -90,7 +90,9 @@ export default function Atlas(props) {
   useEffect(() => {
     const datasetLookup = {};
     datasets.forEach((dataset) => {
-      datasetLookup[dataset.name] = dataset;
+      if (!datasetLookup[dataset.key]) {
+        datasetLookup[dataset.key] = dataset;
+      }
     });
     setDsLookup(datasetLookup);
   }, [datasets]);
@@ -105,7 +107,7 @@ export default function Atlas(props) {
           name: 'annotations',
           type: 'annotation',
           source: {
-            url: `clio://${projectUrl}/${selectedDataset.name}?auth=neurohub&kind=atlas`,
+            url: `clio://${projectUrl}/${selectedDataset.key}?auth=neurohub&kind=atlas`,
           },
         },
       ];
@@ -287,7 +289,7 @@ export default function Atlas(props) {
             <>
               <Grid item xs={12} sm={3}>
                 <DatasetFilter
-                  datasets={datasets.map((dataset) => dataset.name)}
+                  datasets={[...new Set(datasets.map((dataset) => dataset.key))]}
                   selected={datasetFilter}
                   onChange={setDataSetFilter}
                 />

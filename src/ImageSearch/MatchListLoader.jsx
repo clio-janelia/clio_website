@@ -47,7 +47,7 @@ export default function MatchListLoader({
     () => {
       const roundedPos = coords.map((point) => Math.floor(point));
       const xyz = `x=${roundedPos[0]}&y=${roundedPos[1]}&z=${roundedPos[2]}`;
-      const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.name}?${xyz}`;
+      const savedSearchUrl = `${clioUrl}/savedsearches/${dataset.key}?${xyz}`;
       const body = { note: 'saved from clio image search' };
       const mutOptions = {
         method: 'POST',
@@ -90,7 +90,7 @@ export default function MatchListLoader({
     },
   };
   const roundedPosition = coords.map((point) => Math.floor(point));
-  const signaturesUrl = `${clioUrl}/signatures/likelocation/${dataset.name}?x=${
+  const signaturesUrl = `${clioUrl}/signatures/likelocation/${dataset.key}?x=${
     roundedPosition[0]
   }&y=${roundedPosition[1]}&z=${roundedPosition[2]}`;
 
@@ -100,7 +100,7 @@ export default function MatchListLoader({
     data,
     error,
   } = useQuery(
-    ['imgSearchMatches', dataset.name, coords.join('_')],
+    ['imgSearchMatches', dataset.key, coords.join('_')],
     () => fetch(signaturesUrl, options)
       .then((res) => res.json())
       .then((result) => {

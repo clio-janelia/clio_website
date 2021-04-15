@@ -53,7 +53,7 @@ function getMainImageLayer(dataset) {
   }
 
   if (newLayer) {
-    newLayer.name = newLayer.name || dataset.name;
+    newLayer.name = newLayer.name || dataset.key;
     if (!newLayer.source.url) {
       newLayer.source = {
         url: getLayerSourceUrl(newLayer),
@@ -156,16 +156,66 @@ export function makeLayersFromDataset(dataset, inferringType) {
   return layers;
 }
 
-export function isMergeableLayer(layer) {
-  if (layer && layer.roles) {
-    return layer.roles.includes('mergeable');
+function hasMergeableRole(roles) {
+  return roles && roles.includes('mergeable');
+}
+
+export function isMergeableLayer(dataset, layerName) {
+  if (dataset.roles) {
+    const layerRoles = dataset.roles[layerName];
+    if (layerRoles) {
+      return hasMergeableRole(layerRoles);
+    }
+
+    return false;
   }
 
-  return false;
+  const layer = getLayerFromDataset(dataset, layerName);
+
+  return hasMergeableRole(layer.roles);
+}
+
+function mergeableLayerChecker(dataset) {
+  let isMergeable = (layer) => {
+    if (layer && layer.roles) {
+      return hasMergeableRole(layer.roles);
+    }
+
+    return false;
+  };
+
+  if (dataset.roles) { // roles moved out of layer in the new format
+    isMergeable = (layer) => hasMergeableRole(dataset.roles[layer.name]);
+  }
+
+  return isMergeable;
+}
+
+export function getMergeableLayerFromDataset(dataset) {
+  return getLayersFromDataset(dataset).find(
+    (layer) => mergeableLayerChecker(dataset)(layer),
+  );
 }
 
 export function hasMergeableLayer(dataset) {
   return getLayersFromDataset(dataset).some(
-    (layer) => isMergeableLayer(layer),
+    (layer) => mergeableLayerChecker(dataset)(layer),
   );
+}
+
+const defaultDvidService = 'https://ngsupport-bmcp5imp6q-uk.a.run.app';
+const defaultLocateService = `${defaultDvidService}/locate-body`;
+
+export function getLocateServiceUrl(sourceUrl, user) {
+  if (sourceUrl) {
+    const urlPattern = /^dvid:\/\/((http|https):\/\/[^/]+)\/([^/]+)\/([^/]+)(\?.*)?$/;
+    const match = sourceUrl.match(urlPattern);
+    if (match) {
+      const baseUrl = match[1];
+      const nodeKey = match[3];
+      return `${defaultLocateService}?dvid=${baseUrl}&uuid=${nodeKey}&${(user ? `&u=${user}` : '')}`;
+    }
+  }
+
+  return null;
 }

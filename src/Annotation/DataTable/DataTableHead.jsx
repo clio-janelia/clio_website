@@ -19,6 +19,12 @@ export default function DataTableHead(props) {
         label={column.title}
         onKeyUp={(event) => handleFilterKeyUp(event, column.field)}
         disabled={!column.filterEnabled}
+        style={{
+          whiteSpace: 'nowrap',
+        }}
+        InputProps={{
+          style: { width: `${column.title.length * 8}px` },
+        }}
       />
     </TableCell>
   ));

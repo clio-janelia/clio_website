@@ -31,7 +31,7 @@ export default function NGLoader({
           name: 'annotations',
           type: 'annotation',
           source: {
-            url: `clio://${projectUrl}/${dataset.name}?auth=neurohub`,
+            url: `clio://${projectUrl}/${dataset.key}?auth=neurohub`,
           },
         },
       ];
