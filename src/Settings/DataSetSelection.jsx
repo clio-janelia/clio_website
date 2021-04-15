@@ -52,11 +52,12 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
       label: `${dataset.title} - ${dataset.description}`,
     }));
     const selectedDataset = datasets.find((dataset) => dataset.name === selected);
+    const value = selected ? { value: selected, label: selectedDataset ? selectedDataset.title : '' } : null;
     return (
       <div style={{ display: 'flex' }}>
         <ReactSelect
           onChange={handleAltChange}
-          value={{ value: selected, label: selectedDataset ? selectedDataset.title : '' }}
+          value={value}
           className={classes.select}
           styles={selectStyles}
           options={altOptions}
