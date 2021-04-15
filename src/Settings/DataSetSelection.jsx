@@ -52,19 +52,19 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
       label: `${dataset.title} - ${dataset.description}`,
     }));
     const selectedDataset = datasets.find((dataset) => dataset.name === selected);
-    const value = selected ? { value: selected, label: selectedDataset ? selectedDataset.title : '' } : null;
+    const value = selected
+      ? { value: selected, label: selectedDataset ? selectedDataset.title : '' }
+      : null;
     return (
-      <div style={{ display: 'flex' }}>
-        <ReactSelect
-          onChange={handleAltChange}
-          value={value}
-          className={classes.select}
-          styles={selectStyles}
-          options={altOptions}
-          noOptionsMessage={() => 'You are not authorized to view any datasets in this project'}
-          placeholder="Select a dataset..."
-        />
-      </div>
+      <ReactSelect
+        onChange={handleAltChange}
+        value={value}
+        className={classes.select}
+        styles={selectStyles}
+        options={altOptions}
+        noOptionsMessage={() => 'You are not authorized to view any datasets in this project'}
+        placeholder="Select a dataset..."
+      />
     );
   }
 
