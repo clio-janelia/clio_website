@@ -24,16 +24,6 @@ const useStyles = makeStyles(() => (
   }
 ));
 
-/*
-function getRowItemFromAnnotation(key, annotation) {
-  return {
-    id: key,
-    ...annotation,
-    locateAction: () => {},
-  };
-}
-*/
-
 export const defaultDvidService = 'https://ngsupport-bmcp5imp6q-uk.a.run.app';
 export const defaultLocateService = `${defaultDvidService}/locate-body`;
 
@@ -53,6 +43,7 @@ function BodyAnnotation({
   const rows = Object.keys(annotations).map((key) => ({
     id: key,
     ...annotations[key],
+    updateAction: () => {},
     locateAction: locateServiceUrl ? () => {
       if (locateServiceUrl) {
         fetch(`${locateServiceUrl}&body=${annotations[key].bodyid}`, {
@@ -90,6 +81,7 @@ function BodyAnnotation({
   return (
     <div className={classes.annotationRoot}>
       <BodyAnnotationQuery defaultQueryString={query ? JSON.stringify(query) : ''} onQueryChanged={onQueryChanged} />
+      <hr />
       <BodyAnnotationTable data={rows} dataConfig={config.dataConfig} />
     </div>
   );

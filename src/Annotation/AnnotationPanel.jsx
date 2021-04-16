@@ -51,7 +51,7 @@ export default function AnnotationPanel(props) {
 
   const numTabs = config.layers.length + validChildren.length;
   const totalWidth = config.width.replace(/\D/g, '');
-  const tabWidth = Math.max(totalWidth / numTabs, 100);
+  const tabWidth = Math.max(totalWidth / numTabs - 20, 100);
   const tabStyle = { minWidth: `${tabWidth}px`, maxWidth: `${tabWidth}px` };
 
   let tabs = config.layers.map((layer, index) => (

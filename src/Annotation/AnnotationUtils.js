@@ -12,10 +12,9 @@ import {
 
 import { hasMergeableLayer } from '../utils/neuroglancer';
 
-export const ANNOTATION_COLUMNS = [
-  {
+export const ANNOTATION_COLUMNS = {
+  type: {
     title: 'Type',
-    field: 'type',
     filterEnabled: true,
     editElement: {
       type: 'select',
@@ -34,20 +33,26 @@ export const ANNOTATION_COLUMNS = [
         },
       ],
     },
+    rank: 1,
   },
-  {
+  comment: {
     title: 'Description',
-    field: 'comment',
     filterEnabled: true,
     editElement: {
       type: 'input',
     },
+    rank: 2,
   },
-  {
+  pos: {
     title: 'Position',
-    field: 'pos',
+    rank: 3,
   },
-];
+  user: {
+    title: 'User',
+    filterEnabled: true,
+    rank: 4,
+  },
+};
 
 export const ATLAS_COLUMNS = [
   {
@@ -158,38 +163,53 @@ export function getBodyAnnotationColumnSetting(dataset) {
   if (dataset) {
     // FIXME: Temporary schema handling
     if (dataset.schema === 'hemibrain') {
-      return [
-        {
-          title: 'Body ID',
-          field: 'bodyid',
-          filterEnabled: true,
+      return {
+        shape: ['bodyid', 'type', 'instance', 'cell_body_fiber', 'comment'],
+        collection: {
+          bodyid: {
+            title: 'Body ID',
+            filterEnabled: true,
+            rank: 1,
+          },
+          type: {
+            title: 'Type',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 2,
+          },
+          instance: {
+            title: 'Instance',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 3,
+          },
+          cell_body_fiber: {
+            title: 'Cell Body Fiber',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 4,
+          },
+          flyem_status: {
+            title: 'Status',
+            filterEnabled: true,
+            rank: 5,
+          },
+          comment: {
+            title: 'Comment',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 6,
+          },
         },
-        {
-          title: 'Type',
-          field: 'type',
-          filterEnabled: true,
-        },
-        {
-          title: 'Instance',
-          field: 'instance',
-          filterEnabled: true,
-        },
-        {
-          title: 'Cell Body Fiber',
-          field: 'cell_body_fiber',
-          filterEnabled: true,
-        },
-        {
-          title: 'Status',
-          field: 'flyem_status',
-          filterEnabled: true,
-        },
-        {
-          title: 'Comment',
-          field: 'comment',
-          filterEnabled: true,
-        },
-      ];
+      };
     }
   }
 
@@ -197,52 +217,15 @@ export function getBodyAnnotationColumnSetting(dataset) {
 }
 
 export function getAnnotationColumnSetting(dataset) {
-  const columns = [];
+  let shape = ['comment', 'pos'];
   if (hasMergeableLayer(dataset)) {
-    columns.push(
-      {
-        title: 'Type',
-        field: 'type',
-        filterEnabled: true,
-        editElement: {
-          type: 'select',
-          options: [
-            {
-              label: 'None',
-              value: null,
-            },
-            {
-              label: 'Merge',
-              value: 'Merge',
-            },
-            {
-              label: 'Split',
-              value: 'Split',
-            },
-          ],
-        },
-      },
-    );
+    shape = ['type', ...shape];
   }
 
-  columns.push(
-    {
-      title: 'Description',
-      field: 'comment',
-      filterEnabled: true,
-      editElement: {
-        type: 'input',
-      },
-    },
-  );
-  columns.push(
-    {
-      title: 'Position',
-      field: 'pos',
-    },
-  );
-
-  return columns;
+  return {
+    shape,
+    collection: ANNOTATION_COLUMNS,
+  };
 }
 
 export function getNewAnnotation(annotation, prop) {
@@ -318,7 +301,9 @@ function getRowItemWithoutAction(annotation) {
   if (prop.description) {
     prop.comment = prop.description;
   }
-  const { comment, type, title } = prop;
+  const {
+    comment, type, title, user,
+  } = prop;
 
   return {
     id,
@@ -327,6 +312,7 @@ function getRowItemWithoutAction(annotation) {
     title: title || '',
     comment: comment || '',
     type: type || '',
+    user,
     timestamp: getAnnotationTimestamp(annotation),
     defaultEditing: false,
   };

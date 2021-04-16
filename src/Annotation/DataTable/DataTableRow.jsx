@@ -11,31 +11,38 @@ import LocateIconSelected from '@material-ui/icons/Room';
 import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import Tooltip from '@material-ui/core/Tooltip';
 import DataEdit from './DataEdit';
+import {
+  getVisibleColumns,
+  getColumnSetting,
+  getColumnFields,
+  COLUMNS_PROP_TYPES,
+} from './DataTableUtils';
 
 function DataTableRow(props) {
   const {
-    config, row, selected, getLocateIcon,
+    columns, row, selected, getLocateIcon,
   } = props;
 
-  const isValid = config.columns.every((column) => {
+  const allColumnFields = getColumnFields(columns);
+  const isValid = allColumnFields.every((field) => {
+    const column = getColumnSetting(columns, field);
     if (column.checkValidity) {
       return column.checkValidity(row[column.field]);
     }
     return true;
   });
 
-  const isValidAfterChange = (change) => (
-    config.columns.every((column) => {
-      if (column.checkValidity) {
-        let value = row[column.field];
-        if (column.field in change) {
-          value = change[column.field];
-        }
-        return column.checkValidity(value);
+  const isValidAfterChange = (change) => allColumnFields.every((field) => {
+    const column = getColumnSetting(columns, field);
+    if (column.checkValidity) {
+      let value = row[column.field];
+      if (column.field in change) {
+        value = change[column.field];
       }
-      return true;
-    })
-  );
+      return column.checkValidity(value);
+    }
+    return true;
+  });
 
   const [editing, setEditing] = useState(!isValid || row.defaultEditing);
 
@@ -65,6 +72,7 @@ function DataTableRow(props) {
     </IconButton>
   );
 
+  const visibleColumns = getVisibleColumns(columns);
   const locateButton = row.locateTooltip
     ? (
       <Tooltip title={row.locateTooltip}>
@@ -77,7 +85,7 @@ function DataTableRow(props) {
       <DataEdit
         config={
           {
-            columns: [{ cell: locateButton, field: '#locateButton' }, ...config.columns],
+            columns: [{ cell: locateButton, field: '#locateButton' }, ...visibleColumns],
           }
         }
         data={row}
@@ -128,7 +136,7 @@ function DataTableRow(props) {
       <TableCell>
         {row.locateAction ? locateButton : undefined}
       </TableCell>
-      {config.columns.map((column) => (
+      {visibleColumns.map((column) => (
         <TableCell
           key={column.field}
           align={column.align}
@@ -150,13 +158,7 @@ function DataTableRow(props) {
 }
 
 DataTableRow.propTypes = {
-  config: PropTypes.shape({
-    columns: PropTypes.arrayOf(PropTypes.shape({
-      field: PropTypes.string,
-      title: PropTypes.string,
-      filterEnabled: PropTypes.bool,
-    })),
-  }).isRequired,
+  columns: COLUMNS_PROP_TYPES.isRequired,
   row: PropTypes.object.isRequired, // Row data with a shape specified in column settings
   selected: PropTypes.bool,
   getLocateIcon: PropTypes.func,
