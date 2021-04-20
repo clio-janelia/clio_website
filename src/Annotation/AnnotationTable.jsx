@@ -37,17 +37,20 @@ import AnnotationUserGroup from './AnnotationUserGroup';
 import ImportAnnotation from './ImportAnnotation';
 import ExportAnnotation from './ExportAnnotation';
 import debounce from '../utils/debounce';
+import { getLayerFromState } from '../utils/state';
 // import { useLocalStorage } from '../utils/hooks';
 // import BodyAnnotationTable from './BodyAnnotationTable';
 
 const DEBUG = false;
 
+/*
 function getLayerFromState(state, layerName) {
   const layers = state.viewer.getIn(['ngState', 'layers']);
   const layer = layers.find((e) => (e.name === layerName));
 
   return layer;
 }
+*/
 
 function AnnotationTable(props) {
   const {

@@ -18,6 +18,7 @@ const useStyles = makeStyles(() => (
 function BodyAnnotationQuery({
   defaultQueryString,
   onQueryChanged,
+  loading,
 }) {
   const classes = useStyles();
   const [queryString, setQueryString] = useState(defaultQueryString);
@@ -48,8 +49,9 @@ function BodyAnnotationQuery({
       <Button
         color="primary"
         onClick={submitQuery}
+        disabled={loading}
       >
-        Submit
+        {loading ? 'Loading...' : 'Submit'}
       </Button>
     </div>
   );
@@ -58,6 +60,7 @@ function BodyAnnotationQuery({
 BodyAnnotationQuery.propTypes = {
   defaultQueryString: PropTypes.string.isRequired,
   onQueryChanged: PropTypes.func.isRequired,
+  loading: PropTypes.bool.isRequired,
 };
 
 export default BodyAnnotationQuery;

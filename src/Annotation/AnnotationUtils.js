@@ -162,7 +162,7 @@ export function getAnnotationIcon(kind, action, selected) {
 export function getBodyAnnotationColumnSetting(dataset) {
   if (dataset) {
     // FIXME: Temporary schema handling
-    if (dataset.schema === 'hemibrain') {
+    if (dataset.name === 'hemibrain') {
       return {
         shape: ['bodyid', 'type', 'instance', 'cell_body_fiber', 'comment'],
         collection: {
@@ -207,6 +207,67 @@ export function getBodyAnnotationColumnSetting(dataset) {
               type: 'input',
             },
             rank: 6,
+          },
+        },
+      };
+    }
+
+    if (dataset.key === 'VNC') {
+      return {
+        shape: ['bodyid', 'class', 'hemilineage', 'soma_side', 'description'],
+        collection: {
+          bodyid: {
+            title: 'Body ID',
+            filterEnabled: true,
+            rank: 1,
+          },
+          class: {
+            title: 'Class',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 2,
+          },
+          hemilineage: {
+            title: 'Hemilineage',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 3,
+          },
+          soma_side: {
+            title: 'Soma Side',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 4,
+          },
+          soma_neuromere: {
+            title: 'Soma Neuromere',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 5,
+          },
+          entry_nerve: {
+            title: 'Entry Nerve',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 6,
+          },
+          description: {
+            title: 'Description',
+            filterEnabled: true,
+            editElement: {
+              type: 'input',
+            },
+            rank: 7,
           },
         },
       };

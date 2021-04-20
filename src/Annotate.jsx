@@ -322,8 +322,12 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                   projectUrl={projectUrl}
                   token={user ? user.getAuthResponse().id_token : ''}
                   query={bodyAnnotatinQuery}
-                  onQueryChanged={(query) => setBodyAnnotationQuery(query)}
+                  onQueryChanged={(query) => {
+                    actions.syncViewer();
+                    setBodyAnnotationQuery(query);
+                  }}
                   actions={actions}
+                  mergeManager={mergeManager.current}
                 />
               ) : null
             }
