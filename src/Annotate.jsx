@@ -3,6 +3,7 @@ import ChevronRight from '@material-ui/icons/ChevronRight';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import Drawer from '@material-ui/core/Drawer';
 import Fab from '@material-ui/core/Fab';
+import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
@@ -30,7 +31,8 @@ import BodyAnnotation from './Annotation/BodyAnnotation';
 
 import './Neuroglancer.css';
 
-const SIDEBAR_WIDTH_PX = 500;
+const SIDEBAR_WIDTH_PX = 550;
+const SIDEBAR_EXPANDED_WIDTH_PX = 800;
 const SIDEBAR_SPACING_PX = 10;
 
 const useStyles = makeStyles((theme) => {
@@ -47,14 +49,14 @@ const useStyles = makeStyles((theme) => {
     flexGrow: 1,
   };
   return ({
-    fabSidebarOpen: {
+    fabSidebarOpen: (props) => ({
       ...fabSidebar,
       transition: theme.transitions.create(['right'], {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
       }),
-      right: `${SIDEBAR_WIDTH_PX + SIDEBAR_SPACING_PX}px`,
-    },
+      right: `${props.sidebarWidth + SIDEBAR_SPACING_PX}px`,
+    }),
     fabSidebarClosed: {
       ...fabSidebar,
       transition: theme.transitions.create(['right'], {
@@ -63,14 +65,14 @@ const useStyles = makeStyles((theme) => {
       }),
       right: `${SIDEBAR_SPACING_PX}px`,
     },
-    ngSidebarOpen: {
+    ngSidebarOpen: (props) => ({
       ...ngSidebar,
       transition: theme.transitions.create(['margin'], {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.leavingScreen,
       }),
-      marginRight: SIDEBAR_WIDTH_PX,
-    },
+      marginRight: props.sidebarWidth,
+    }),
     ngSidebarClosed: {
       ...ngSidebar,
       transition: theme.transitions.create(['margin'], {
@@ -90,7 +92,8 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const classes = useStyles();
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_WIDTH_PX);
+  const classes = useStyles({ sidebarWidth });
   const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState(null);
 
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
@@ -219,7 +222,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     };
 
     const bodyAnnotationConfig = {
-      width: `${SIDEBAR_WIDTH_PX}px`,
+      width: `${sidebarWidth}px`,
       // datasetName: dataset.name,
       user: roles.email,
       dataConfig: {
@@ -228,7 +231,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     };
 
     const annotationConfig = {
-      width: `${SIDEBAR_WIDTH_PX}px`,
+      width: `${sidebarWidth}px`,
       datasetName: dataset.name,
       user: roles.email,
       layers: [
@@ -319,8 +322,12 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                   projectUrl={projectUrl}
                   token={user ? user.getAuthResponse().id_token : ''}
                   query={bodyAnnotatinQuery}
-                  onQueryChanged={(query) => setBodyAnnotationQuery(query)}
+                  onQueryChanged={(query) => {
+                    actions.syncViewer();
+                    setBodyAnnotationQuery(query);
+                  }}
                   actions={actions}
+                  mergeManager={mergeManager.current}
                 />
               ) : null
             }
@@ -339,6 +346,16 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
               mergeManager={mergeManager.current}
             />
           </AnnotationPanel>
+          <Button
+            color="primary"
+            onClick={
+              () => setSidebarWidth(
+                (sidebarWidth === SIDEBAR_WIDTH_PX) ? SIDEBAR_EXPANDED_WIDTH_PX : SIDEBAR_WIDTH_PX,
+              )
+            }
+          >
+            { (sidebarWidth === SIDEBAR_WIDTH_PX) ? '<-- Wider -->' : '--> Narrower <--' }
+          </Button>
         </Drawer>
       </div>
     );

@@ -11,6 +11,9 @@ import TablePagination from '@material-ui/core/TablePagination';
 
 import DataTableHead from './DataTableHead';
 import DataTableRow from './DataTableRow';
+import {
+  COLUMNS_PROP_TYPES,
+} from './DataTableUtils';
 
 const useStyles = makeStyles({
   dataTableRoot: {
@@ -22,7 +25,9 @@ const useStyles = makeStyles({
   },
 });
 
-export default function DataTable(props) {
+export default function DataTable({
+  data, config, selectedId, getId, getLocateIcon, makeHeaderRow, tableControls,
+}) {
   const classes = useStyles();
   const rowsPerPageOptions = [5, 10, 20, { label: 'All', value: -1 }];
 
@@ -30,10 +35,6 @@ export default function DataTable(props) {
   const [filteredRows, setFilteredRows] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
-
-  const {
-    data, selectedId, getId, getLocateIcon, makeHeaderRow, tableControls,
-  } = props;
 
   const rowHeight = 44;
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
@@ -82,8 +83,6 @@ export default function DataTable(props) {
     setRowsPerPage(parseInt(event.target.value, 10));
   };
 
-  const { config } = props;
-
   const actualPage = Math.min(page, maxPage);
 
   const pagination = (
@@ -109,7 +108,7 @@ export default function DataTable(props) {
       <TableContainer className={classes.container}>
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
           <DataTableHead
-            config={config}
+            columns={config.columns}
             handleFilterChange={handleFilterChange}
             makeRow={makeHeaderRow}
           />
@@ -121,7 +120,7 @@ export default function DataTable(props) {
               (row) => (
                 <DataTableRow
                   key={getId(row)}
-                  config={config}
+                  columns={config.columns}
                   row={row}
                   selected={getId(row) === selectedId}
                   getLocateIcon={getLocateIcon}
@@ -146,11 +145,7 @@ DataTable.propTypes = {
     rows: PropTypes.arrayOf(PropTypes.object).isRequired,
   }).isRequired,
   config: PropTypes.shape({
-    columns: PropTypes.arrayOf(PropTypes.shape({
-      field: PropTypes.string,
-      title: PropTypes.string,
-      filterEnabled: PropTypes.bool,
-    })),
+    columns: COLUMNS_PROP_TYPES.isRequired,
   }).isRequired,
   getId: PropTypes.func.isRequired, // Get id for row
   selectedId: PropTypes.string, // Selected ID

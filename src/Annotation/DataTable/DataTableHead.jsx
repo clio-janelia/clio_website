@@ -5,15 +5,20 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import TextField from '@material-ui/core/TextField';
+import {
+  getVisibleColumns,
+} from './DataTableUtils';
 
-export default function DataTableHead(props) {
+export default function DataTableHead({
+  columns, makeRow, handleFilterChange,
+}) {
   const handleFilterKeyUp = (event, column) => {
-    props.handleFilterChange(column, event.target.value);
+    handleFilterChange(column, event.target.value);
   };
 
-  const { config, makeRow } = props;
+  const visibleColumns = getVisibleColumns(columns);
 
-  const filterRow = config.columns.map((column) => (
+  const filterRow = visibleColumns.map((column) => (
     <TableCell key={column.field}>
       <TextField
         label={column.title}
@@ -50,13 +55,17 @@ export default function DataTableHead(props) {
 }
 
 DataTableHead.propTypes = {
-  config: PropTypes.shape({
-    columns: PropTypes.arrayOf(PropTypes.shape({
+  columns: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.shape({
       field: PropTypes.string,
       title: PropTypes.string,
       filterEnabled: PropTypes.bool,
     })),
-  }).isRequired,
+    PropTypes.shape({
+      shape: PropTypes.arrayOf(PropTypes.string),
+      collection: PropTypes.object,
+    }),
+  ]).isRequired,
   handleFilterChange: PropTypes.func.isRequired, // Function of filtering a given column
   makeRow: PropTypes.func,
 };

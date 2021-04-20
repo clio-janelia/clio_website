@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 
 import {
@@ -12,9 +12,15 @@ import {
   getSelectedAnnotationId,
 } from '@janelia-flyem/react-neuroglancer';
 
+// import Divider from '@material-ui/core/Divider';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import Box from '@material-ui/core/Box';
+import {
+  getSortedFieldArray,
+  sortColumns,
+} from './DataTable/DataTableUtils';
+import DataFieldControl from './DataTable/DataFieldControl';
 import DataTable from './DataTable/DataTable';
 import {
   getRowItemFromAnnotation,
@@ -31,16 +37,20 @@ import AnnotationUserGroup from './AnnotationUserGroup';
 import ImportAnnotation from './ImportAnnotation';
 import ExportAnnotation from './ExportAnnotation';
 import debounce from '../utils/debounce';
+import { getLayerFromState } from '../utils/state';
+// import { useLocalStorage } from '../utils/hooks';
 // import BodyAnnotationTable from './BodyAnnotationTable';
 
 const DEBUG = false;
 
+/*
 function getLayerFromState(state, layerName) {
   const layers = state.viewer.getIn(['ngState', 'layers']);
   const layer = layers.find((e) => (e.name === layerName));
 
   return layer;
 }
+*/
 
 function AnnotationTable(props) {
   const {
@@ -53,7 +63,8 @@ function AnnotationTable(props) {
     dataSource,
   } = props;
   const [data, setData] = React.useState({});
-  const [selectedAnnotation, setSelectedAnnotation] = React.useState(null);
+  const [selectedAnnotation, setSelectedAnnotation] = useState(null);
+  const [columns, setColumns] = useState(dataConfig.columns);
 
   const sourceUrl = useSelector((state) => {
     const layer = getLayerFromState(state, layerName);
@@ -277,16 +288,40 @@ function AnnotationTable(props) {
       />
     ) : null;
 
+  let fieldSelection = null;
+  if (dataConfig.columns.shape) {
+    fieldSelection = (
+      <DataFieldControl
+        fields={getSortedFieldArray(columns)}
+        selectedFields={columns.shape}
+        onChange={(value) => {
+          setColumns(sortColumns({
+            ...columns,
+            shape: value,
+          }));
+        }}
+      />
+    );
+  }
+
+  const tableControls = (
+    <div style={{ display: 'flex', flexFlow: 'row' }}>
+      {groupSelection}
+      <div style={{ height: '100%', width: '10px' }} />
+      {fieldSelection}
+    </div>
+  );
+
   return (
     <div>
       <DataTable
         data={{ rows: data.rows || [] }}
         selectedId={selectedAnnotation}
-        config={dataConfig}
+        config={{ ...dataConfig, columns }}
         getId={React.useCallback((row) => row.id, [])}
         getLocateIcon={getLocateIcon}
         makeHeaderRow={makeTableHeaderRow}
-        tableControls={groupSelection}
+        tableControls={tableControls}
       />
       <hr />
       {tools ? (
