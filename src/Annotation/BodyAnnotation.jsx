@@ -95,7 +95,7 @@ function BodyAnnotation({
         setAnnotations(newAnnotations);
       } else {
         setLoading(true);
-        queryBodyAnnotations(projectUrl, token, dataset.key, query).then(
+        queryBodyAnnotations(projectUrl, token, dataset, query).then(
           (res) => {
             if (query.field === 'bodyid') {
               if (Array.isArray(query.value)) {

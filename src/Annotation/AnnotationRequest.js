@@ -1,6 +1,6 @@
 /* eslint-disable-next-line  import/prefer-default-export */
-export function queryBodyAnnotations(projectUrl, token, datasetKey, query) {
-  const url = `${projectUrl}/json-annotations/${datasetKey}/neurons/query`;
+export function queryBodyAnnotations(projectUrl, token, dataset, query) {
+  const url = `${projectUrl}/json-annotations/${dataset.key}/neurons/query${dataset.tag ? `?version=${dataset.tag}` : ''}`;
   const body = JSON.stringify(query);
   const options = {
     method: 'POST',
