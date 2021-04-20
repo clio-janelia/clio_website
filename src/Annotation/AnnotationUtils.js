@@ -294,11 +294,11 @@ export function getNewAnnotation(annotation, prop) {
   const newProp = { ...prop };
   if (newAnnotation.ext) {
     // newAnnotation.ext = { ...newAnnotation.ext, ...prop };
-    if (newProp.comment) {
+    if (newProp.comment !== undefined) {
       newAnnotation.ext.description = newProp.comment;
       delete newProp.comment;
     }
-    if (newProp.title) {
+    if (newProp.title !== undefined) {
       newAnnotation.ext.title = newProp.title;
       delete newProp.title;
     }
