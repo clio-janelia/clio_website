@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
 import {
   getMergeableLayerFromDataset,
   getLocateServiceUrl,
@@ -136,28 +135,12 @@ function BodyAnnotation({
 
   return (
     <div className={classes.annotationRoot}>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-        <BodyAnnotationQuery
-          defaultQueryString={query ? JSON.stringify(query) : ''}
-          onQueryChanged={onQueryChanged}
-          loading={loading}
-        />
-        <Button
-          color="primary"
-          variant="contained"
-          disabled={loading}
-          onClick={
-            () => {
-              // onQueryChanged({ bodyid: mergeManager.selection });
-              onQueryChanged({ field: 'bodyid', op: 'in', value: mergeManager.selection });
-              // console.log(segmentationLayer && segmentationLayer.segments);
-              console.log(mergeManager.selection);
-            }
-          }
-        >
-          Selected Segments
-        </Button>
-      </div>
+      <BodyAnnotationQuery
+        defaultQueryString={query ? JSON.stringify(query) : ''}
+        onQueryChanged={onQueryChanged}
+        loading={loading}
+        getSelectedSegments={() => mergeManager.selection}
+      />
       <hr />
       <BodyAnnotationTable data={rows} dataConfig={config.dataConfig} />
     </div>

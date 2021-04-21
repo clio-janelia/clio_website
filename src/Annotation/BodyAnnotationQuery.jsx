@@ -8,9 +8,10 @@ const useStyles = makeStyles(() => (
   {
     controlRow: {
       display: 'flex',
-      flexFlow: 'row',
+      flexDirection: 'row',
       justifyContent: 'left',
       minHeight: '0px',
+      alignItems: 'center',
     },
   }
 ));
@@ -19,6 +20,7 @@ function BodyAnnotationQuery({
   defaultQueryString,
   onQueryChanged,
   loading,
+  getSelectedSegments,
 }) {
   const classes = useStyles();
   const [queryString, setQueryString] = useState(defaultQueryString);
@@ -38,8 +40,8 @@ function BodyAnnotationQuery({
     <div className={classes.controlRow}>
       <TextField
         label="Query"
-        defaultValue={queryString}
-        onKeyUp={(event) => {
+        value={queryString}
+        onChange={(event) => {
           setQueryString(event.target.value);
         }}
         multiline
@@ -53,6 +55,24 @@ function BodyAnnotationQuery({
       >
         {loading ? 'Loading...' : 'Submit'}
       </Button>
+      <Button
+        color="primary"
+        variant="contained"
+        disabled={loading}
+        style={{ height: 'fit-content' }}
+        onClick={
+          () => {
+            const segments = getSelectedSegments();
+            const query = { field: 'bodyid', op: 'in', value: segments };
+            setQueryString(JSON.stringify(query));
+            if (segments.length > 0) {
+              onQueryChanged(query);
+            }
+          }
+        }
+      >
+        Selected Segments
+      </Button>
     </div>
   );
 }
@@ -61,6 +81,7 @@ BodyAnnotationQuery.propTypes = {
   defaultQueryString: PropTypes.string.isRequired,
   onQueryChanged: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
+  getSelectedSegments: PropTypes.func.isRequired,
 };
 
 export default BodyAnnotationQuery;
