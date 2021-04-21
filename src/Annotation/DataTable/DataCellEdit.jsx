@@ -51,7 +51,7 @@ export default function DataCellEdit(props) {
 }
 
 DataCellEdit.propTypes = {
-  value: PropTypes.string.isRequired,
+  value: PropTypes.string,
   onValueChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   config: PropTypes.shape({
@@ -60,5 +60,6 @@ DataCellEdit.propTypes = {
 };
 
 DataCellEdit.defaultProps = {
+  value: '',
   placeholder: '',
 };
