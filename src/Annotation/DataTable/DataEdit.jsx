@@ -16,7 +16,7 @@ export default function DataEdit(props) {
 
   const dataForEditing = {};
   config.columns.forEach((column) => {
-    if (column.editElement) {
+    if (column.editElement && data[column.field] !== undefined) {
       dataForEditing[column.field] = data[column.field];
     }
   });

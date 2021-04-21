@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
 import {
   getMergeableLayerFromDataset,
   getLocateServiceUrl,
@@ -12,6 +11,7 @@ import BodyAnnotationTable from './BodyAnnotationTable';
 import BodyAnnotationQuery from './BodyAnnotationQuery';
 import {
   queryBodyAnnotations,
+  updateBodyAnnotation,
 } from './AnnotationRequest';
 
 const useStyles = makeStyles(() => (
@@ -78,7 +78,19 @@ function BodyAnnotation({
     return {
       id: key,
       ...annotations[key],
-      // updateAction: () => { },
+      updateAction: (change) => {
+        if (Object.keys(change).length > 0) {
+          updateBodyAnnotation(projectUrl, token, dataset, {
+            ...change, bodyid: annotations[key].bodyid,
+          }, (newAnnotation) => {
+            setAnnotations({ ...annotations, [key]: newAnnotation });
+          }).catch((error) => {
+            const message = `Failed to update annotation for ${key}.`;
+            actions.addAlert({ severity: 'warning', message });
+            console.log(error);
+          });
+        }
+      },
       locateAction,
     };
   });
@@ -110,6 +122,8 @@ function BodyAnnotation({
             setLoading(false);
           },
         ).catch((error) => {
+          const message = 'Failed to query bodies.';
+          actions.addAlert({ severity: 'warning', message });
           console.log(error);
           setLoading(false);
         });
@@ -121,28 +135,12 @@ function BodyAnnotation({
 
   return (
     <div className={classes.annotationRoot}>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-        <BodyAnnotationQuery
-          defaultQueryString={query ? JSON.stringify(query) : ''}
-          onQueryChanged={onQueryChanged}
-          loading={loading}
-        />
-        <Button
-          color="primary"
-          variant="contained"
-          disabled={loading}
-          onClick={
-            () => {
-              // onQueryChanged({ bodyid: mergeManager.selection });
-              onQueryChanged({ field: 'bodyid', op: 'in', value: mergeManager.selection });
-              // console.log(segmentationLayer && segmentationLayer.segments);
-              console.log(mergeManager.selection);
-            }
-          }
-        >
-          Selected Segments
-        </Button>
-      </div>
+      <BodyAnnotationQuery
+        defaultQueryString={query ? JSON.stringify(query) : ''}
+        onQueryChanged={onQueryChanged}
+        loading={loading}
+        getSelectedSegments={() => mergeManager.selection}
+      />
       <hr />
       <BodyAnnotationTable data={rows} dataConfig={config.dataConfig} />
     </div>
