@@ -85,9 +85,8 @@ function BodyAnnotation({
           }, (newAnnotation) => {
             setAnnotations({ ...annotations, [key]: newAnnotation });
           }).catch((error) => {
-            const message = `Failed to update annotation for ${key}.`;
+            const message = `Failed to update annotation for ${key}: ${error.message}.`;
             actions.addAlert({ severity: 'warning', message });
-            console.log(error);
           });
         }
       },
@@ -122,9 +121,8 @@ function BodyAnnotation({
             setLoading(false);
           },
         ).catch((error) => {
-          const message = 'Failed to query bodies.';
+          const message = `Failed to query bodies: ${error.message}.`;
           actions.addAlert({ severity: 'warning', message });
-          console.log(error);
           setLoading(false);
         });
       }
