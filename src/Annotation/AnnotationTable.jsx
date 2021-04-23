@@ -31,6 +31,7 @@ import {
   getGroupsFromAnnotationUrl,
   getUrlFromLayer,
   getAnnotationToolFromLayer,
+  encodeAnnotation,
 } from './AnnotationUtils';
 import AnnotationToolControl from './AnnotationToolControl';
 import AnnotationUserGroup from './AnnotationUserGroup';
@@ -136,19 +137,23 @@ function AnnotationTable(props) {
     return Promise.reject(new Error('Failed to get annotation source.'));
   }, [layerName, dataConfig]);
 
-  const getAnnotations = React.useCallback(() => {
+  const getAnnotations = React.useCallback((filteredRows) => {
     const source = getAnnotationSource(undefined, layerName);
     if (source) {
       const { parameters } = source;
       const url = getAnnotationUrl(parameters);
+      if (filteredRows) {
+        /* eslint-disable-next-line no-underscore-dangle */
+        return Promise.resolve(filteredRows.map((row) => encodeAnnotation(row._annotation)));
+      }
+
       return fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${dataConfig.token}`,
         },
-      }).then((response) => response.json());
-      // return Promise.resolve(source.parameters);
+      });
     }
 
     return Promise.reject(new Error('Failed to get annotation source.'));
@@ -254,7 +259,7 @@ function AnnotationTable(props) {
 
   const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected)), []);
 
-  const makeTableHeaderRow = React.useCallback((dataHeaders) => (
+  const makeTableHeaderRow = React.useCallback((dataHeaders, filteredRows) => (
     <TableRow>
       <TableCell padding="none">
         <Box display="flex" flexDirection="row">
@@ -268,7 +273,7 @@ function AnnotationTable(props) {
           {dataConfig.allowingExport ? (
             <ExportAnnotation
               kind={dataConfig.kind}
-              getData={getAnnotations}
+              getData={() => getAnnotations(filteredRows)}
             />
           ) : null}
         </Box>

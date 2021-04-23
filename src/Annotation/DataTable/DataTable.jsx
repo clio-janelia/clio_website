@@ -59,20 +59,31 @@ export default function DataTable({
 
   useEffect(() => {
     if (filter) {
-      setFilteredRows(
-        data.rows.filter(
-          (row) => Object.keys(filter).every(
-            (key) => (!filter[key]) || (row[key] && row[key].includes(filter[key])),
-          ),
+      const newRows = data.rows.filter(
+        (row) => Object.keys(filter).every(
+          (key) => (!filter[key]) || (row[key] && row[key].includes(filter[key])),
         ),
       );
+      setFilteredRows(newRows);
     } else {
       setFilteredRows(data.rows);
     }
   }, [filter, data.rows]);
 
   const handleFilterChange = (column, columnFilter) => {
-    setFilter((prevFilter) => ({ ...prevFilter, [column]: columnFilter }));
+    setFilter((prevFilter) => {
+      if (columnFilter) {
+        return { ...prevFilter, [column]: columnFilter };
+      }
+
+      let newFilter = { ...prevFilter };
+      delete newFilter[column];
+      if (Object.keys(newFilter).length === 0) {
+        newFilter = null;
+      }
+
+      return newFilter;
+    });
   };
 
   const handleChangePage = (event, newPage) => {
@@ -110,7 +121,7 @@ export default function DataTable({
           <DataTableHead
             columns={config.columns}
             handleFilterChange={handleFilterChange}
-            makeRow={makeHeaderRow}
+            makeRow={makeHeaderRow ? (headers) => makeHeaderRow(headers, filteredRows) : null}
           />
           <TableBody>
             {(rowsPerPage > 0 ? filteredRows.slice(

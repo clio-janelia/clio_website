@@ -149,7 +149,7 @@ void main() {
 
 export function getAnnotationIcon(kind, action, selected) {
   if (action === 'locate') {
-    if (kind === 'line') {
+    if (kind === 'lineseg') {
       return selected ? <LineLocateIconSelected /> : <LineLocateIcon />;
     }
 
@@ -329,7 +329,7 @@ function getLineAnnotationPos(annotation) {
 
 const KIND_MAP = {
   0: 'point',
-  1: 'line',
+  1: 'lineseg',
 };
 
 export function getAnnotationPos(annotation) {
@@ -343,6 +343,36 @@ export function getAnnotationPos(annotation) {
   }
 
   return null;
+}
+
+export function encodeAnnotation(annotation) {
+  let encodedObj = {
+    kind: KIND_MAP[annotation.type],
+  };
+
+  switch (encodedObj.kind) {
+    case 'point':
+      encodedObj.pos = [...annotation.point];
+      break;
+    case 'lineseg':
+      encodedObj.pos = [...annotation.pointA, ...annotation.pointB];
+      break;
+    default:
+      return null;
+  }
+
+  if (annotation.prop) {
+    encodedObj.prop = annotation.prop;
+  }
+
+  if (annotation.ext) {
+    encodedObj = {
+      ...encodedObj,
+      ...annotation.ext,
+    };
+  }
+
+  return encodedObj;
 }
 
 function getAnnotationTimestamp(annotation) {
@@ -376,6 +406,7 @@ function getRowItemWithoutAction(annotation) {
     user,
     timestamp: getAnnotationTimestamp(annotation),
     defaultEditing: false,
+    _annotation: annotation,
   };
 }
 
@@ -463,7 +494,7 @@ function getAnnotationFormat(entry) {
     return 'ngpoint';
   }
 
-  if (entry.type === 'line') {
+  if (entry.type === 'lineseg') {
     return 'ngline';
   }
 
