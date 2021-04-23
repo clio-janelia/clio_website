@@ -1,5 +1,5 @@
 /* eslint-disable-next-line  import/prefer-default-export */
-function fetchJson(url, token, method, body) {
+async function fetchJson(url, token, method, body) {
   const options = { method };
   if (token) {
     options.headers = { Authorization: `Bearer ${token}` };
@@ -8,15 +8,12 @@ function fetchJson(url, token, method, body) {
     options.body = body;
   }
 
-  return fetch(url, options).then(
-    (res) => {
-      if (res.ok) {
-        return res.json();
-      }
-      const err = `${options.method} ${url} failed: ${res.statusText}`;
-      throw new Error(err);
-    },
-  );
+  const res = await fetch(url, options);
+  if (res.ok) {
+    return res.json();
+  }
+
+  throw new Error(`${options.method} ${url} failed: ${res.statusText}`);
 }
 
 function getBodyAnnotationUrl(projectUrl, dataset, cmd) {
@@ -62,8 +59,10 @@ export async function updateBodyAnnotation(
       newAnnotation = { ...data, ...annotation };
     }
 
-    return upload(newAnnotation).then(processNewAnnotation(newAnnotation));
+    return upload(newAnnotation).then(
+      () => processNewAnnotation(newAnnotation),
+    );
   }
 
-  return Promise.reject(new Error('The input annotation is invalid'));
+  throw new Error('The input annotation is invalid');
 }

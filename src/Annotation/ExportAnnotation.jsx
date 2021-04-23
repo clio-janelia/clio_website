@@ -23,7 +23,7 @@ function ExportAnnotation(props) {
   }
 
   return (
-    <Tooltip title={`Download all ${(kind === 'Atlas') ? 'atlas points' : 'annotations'}`}>
+    <Tooltip title={`Download ${(kind === 'Atlas') ? 'atlas points' : 'annotations'}`}>
       <IconButton onClick={handleFileDownload} variant="contained" component="label">
         <DownloadIcon />
       </IconButton>

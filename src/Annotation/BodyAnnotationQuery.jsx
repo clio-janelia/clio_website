@@ -63,7 +63,7 @@ function BodyAnnotationQuery({
         onClick={
           () => {
             const segments = getSelectedSegments();
-            const query = { field: 'bodyid', op: 'in', value: segments };
+            const query = { bodyid: segments };
             setQueryString(JSON.stringify(query));
             if (segments.length > 0) {
               onQueryChanged(query);
