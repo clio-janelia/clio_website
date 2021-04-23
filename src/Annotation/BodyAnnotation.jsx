@@ -96,36 +96,37 @@ function BodyAnnotation({
 
   useEffect(() => {
     if (query && Object.keys(query).length > 0) {
-      if (query.bodyid) {
-        const newAnnotations = {};
-        query.bodyid.forEach((body) => {
-          newAnnotations[body] = {
-            bodyid: body,
-          };
-        });
-        setAnnotations(newAnnotations);
-      } else {
-        setLoading(true);
-        queryBodyAnnotations(projectUrl, token, dataset, query).then(
-          (res) => {
-            if (query.field === 'bodyid') {
-              if (Array.isArray(query.value)) {
-                query.value.forEach((id) => {
-                  if (!(id in res)) {
-                    res[id] = { bodyid: id };
-                  }
-                });
-              }
+      setLoading(true);
+      queryBodyAnnotations(projectUrl, token, dataset, query).then(
+        (response) => {
+          let bodyList = [];
+          let result = {};
+          if (query.bodyid) {
+            bodyList = query.bodyid;
+            response.forEach((a) => {
+              result[a.bodyid] = a;
+            });
+          } else if (query.field === 'bodyid') {
+            if (Array.isArray(query.value)) {
+              bodyList = query.value;
+            } else {
+              bodyList = [query.value];
             }
-            setAnnotations(res);
-            setLoading(false);
-          },
-        ).catch((error) => {
-          const message = `Failed to query bodies: ${error.message}.`;
-          actions.addAlert({ severity: 'warning', message });
+            result = { ...response };
+          }
+          bodyList.forEach((id) => {
+            if (!(id in result)) {
+              result[id] = { bodyid: id };
+            }
+          });
+          setAnnotations(result);
           setLoading(false);
-        });
-      }
+        },
+      ).catch((error) => {
+        const message = `Failed to query bodies: ${error.message}.`;
+        actions.addAlert({ severity: 'warning', message });
+        setLoading(false);
+      });
     } else {
       setAnnotations({});
     }
