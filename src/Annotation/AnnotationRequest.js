@@ -27,15 +27,44 @@ function getBodyAnnotationUrl(projectUrl, dataset, cmd) {
   return url;
 }
 
-export function queryBodyAnnotations(projectUrl, token, dataset, query) {
-  const url = getBodyAnnotationUrl(projectUrl, dataset, 'query');
-  const body = JSON.stringify(query);
-  return fetchJson(url, token, 'POST', body);
+export async function getBodyAnnotations(projectUrl, token, dataset, bodies) {
+  if (bodies && bodies.length > 0) {
+    const url = getBodyAnnotationUrl(projectUrl, dataset, `id-number/${bodies.join(',')}`);
+    let annotations = await fetchJson(url, token, 'GET');
+    if (annotations) {
+      if (!Array.isArray(annotations)) {
+        annotations = [annotations];
+      }
+      bodies.forEach((bodyid) => {
+        if (annotations.findIndex((a) => (a.bodyid === bodyid)) < 0) {
+          annotations.push({ bodyid });
+        }
+      });
+      return annotations.filter((a) => a.bodyid);
+    }
+  }
+
+  return [];
 }
 
 export function getBodyAnnotation(projectUrl, token, dataset, bodyid) {
   const url = getBodyAnnotationUrl(projectUrl, dataset, `id-number/${bodyid}`);
   return fetchJson(url, token, 'GET').catch(() => (null));
+}
+
+export async function queryBodyAnnotations(projectUrl, token, dataset, query) {
+  if (Object.keys(query).length === 1 && query.bodyid) {
+    return getBodyAnnotations(projectUrl, token, dataset, query.bodyid);
+  }
+
+  const url = getBodyAnnotationUrl(projectUrl, dataset, 'query');
+  const body = JSON.stringify(query);
+  const response = await fetchJson(url, token, 'POST', body);
+  if (response) {
+    return Object.values(response);
+  }
+
+  return [];
 }
 
 export async function updateBodyAnnotation(
