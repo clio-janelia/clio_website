@@ -162,6 +162,10 @@ export function getAnnotationIcon(kind, action, selected) {
 export function getBodyAnnotationColumnSetting(dataset) {
   if (dataset) {
     // FIXME: Temporary schema handling
+    if (dataset.bodyAnnotationSchema) {
+      return dataset.bodyAnnotationSchema;
+    }
+
     if (dataset.name === 'hemibrain') {
       return {
         shape: ['bodyid', 'type', 'instance', 'cell_body_fiber', 'comment'],
