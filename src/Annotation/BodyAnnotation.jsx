@@ -37,7 +37,7 @@ function BodyAnnotation({
   config, dataset, projectUrl, token, query, onQueryChanged, actions, mergeManager,
 }) {
   const classes = useStyles({ width: config.width });
-  const [annotations, setAnnotations] = useState({});
+  const [annotations, setAnnotations] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const mergeableLayer = getMergeableLayerFromDataset(dataset);
@@ -55,37 +55,45 @@ function BodyAnnotation({
     locateServiceUrl = getLocateServiceUrl(url, config.user);
   }
 
-  const rows = Object.keys(annotations).map((key) => {
+  const updateAnnotations = (oldAnnotations, newAnnotation) => {
+    const newAnnotations = [...oldAnnotations];
+    const annotationIndex = oldAnnotations.findIndex((a) => (a.bodyid === newAnnotation.bodyid));
+    if (annotationIndex >= 0) {
+      newAnnotations[annotationIndex] = newAnnotation;
+    } else {
+      newAnnotations.push(newAnnotation);
+    }
+
+    return newAnnotations;
+  };
+
+  const rows = annotations.map((annotation) => {
     let locateAction = null;
-    const { point } = annotations[key];
+    const { point, bodyid } = annotation;
     if (point) {
       locateAction = () => {
         actions.setViewerCameraPosition(point);
       };
     } else if (locateServiceUrl) {
       locateAction = () => {
-        if (annotations[key].point) {
-          actions.setViewerCameraPosition(annotations[key].point);
-        } else if (locateServiceUrl) {
-          fetch(`${locateServiceUrl}&body=${annotations[key].bodyid}`, {
-            method: 'GET',
-          }).then((response) => response.json()).then((location) => {
-            actions.setViewerCameraPosition(location);
-          });
-        }
+        fetch(`${locateServiceUrl}&body=${annotation.bodyid}`, {
+          method: 'GET',
+        }).then((response) => response.json()).then((location) => {
+          actions.setViewerCameraPosition(location);
+        });
       };
     }
     return {
-      id: key,
-      ...annotations[key],
+      id: bodyid,
+      ...annotation,
       updateAction: (change) => {
         if (Object.keys(change).length > 0) {
           updateBodyAnnotation(projectUrl, token, dataset, {
-            ...change, bodyid: annotations[key].bodyid,
+            ...change, bodyid,
           }, (newAnnotation) => {
-            setAnnotations({ ...annotations, [key]: newAnnotation });
+            setAnnotations((prevAnnotations) => updateAnnotations(prevAnnotations, newAnnotation));
           }).catch((error) => {
-            const message = `Failed to update annotation for ${key}: ${error.message}.`;
+            const message = `Failed to update annotation for ${bodyid}: ${error.message}.`;
             actions.addAlert({ severity: 'warning', message });
           });
         }
@@ -99,27 +107,7 @@ function BodyAnnotation({
       setLoading(true);
       queryBodyAnnotations(projectUrl, token, dataset, query).then(
         (response) => {
-          let bodyList = [];
-          let result = {};
-          if (query.bodyid) {
-            bodyList = query.bodyid;
-            response.forEach((a) => {
-              result[a.bodyid] = a;
-            });
-          } else if (query.field === 'bodyid') {
-            if (Array.isArray(query.value)) {
-              bodyList = query.value;
-            } else {
-              bodyList = [query.value];
-            }
-            result = { ...response };
-          }
-          bodyList.forEach((id) => {
-            if (!(id in result)) {
-              result[id] = { bodyid: id };
-            }
-          });
-          setAnnotations(result);
+          setAnnotations(response);
           setLoading(false);
         },
       ).catch((error) => {
@@ -128,7 +116,7 @@ function BodyAnnotation({
         setLoading(false);
       });
     } else {
-      setAnnotations({});
+      setAnnotations([]);
     }
   }, [dataset, projectUrl, token, query, actions]);
 
