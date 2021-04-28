@@ -69,10 +69,11 @@ function BodyAnnotation({
 
   const rows = annotations.map((annotation) => {
     let locateAction = null;
-    const { point, bodyid } = annotation;
-    if (point) {
+    const { position, point, bodyid } = annotation;
+    const predefinedPosition = position || point;
+    if (predefinedPosition) {
       locateAction = () => {
-        actions.setViewerCameraPosition(point);
+        actions.setViewerCameraPosition(predefinedPosition);
       };
     } else if (locateServiceUrl) {
       locateAction = () => {
