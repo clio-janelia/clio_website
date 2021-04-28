@@ -54,7 +54,11 @@ export function getBodyAnnotation(projectUrl, token, dataset, bodyid) {
 
 export async function queryBodyAnnotations(projectUrl, token, dataset, query) {
   if (Object.keys(query).length === 1 && query.bodyid) {
-    return getBodyAnnotations(projectUrl, token, dataset, query.bodyid);
+    let { bodyid } = query;
+    if (typeof bodyid === 'number') {
+      bodyid = [bodyid];
+    }
+    return getBodyAnnotations(projectUrl, token, dataset, bodyid);
   }
 
   const url = getBodyAnnotationUrl(projectUrl, dataset, 'query');

@@ -50,7 +50,7 @@ export function getSortedFieldArray(columns) {
       field: key,
       title: collection[key].title,
       rank: collection[key].rank,
-    })).sort((c1, c2) => compareField(c1.field, c2.field));
+    })).sort((c1, c2) => compareField(collection)(c1.field, c2.field));
   }
 
   return columns;

@@ -94,7 +94,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_WIDTH_PX);
   const classes = useStyles({ sidebarWidth });
-  const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState(null);
+  const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState({});
 
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   let { groups } = roles;
@@ -321,10 +321,13 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                   dataset={dataset}
                   projectUrl={projectUrl}
                   token={user ? user.getAuthResponse().id_token : ''}
-                  query={bodyAnnotatinQuery}
+                  query={bodyAnnotatinQuery[dataset.name]}
                   onQueryChanged={(query) => {
                     actions.syncViewer();
-                    setBodyAnnotationQuery(query);
+                    setBodyAnnotationQuery((prevState) => ({
+                      ...prevState,
+                      [dataset.name]: query,
+                    }));
                   }}
                   actions={actions}
                   mergeManager={mergeManager.current}
