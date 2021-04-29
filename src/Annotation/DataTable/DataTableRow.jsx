@@ -128,6 +128,10 @@ function DataTableRow(props) {
       }
     }
 
+    if (typeof value === 'boolean') {
+      return value ? 'Y' : 'N';
+    }
+
     return value;
   };
 

@@ -61,7 +61,16 @@ export default function DataTable({
     if (filter) {
       const newRows = data.rows.filter(
         (row) => Object.keys(filter).every(
-          (key) => (!filter[key]) || (row[key] && row[key].includes(filter[key])),
+          (key) => {
+            if (filter[key]) {
+              const filterString = filter[key].toLowerCase();
+              if (typeof row[key] === 'boolean') {
+                return row[key] ? (filterString === 'y') : (filterString === 'n');
+              }
+              return (row[key] && row[key].toLowerCase().includes(filterString));
+            }
+            return true;
+          },
         ),
       );
       setFilteredRows(newRows);

@@ -257,7 +257,7 @@ function AnnotationTable(props) {
     });
   }, [layerName, actions]);
 
-  const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected)), []);
+  const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected, row.checked)), []);
 
   const makeTableHeaderRow = React.useCallback((dataHeaders, filteredRows) => (
     <TableRow>

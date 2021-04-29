@@ -3,6 +3,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Input from '@material-ui/core/Input';
 import Select from '@material-ui/core/Select';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 
 export default function DataCellEdit(props) {
@@ -14,6 +16,11 @@ export default function DataCellEdit(props) {
   const handleValueChange = (event) => {
     setInputValue(event.target.value);
     onValueChange(event.target.value);
+  };
+
+  const handleChecked = (event) => {
+    setInputValue(event.target.checked);
+    onValueChange(event.target.checked);
   };
 
   let widget = <div>{value}</div>;
@@ -43,6 +50,15 @@ export default function DataCellEdit(props) {
         </Select>
       );
       break;
+    case 'boolean':
+      widget = (
+        <FormControlLabel
+          control={
+            <Checkbox onChange={handleChecked} checked={inputValue} />
+          }
+        />
+      );
+      break;
     default:
       break;
   }
@@ -51,7 +67,7 @@ export default function DataCellEdit(props) {
 }
 
 DataCellEdit.propTypes = {
-  value: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   onValueChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   config: PropTypes.shape({
