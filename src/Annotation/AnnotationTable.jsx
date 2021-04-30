@@ -19,6 +19,7 @@ import Box from '@material-ui/core/Box';
 import {
   getSortedFieldArray,
   sortColumns,
+  useStyles,
 } from './DataTable/DataTableUtils';
 import DataFieldControl from './DataTable/DataFieldControl';
 import DataTable from './DataTable/DataTable';
@@ -39,21 +40,11 @@ import ImportAnnotation from './ImportAnnotation';
 import ExportAnnotation from './ExportAnnotation';
 import debounce from '../utils/debounce';
 import { getLayerFromState } from '../utils/state';
-// import { useLocalStorage } from '../utils/hooks';
-// import BodyAnnotationTable from './BodyAnnotationTable';
 
 const DEBUG = false;
 
-/*
-function getLayerFromState(state, layerName) {
-  const layers = state.viewer.getIn(['ngState', 'layers']);
-  const layer = layers.find((e) => (e.name === layerName));
-
-  return layer;
-}
-*/
-
 function AnnotationTable(props) {
+  const classes = useStyles();
   const {
     layerName,
     dataConfig,
@@ -257,11 +248,11 @@ function AnnotationTable(props) {
     });
   }, [layerName, actions]);
 
-  const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected)), []);
+  const getLocateIcon = React.useCallback((row, selected) => (getAnnotationIcon(row.kind, 'locate', selected, row.checked)), []);
 
   const makeTableHeaderRow = React.useCallback((dataHeaders, filteredRows) => (
     <TableRow>
-      <TableCell padding="none">
+      <TableCell padding="none" className={classes.toolColumn}>
         <Box display="flex" flexDirection="row">
           {dataConfig.allowingImport ? (
             <ImportAnnotation
@@ -281,7 +272,7 @@ function AnnotationTable(props) {
       {dataHeaders}
       <TableCell />
     </TableRow>
-  ), [dataConfig, uploadAnnotations, getAnnotations, actions.addAlert]);
+  ), [dataConfig, uploadAnnotations, getAnnotations, actions.addAlert, classes]);
 
   const { groups } = dataSource;
   const groupSelection = groups && groups.length > 0

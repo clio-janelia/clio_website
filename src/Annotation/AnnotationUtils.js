@@ -4,6 +4,7 @@ import LocateIcon from '@material-ui/icons/RoomOutlined';
 import LocateIconSelected from '@material-ui/icons/Room';
 import LineLocateIcon from '@material-ui/icons/PinDropOutlined';
 import LineLocateIconSelected from '@material-ui/icons/PinDrop';
+import { green } from '@material-ui/core/colors';
 
 import {
   getAnnotationSource,
@@ -51,6 +52,14 @@ export const ANNOTATION_COLUMNS = {
     title: 'User',
     filterEnabled: true,
     rank: 4,
+  },
+  checked: {
+    title: 'Checked',
+    filterEnabled: true,
+    editElement: {
+      type: 'boolean',
+    },
+    rank: 5,
   },
 };
 
@@ -147,13 +156,29 @@ void main() {
   }
 }`;
 
-export function getAnnotationIcon(kind, action, selected) {
+function isAnnotationVerified(annotation) {
+  let { verified } = annotation;
+  if (verified === undefined) {
+    verified = annotation.ext && annotation.ext.verified;
+  }
+  if (verified === undefined) {
+    verified = annotation.prop && annotation.prop.checked;
+  }
+  if (verified === undefined) {
+    verified = false;
+  }
+
+  return verified;
+}
+
+export function getAnnotationIcon(kind, action, selected, verified) {
+  const style = verified ? { color: green[500] } : null;
   if (action === 'locate') {
     if (kind === 'lineseg') {
-      return selected ? <LineLocateIconSelected /> : <LineLocateIcon />;
+      return selected ? <LineLocateIconSelected style={style} /> : <LineLocateIcon style={style} />;
     }
 
-    return selected ? <LocateIconSelected /> : <LocateIcon />;
+    return selected ? <LocateIconSelected style={style} /> : <LocateIcon style={style} />;
   }
 
   return null;
@@ -306,15 +331,20 @@ export function getNewAnnotation(annotation, prop) {
       newAnnotation.ext.title = newProp.title;
       delete newProp.title;
     }
-    if (!newProp.type) {
-      delete newProp.type;
-      if (newAnnotation.prop) {
-        delete newAnnotation.prop.type;
-      }
+  }
+
+  if (!newProp.type) {
+    delete newProp.type;
+    if (newAnnotation.prop) {
+      delete newAnnotation.prop.type;
     }
   }
 
   newAnnotation.prop = { ...newAnnotation.prop, ...newProp };
+
+  if (newAnnotation.prop.checked === false) {
+    delete newAnnotation.prop.checked;
+  }
 
   return newAnnotation;
 }
@@ -408,6 +438,7 @@ function getRowItemWithoutAction(annotation) {
     comment: comment || '',
     type: type || '',
     user,
+    checked: isAnnotationVerified(annotation),
     timestamp: getAnnotationTimestamp(annotation),
     defaultEditing: false,
     _annotation: annotation,
@@ -418,10 +449,18 @@ function getAnnotationUser(annotation) {
   return annotation && (annotation.user || (annotation.ext && annotation.ext.user));
 }
 
+function isAnnotationEditable(annotation, user) {
+  if (annotation.kind === 'Atlas' && isAnnotationVerified(annotation)) {
+    return false;
+  }
+
+  return (user && user === getAnnotationUser(annotation));
+}
+
 export function getRowItemFromAnnotation(annotation, config) {
   let item = getRowItemWithoutAction(annotation);
   if (item) { // point annotation
-    const { layerName, locate } = config;
+    const { layerName, locate, user } = config;
     const newAnnotation = { ...annotation };
     const { id } = annotation;
     const pos = getAnnotationPos(annotation);
@@ -431,11 +470,7 @@ export function getRowItemFromAnnotation(annotation, config) {
         locate(layerName, id, pos);
       },
     };
-    let { verified } = annotation;
-    if (verified === undefined) {
-      verified = annotation.ext ? annotation.ext.verified : false;
-    }
-    if (!verified && config.user && (config.user === getAnnotationUser(annotation))) {
+    if (isAnnotationEditable(annotation, user)) {
       item.deleteAction = () => {
         const source = getAnnotationSource(undefined, layerName);
         // console.log(source);

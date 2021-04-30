@@ -1,4 +1,17 @@
 import PropTypes from 'prop-types';
+import { makeStyles } from '@material-ui/core/styles';
+
+export const useStyles = makeStyles(() => (
+  {
+    toolColumn: {
+      position: 'sticky',
+      backgroundColor: '#fcfcfc',
+      opacity: 0.9,
+      left: 0,
+      zIndex: 3,
+    },
+  }
+));
 
 export const COLUMNS_PROP_TYPES = PropTypes.oneOfType([
   PropTypes.arrayOf(PropTypes.shape({

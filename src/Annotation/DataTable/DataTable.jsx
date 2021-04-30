@@ -61,7 +61,20 @@ export default function DataTable({
     if (filter) {
       const newRows = data.rows.filter(
         (row) => Object.keys(filter).every(
-          (key) => (!filter[key]) || (row[key] && row[key].includes(filter[key])),
+          (key) => {
+            if (filter[key]) {
+              let rowValue = row[key];
+              const filterString = filter[key].toLowerCase();
+              if (typeof rowValue === 'boolean') {
+                return rowValue ? (filterString === 'y') : (filterString === 'n');
+              }
+              if (typeof rowValue === 'number') {
+                rowValue = rowValue.toString();
+              }
+              return (rowValue && rowValue.toLowerCase().includes(filterString));
+            }
+            return true;
+          },
         ),
       );
       setFilteredRows(newRows);

@@ -8,7 +8,9 @@ import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import Checkbox from '@material-ui/core/Checkbox';
 
-function DataFieldControl({ fields, selectedFields, onChange }) {
+function DataFieldControl({
+  fields, selectedFields, onChange, fieldHint,
+}) {
   const handleChange = (event) => {
     onChange(event.target.value);
   };
@@ -33,7 +35,7 @@ function DataFieldControl({ fields, selectedFields, onChange }) {
           {fields.map((field) => (
             <MenuItem key={field.field} value={field.field}>
               <Checkbox checked={selectedFields.includes(field.field)} />
-              {field.title}
+              {`${field.title}${fieldHint ? ` (${field.field})` : ''}`}
             </MenuItem>
           ))}
         </Select>
@@ -49,6 +51,11 @@ DataFieldControl.propTypes = {
   })).isRequired,
   selectedFields: PropTypes.arrayOf(PropTypes.string).isRequired,
   onChange: PropTypes.func.isRequired,
+  fieldHint: PropTypes.bool,
+};
+
+DataFieldControl.defaultProps = {
+  fieldHint: false,
 };
 
 export default DataFieldControl;

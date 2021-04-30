@@ -5,7 +5,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DoneIcon from '@material-ui/icons/DoneAllTwoTone';
 import RevertIcon from '@material-ui/icons/NotInterestedOutlined';
 import { TableCell } from '@material-ui/core';
-import Box from '@material-ui/core/Box';
+// import Box from '@material-ui/core/Box';
 
 import DataCellEdit from './DataCellEdit';
 
@@ -48,65 +48,54 @@ export default function DataEdit(props) {
       return column.cell;
     }
 
+    if (column.field === '#toolColumn') {
+      const children = [
+        <IconButton
+          key="DataEdit.Done"
+          aria-label="ok"
+          disabled={!isNewDataValid() || !hasChanged()}
+          onClick={() => takeChange(newData)}
+        >
+          <DoneIcon />
+        </IconButton>,
+        <IconButton
+          key="DataEdit.Cancel"
+          aria-label="cancel"
+          onClick={cancelEdit}
+        >
+          <RevertIcon />
+        </IconButton>,
+      ];
+      return column.makeCell(children);
+    }
+
     if (column.editElement) {
       return (
-        <DataCellEdit
-          config={column.editElement}
-          onValueChange={
-            (value) => {
-              setNewData({ ...newData, [column.field]: value });
+        <TableCell key={column.field}>
+          <DataCellEdit
+            config={column.editElement}
+            onValueChange={
+              (value) => {
+                setNewData({ ...newData, [column.field]: value });
+              }
             }
-          }
-          value={data[column.field]}
-          placeholder={column.placeholder}
-        />
+            value={data[column.field]}
+            placeholder={column.placeholder}
+          />
+        </TableCell>
       );
     }
 
-    return data[column.field];
-
-    /*
-    return (column.editElement && column.editElement.type === 'input') ? (
-      <DataCellEdit
-        config={column}
-        onValueChange={
-          (value) => {
-            const changed = { ...newData };
-            changed[column.field] = value;
-            setNewData(changed);
-          }
-        }
-        value={data[column.field]}
-        placeholder={column.placeholder}
-      />
-    ) : data[column.field];
-    */
+    return (
+      <TableCell key={column.field}>
+        {data[column.field]}
+      </TableCell>
+    );
   };
 
   return (
     <TableRow>
-      {config.columns.map((column) => (
-        <TableCell key={column.field}>
-          {columnToCell(column)}
-        </TableCell>
-      ))}
-      <TableCell>
-        <Box display="flex" flexDirection="row">
-          <IconButton
-            aria-label="ok"
-            disabled={!isNewDataValid() || !hasChanged()}
-            onClick={() => takeChange(newData)}
-          >
-            <DoneIcon />
-          </IconButton>
-          <IconButton
-            aria-label="cancel"
-            onClick={cancelEdit}
-          >
-            <RevertIcon />
-          </IconButton>
-        </Box>
-      </TableCell>
+      {config.columns.map((column) => columnToCell(column))}
     </TableRow>
   );
 }
