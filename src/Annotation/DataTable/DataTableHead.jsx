@@ -7,11 +7,13 @@ import TableCell from '@material-ui/core/TableCell';
 import TextField from '@material-ui/core/TextField';
 import {
   getVisibleColumns,
+  useStyles,
 } from './DataTableUtils';
 
 export default function DataTableHead({
   columns, makeRow, handleFilterChange,
 }) {
+  const classes = useStyles();
   const handleFilterKeyUp = (event, column) => {
     handleFilterChange(column, event.target.value);
   };
@@ -40,9 +42,8 @@ export default function DataTableHead({
   } else {
     headers = (
       <TableRow>
-        <TableCell />
+        <TableCell className={classes.toolColumn} />
         {filterRow}
-        <TableCell />
       </TableRow>
     );
   }

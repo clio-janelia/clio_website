@@ -16,9 +16,11 @@ import {
   getColumnSetting,
   getColumnFields,
   COLUMNS_PROP_TYPES,
+  useStyles,
 } from './DataTableUtils';
 
 function DataTableRow(props) {
+  const classes = useStyles();
   const {
     columns, row, selected, getLocateIcon,
   } = props;
@@ -83,11 +85,24 @@ function DataTableRow(props) {
   if (editing) {
     return (
       <DataEdit
-        config={
-          {
-            columns: [{ cell: locateButton, field: '#locateButton' }, ...visibleColumns],
-          }
-        }
+        config={{
+          columns: [
+            {
+              field: '#toolColumn',
+              makeCell: function ToolColumn(children) {
+                return (
+                  <TableCell className={classes.toolColumn}>
+                    <Box display="flex" flexDirection="row">
+                      {locateButton}
+                      {children}
+                    </Box>
+                  </TableCell>
+                );
+              },
+            },
+            ...visibleColumns,
+          ],
+        }}
         data={row}
         cancelEdit={cancelEdit}
         takeChange={takeChange}
@@ -137,8 +152,15 @@ function DataTableRow(props) {
 
   return (
     <TableRow>
-      <TableCell>
-        {row.locateAction ? locateButton : undefined}
+      <TableCell
+        padding="none"
+        className={classes.toolColumn}
+      >
+        <Box display="flex" flexDirection="row">
+          {row.locateAction ? locateButton : undefined}
+          {row.updateAction ? editButton : undefined}
+          {row.deleteAction ? deleteButton : undefined}
+        </Box>
       </TableCell>
       {visibleColumns.map((column) => (
         <TableCell
@@ -151,12 +173,6 @@ function DataTableRow(props) {
           {getCellElement(column)}
         </TableCell>
       ))}
-      <TableCell padding="none">
-        <Box display="flex" flexDirection="row">
-          {row.updateAction ? editButton : undefined}
-          {row.deleteAction ? deleteButton : undefined}
-        </Box>
-      </TableCell>
     </TableRow>
   );
 }

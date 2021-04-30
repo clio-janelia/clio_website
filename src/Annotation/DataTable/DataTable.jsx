@@ -63,11 +63,15 @@ export default function DataTable({
         (row) => Object.keys(filter).every(
           (key) => {
             if (filter[key]) {
+              let rowValue = row[key];
               const filterString = filter[key].toLowerCase();
-              if (typeof row[key] === 'boolean') {
-                return row[key] ? (filterString === 'y') : (filterString === 'n');
+              if (typeof rowValue === 'boolean') {
+                return rowValue ? (filterString === 'y') : (filterString === 'n');
               }
-              return (row[key] && row[key].toLowerCase().includes(filterString));
+              if (typeof rowValue === 'number') {
+                rowValue = rowValue.toString();
+              }
+              return (rowValue && rowValue.toLowerCase().includes(filterString));
             }
             return true;
           },

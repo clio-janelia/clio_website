@@ -27,6 +27,15 @@ function getBodyAnnotationUrl(projectUrl, dataset, cmd) {
   return url;
 }
 
+function fillBodyAnnotations(annotations, bodies) {
+  ((typeof bodies === 'number') ? [bodies] : bodies).forEach((bodyid) => {
+    if (annotations.findIndex((a) => (a.bodyid === bodyid)) < 0) {
+      annotations.push({ bodyid });
+    }
+  });
+  return annotations.filter((a) => a.bodyid);
+}
+
 export async function getBodyAnnotations(projectUrl, token, dataset, bodies) {
   if (bodies && bodies.length > 0) {
     const url = getBodyAnnotationUrl(projectUrl, dataset, `id-number/${bodies.join(',')}`);
@@ -35,12 +44,7 @@ export async function getBodyAnnotations(projectUrl, token, dataset, bodies) {
       if (!Array.isArray(annotations)) {
         annotations = [annotations];
       }
-      bodies.forEach((bodyid) => {
-        if (annotations.findIndex((a) => (a.bodyid === bodyid)) < 0) {
-          annotations.push({ bodyid });
-        }
-      });
-      return annotations.filter((a) => a.bodyid);
+      return fillBodyAnnotations(annotations, bodies);
     }
   }
 
@@ -65,7 +69,11 @@ export async function queryBodyAnnotations(projectUrl, token, dataset, query) {
   const body = JSON.stringify(query);
   const response = await fetchJson(url, token, 'POST', body);
   if (response) {
-    return Object.values(response);
+    const annotations = Object.values(response);
+    if (Object.keys(query).length === 1 && query.bodyid) {
+      return fillBodyAnnotations(annotations, query.bodyid);
+    }
+    return annotations;
   }
 
   return [];

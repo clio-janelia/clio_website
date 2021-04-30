@@ -46,6 +46,7 @@ function BodyAnnotationQuery({
         }}
         multiline
         rows={3}
+        style={{ width: '50%' }}
         variant="outlined"
       />
       <Button

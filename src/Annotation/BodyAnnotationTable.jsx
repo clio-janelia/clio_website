@@ -21,6 +21,7 @@ function BodyAnnotationTable({ data, dataConfig }) {
           shape: value,
         }));
       }}
+      fieldHint
     />
   ) : null;
 
