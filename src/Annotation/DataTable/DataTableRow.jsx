@@ -91,7 +91,7 @@ function DataTableRow(props) {
               field: '#toolColumn',
               makeCell: function ToolColumn(children) {
                 return (
-                  <TableCell className={classes.toolColumn}>
+                  <TableCell key="#toolColumn" className={classes.toolColumn}>
                     <Box display="flex" flexDirection="row">
                       {locateButton}
                       {children}
