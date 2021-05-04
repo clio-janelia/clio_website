@@ -51,9 +51,18 @@ export async function getBodyAnnotations(projectUrl, token, dataset, bodies) {
   return [];
 }
 
-export function getBodyAnnotation(projectUrl, token, dataset, bodyid) {
+export async function getBodyAnnotation(projectUrl, token, dataset, bodyid) {
   const url = getBodyAnnotationUrl(projectUrl, dataset, `id-number/${bodyid}`);
-  return fetchJson(url, token, 'GET').catch(() => (null));
+  try {
+    const data = await fetchJson(url, token, 'GET');
+    if (data && data.length > 0) {
+      return data[0];
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }
 
 export async function queryBodyAnnotations(projectUrl, token, dataset, query) {
