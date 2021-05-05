@@ -8,12 +8,44 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import TableContainer from '@material-ui/core/TableContainer';
 import TablePagination from '@material-ui/core/TablePagination';
-
 import DataTableHead from './DataTableHead';
 import DataTableRow from './DataTableRow';
 import {
   COLUMNS_PROP_TYPES,
 } from './DataTableUtils';
+
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  if (orderBy) {
+    return order === 'desc'
+      ? (a, b) => descendingComparator(a, b, orderBy)
+      : (a, b) => -descendingComparator(a, b, orderBy);
+  }
+  return null;
+}
+
+function stableSort(array, comparator) {
+  if (comparator) {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+      const order = comparator(a[0], b[0]);
+      if (order !== 0) return order;
+      return a[1] - b[1];
+    });
+    return stabilizedThis.map((el) => el[0]);
+  }
+
+  return array;
+}
 
 const useStyles = makeStyles({
   dataTableRoot: {
@@ -31,10 +63,17 @@ export default function DataTable({
   const classes = useStyles();
   const rowsPerPageOptions = [5, 10, 20, { label: 'All', value: -1 }];
 
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState(null);
   const [filter, setFilter] = useState();
   const [filteredRows, setFilteredRows] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
+
+  const handleRequestSort = (event, field) => {
+    setOrder((orderBy === field && order === 'asc') ? 'desc' : 'asc');
+    setOrderBy(field);
+  };
 
   const rowHeight = 44;
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
@@ -58,8 +97,9 @@ export default function DataTable({
   }, [selectedId, setPage, filteredRows, rowsPerPage]);
 
   useEffect(() => {
+    let newRows = data.rows;
     if (filter) {
-      const newRows = data.rows.filter(
+      newRows = data.rows.filter(
         (row) => Object.keys(filter).every(
           (key) => {
             if (filter[key]) {
@@ -77,11 +117,10 @@ export default function DataTable({
           },
         ),
       );
-      setFilteredRows(newRows);
-    } else {
-      setFilteredRows(data.rows);
     }
-  }, [filter, data.rows]);
+    newRows = stableSort(newRows, getComparator(order, orderBy));
+    setFilteredRows(newRows);
+  }, [filter, data.rows, order, orderBy]);
 
   const handleFilterChange = (column, columnFilter) => {
     setFilter((prevFilter) => {
@@ -135,6 +174,9 @@ export default function DataTable({
             columns={config.columns}
             handleFilterChange={handleFilterChange}
             makeRow={makeHeaderRow ? (headers) => makeHeaderRow(headers, filteredRows) : null}
+            order={order}
+            orderBy={orderBy}
+            onRequestSort={handleRequestSort}
           />
           <TableBody>
             {(rowsPerPage > 0 ? filteredRows.slice(

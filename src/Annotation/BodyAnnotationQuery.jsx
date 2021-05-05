@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-
-const useStyles = makeStyles(() => (
-  {
-    controlRow: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'left',
-      minHeight: '0px',
-      alignItems: 'center',
-    },
-  }
-));
+import { useStyles } from './DataTable/DataTableUtils';
 
 function BodyAnnotationQuery({
   defaultQueryString,
