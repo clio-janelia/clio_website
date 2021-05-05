@@ -5,34 +5,50 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import TextField from '@material-ui/core/TextField';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
 import {
   getVisibleColumns,
   useStyles,
 } from './DataTableUtils';
 
 export default function DataTableHead({
-  columns, makeRow, handleFilterChange,
+  columns, makeRow, handleFilterChange, order, orderBy, onRequestSort,
 }) {
   const classes = useStyles();
-  const handleFilterKeyUp = (event, column) => {
-    handleFilterChange(column, event.target.value);
+  const createSortHandler = (field) => (event) => {
+    onRequestSort(event, field);
+  };
+  const createFilterHandler = (field) => (event) => {
+    handleFilterChange(field, event.target.value);
   };
 
   const visibleColumns = getVisibleColumns(columns);
 
   const filterRow = visibleColumns.map((column) => (
-    <TableCell key={column.field}>
-      <TextField
-        label={column.title}
-        onKeyUp={(event) => handleFilterKeyUp(event, column.field)}
-        disabled={!column.filterEnabled}
-        style={{
-          whiteSpace: 'nowrap',
-        }}
-        InputProps={{
-          style: { width: `${column.title.length * 8}px` },
-        }}
-      />
+    <TableCell
+      key={column.field}
+      sortDirection={orderBy === column.field ? order : false}
+    >
+      <div className={classes.controlRow}>
+        <TextField
+          label={column.title}
+          onKeyUp={createFilterHandler(column.field)}
+          disabled={!column.filterEnabled}
+          style={{
+            whiteSpace: 'nowrap',
+          }}
+          InputProps={{
+            style: { width: `${column.title.length * 7}px` },
+          }}
+        />
+        <TableSortLabel
+          active={orderBy === column.field}
+          direction={(orderBy === column.field) ? order : 'asc'}
+          onClick={createSortHandler(column.field)}
+        >
+          <font style={{ color: 'lightgray' }}>●</font>
+        </TableSortLabel>
+      </div>
     </TableCell>
   ));
 
@@ -69,8 +85,13 @@ DataTableHead.propTypes = {
   ]).isRequired,
   handleFilterChange: PropTypes.func.isRequired, // Function of filtering a given column
   makeRow: PropTypes.func,
+  order: PropTypes.string,
+  orderBy: PropTypes.string,
+  onRequestSort: PropTypes.func.isRequired,
 };
 
 DataTableHead.defaultProps = {
   makeRow: null,
+  order: false,
+  orderBy: null,
 };

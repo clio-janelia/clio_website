@@ -10,6 +10,13 @@ export const useStyles = makeStyles(() => (
       left: 0,
       zIndex: 3,
     },
+    controlRow: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'left',
+      minHeight: '0px',
+      alignItems: 'center',
+    },
   }
 ));
 
