@@ -121,6 +121,10 @@ function BodyAnnotation({
     }
   }, [dataset, projectUrl, token, query, actions]);
 
+  const showBodies = React.useCallback((ids) => {
+    actions.setViewerSegments(ids);
+  }, [actions]);
+
   return (
     <div className={classes.annotationRoot}>
       <BodyAnnotationQuery
@@ -130,7 +134,11 @@ function BodyAnnotation({
         getSelectedSegments={() => mergeManager.selection}
       />
       <hr />
-      <BodyAnnotationTable data={rows} dataConfig={config.dataConfig} />
+      <BodyAnnotationTable
+        data={rows}
+        dataConfig={config.dataConfig}
+        showBodies={showBodies}
+      />
     </div>
   );
 }
