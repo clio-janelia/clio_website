@@ -1,10 +1,15 @@
+import { getMergeableLayerFromDataset } from '../utils/neuroglancer';
+
 export default class MergeManager {
   init = (actions, getNeuroglancerColor, backend, neuPrintManager) => {
     this.actions = actions;
     this.getNeuroglancerColor = getNeuroglancerColor;
     this.backend = backend;
     this.neuPrintManager = neuPrintManager;
+    this.layerName = 'segmentation';
     if (this.backend) {
+      const layer = this.backend.dataset && getMergeableLayerFromDataset(this.backend.dataset);
+      this.layerName = layer ? layer.name : this.layerName;
       this.restore();
     }
   }
@@ -18,13 +23,13 @@ export default class MergeManager {
       this.mergeData(main, others);
 
       const equivalences = this.mergeEquivalances();
-      this.actions.setViewerSegmentEquivalences(equivalences);
+      this.actions.setViewerSegmentEquivalences({ layerName: this.layerName, equivalences });
 
-      const colors = this.mergeColors();
-      this.actions.setViewerSegmentColors(colors);
+      const segmentColors = this.mergeColors();
+      this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors });
 
       this.selection = [main];
-      this.actions.setViewerSegments(this.selection);
+      this.actions.setViewerSegments({ layerName: this.layerName, segments: this.selection });
 
       this.store();
 
@@ -38,10 +43,10 @@ export default class MergeManager {
     this.unmergeSelection(true);
 
     const equivalences = this.mergeEquivalances();
-    this.actions.setViewerSegmentEquivalences(equivalences);
+    this.actions.setViewerSegmentEquivalences({ layerName: this.layerName, equivalences });
 
-    const colors = this.mergeColors();
-    this.actions.setViewerSegmentColors(colors);
+    const segmentColors = this.mergeColors();
+    this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors });
 
     this.store();
 
@@ -56,8 +61,8 @@ export default class MergeManager {
     this.mainToOthers = {};
     this.otherToMain = {};
 
-    this.actions.setViewerSegmentEquivalences([]);
-    this.actions.setViewerSegmentColors({});
+    this.actions.setViewerSegmentEquivalences({ layerName: this.layerName, equivalences: [] });
+    this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors: [] });
 
     this.store();
 
@@ -76,7 +81,7 @@ export default class MergeManager {
   };
 
   isolate = (ids) => {
-    this.actions.setViewerSegments(ids);
+    this.actions.setViewerSegments({ layerName: this.layerName, segments: ids });
   }
 
   getUltimateMain = (other) => {
@@ -208,7 +213,7 @@ export default class MergeManager {
         }
 
         // Select the IDs from the merge in order so that they could be
-        // re-merged immediately, if an "undo" is desired.s
+        // re-merged immediately, if an "undo" is desired.
         selectionNew.push(main);
         others.forEach((other) => { selectionNew.push(other); });
       } else {
@@ -217,7 +222,7 @@ export default class MergeManager {
     });
 
     this.selection = selectionNew;
-    this.actions.setViewerSegments(this.selection);
+    this.actions.setViewerSegments({ layerName: this.layerName, segments: this.selection });
 
     this.updateMainToTypeMerged();
   }
@@ -254,10 +259,10 @@ export default class MergeManager {
         this.otherToMain = otherToMain;
 
         const equivalences = this.mergeEquivalances();
-        this.actions.setViewerSegmentEquivalences(equivalences);
+        this.actions.setViewerSegmentEquivalences({ layerName: this.layerName, equivalences });
 
-        const colors = this.mergeColors();
-        this.actions.setViewerSegmentColors(colors);
+        const segmentColors = this.mergeColors();
+        this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors });
 
         if (this.onMergeChanged) {
           this.onMergeChanged();
