@@ -190,13 +190,19 @@ export default function viewerReducer(state = viewerState, action) {
       return setInLayerArray(syncedState(state), action.payload.layerName, ['tool'], action.payload.annotationTool);
     }
     case C.SET_VIEWER_SEGMENTS: {
-      return setInLayerArray(syncedState(state), 'segmentation', ['segments'], action.payload);
+      const layerName = action.payload.layerName || 'segmentation';
+      const segments = action.payload.segments || action.payload;
+      return setInLayerArray(syncedState(state), layerName, ['segments'], segments);
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
-      return setInLayerArray(syncedState(state), 'segmentation', ['segmentColors'], action.payload);
+      const layerName = action.payload.layerName || 'segmentation';
+      const segmentColors = action.payload.segmentColors || action.payload;
+      return setInLayerArray(syncedState(state), layerName, ['segmentColors'], segmentColors);
     }
     case C.SET_VIEWER_SEGMENT_EQUIVALENCES: {
-      return setInLayerArray(syncedState(state), 'segmentation', ['equivalences'], action.payload);
+      const layerName = action.payload.layerName || 'segmentation';
+      const equivalences = action.payload.equivalences || action.payload;
+      return setInLayerArray(syncedState(state), layerName, ['equivalences'], equivalences);
     }
     case C.SET_VIEWER_CROSS_SECTION_SCALE: {
       return (syncedState(state).setIn(['ngState', 'crossSectionScale'], action.payload));
