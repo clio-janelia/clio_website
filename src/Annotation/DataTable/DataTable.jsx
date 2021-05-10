@@ -58,7 +58,7 @@ const useStyles = makeStyles({
 });
 
 export default function DataTable({
-  data, config, selectedId, getId, getLocateIcon, makeHeaderRow, tableControls,
+  data, config, selectedId, getId, getLocateIcon, makeHeaderRow, makeTableControl,
 }) {
   const classes = useStyles();
   const rowsPerPageOptions = [5, 10, 20, { label: 'All', value: -1 }];
@@ -167,7 +167,7 @@ export default function DataTable({
 
   return (
     <div className={classes.dataTableRoot}>
-      {tableControls}
+      {makeTableControl ? makeTableControl({ filteredRows }) : null}
       <TableContainer className={classes.container}>
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
           <DataTableHead
@@ -217,12 +217,12 @@ DataTable.propTypes = {
   selectedId: PropTypes.string, // Selected ID
   getLocateIcon: PropTypes.func,
   makeHeaderRow: PropTypes.func,
-  tableControls: PropTypes.object,
+  makeTableControl: PropTypes.func,
 };
 
 DataTable.defaultProps = {
   selectedId: null,
   getLocateIcon: null,
   makeHeaderRow: null,
-  tableControls: null,
+  makeTableControl: null,
 };

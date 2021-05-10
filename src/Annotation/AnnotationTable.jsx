@@ -300,13 +300,13 @@ function AnnotationTable(props) {
     );
   }
 
-  const tableControls = (
+  const makeTableControl = React.useCallback(() => (
     <div style={{ display: 'flex', flexFlow: 'row' }}>
       {groupSelection}
       <div style={{ height: '100%', width: '10px' }} />
       {fieldSelection}
     </div>
-  );
+  ), [groupSelection, fieldSelection]);
 
   return (
     <div>
@@ -317,7 +317,7 @@ function AnnotationTable(props) {
         getId={React.useCallback((row) => row.id, [])}
         getLocateIcon={getLocateIcon}
         makeHeaderRow={makeTableHeaderRow}
-        tableControls={tableControls}
+        makeTableControl={makeTableControl}
       />
       <hr />
       {tools ? (

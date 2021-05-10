@@ -123,8 +123,9 @@ void main() {
   } else {
     setColor(vec4(defaultPointColor, finalOpacity));
   }
-  setLineColor(lineColor, lineColor);
-  setEndpointMarkerColor(lineColor);
+  vec4 finalLineColor = vec4(lineColor, finalOpacity);
+  setLineColor(finalLineColor, finalLineColor);
+  setEndpointMarkerColor(finalLineColor);
   /*
   float finalSphereAnnotationOpacity = sphereAnnotationOpacity;
   if (prop_rendering_attribute() != 11) {

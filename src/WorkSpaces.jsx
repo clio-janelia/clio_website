@@ -85,7 +85,7 @@ function WorkSpaces(props) {
         datasets={datasets}
         selectedDatasetName={selectedDatasetName}
       >
-        <NeuroGlancer viewerState={viewerState.get('ngState')} brainMapsClientId="NOT_A_VALID_ID" />
+        <NeuroGlancer viewerState={viewerState.get('ngState')} brainMapsClientId="NOT_A_VALID_ID" ngServer=" https://clio-ng.janelia.org" />
       </RenderedComponent>
     </Suspense>
   );
