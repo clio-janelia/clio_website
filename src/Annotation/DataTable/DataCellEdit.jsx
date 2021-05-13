@@ -13,15 +13,15 @@ export default function DataCellEdit(props) {
   } = props;
   const [inputValue, setInputValue] = React.useState(value);
 
-  const handleValueChange = (event) => {
-    setInputValue(event.target.value);
-    onValueChange(event.target.value);
+  const handleInputChange = (event, getTargetValue) => {
+    const tartetValue = getTargetValue(event.target);
+    setInputValue(tartetValue);
+    onValueChange(tartetValue);
   };
 
-  const handleChecked = (event) => {
-    setInputValue(event.target.checked);
-    onValueChange(event.target.checked);
-  };
+  const handleValueChange = (event) => handleInputChange(event, (target) => target.value);
+
+  const handleChecked = (event) => handleInputChange(event, (target) => target.checked);
 
   let widget = <div>{value}</div>;
   switch (config.type) {
