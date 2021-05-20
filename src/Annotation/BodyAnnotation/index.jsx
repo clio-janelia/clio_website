@@ -6,13 +6,13 @@ import { makeStyles } from '@material-ui/core/styles';
 import {
   getMergeableLayerFromDataset,
   getLocateServiceUrl,
-} from '../utils/neuroglancer';
+} from '../../utils/neuroglancer';
 import BodyAnnotationTable from './BodyAnnotationTable';
 import BodyAnnotationQuery from './BodyAnnotationQuery';
 import {
   queryBodyAnnotations,
   updateBodyAnnotation,
-} from './AnnotationRequest';
+} from '../AnnotationRequest';
 
 const useStyles = makeStyles(() => (
   {
@@ -128,10 +128,11 @@ function BodyAnnotation({
   return (
     <div className={classes.annotationRoot}>
       <BodyAnnotationQuery
-        defaultQueryString={query ? JSON.stringify(query) : ''}
+        defaultQuery={query}
         onQueryChanged={onQueryChanged}
         loading={loading}
         getSelectedSegments={() => mergeManager.selection}
+        addAlert={actions.addAlert}
       />
       <hr />
       <BodyAnnotationTable

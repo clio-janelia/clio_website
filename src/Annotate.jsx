@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import Drawer from '@material-ui/core/Drawer';
@@ -195,6 +195,21 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
 
+  const handleQueryChange = useCallback((query) => {
+    if (typeof query === 'string') {
+      actions.addAlert({ severity: 'warning', message: `Invalid query: ${query}` });
+      return;
+    }
+
+    if (dataset && dataset.name) {
+      actions.syncViewer();
+      setBodyAnnotationQuery((prevState) => ({
+        ...prevState,
+        [dataset.name]: query,
+      }));
+    }
+  }, [actions, dataset, setBodyAnnotationQuery]);
+
   if (dataset) {
     const pointTool = {
       name: 'annotatePoint',
@@ -322,13 +337,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                   projectUrl={projectUrl}
                   token={user ? user.getAuthResponse().id_token : ''}
                   query={bodyAnnotatinQuery[dataset.name]}
-                  onQueryChanged={(query) => {
-                    actions.syncViewer();
-                    setBodyAnnotationQuery((prevState) => ({
-                      ...prevState,
-                      [dataset.name]: query,
-                    }));
-                  }}
+                  onQueryChanged={handleQueryChange}
                   actions={actions}
                   mergeManager={mergeManager.current}
                 />

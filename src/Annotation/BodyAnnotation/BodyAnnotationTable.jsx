@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
-import DataTable from './DataTable/DataTable';
-import DataFieldControl from './DataTable/DataFieldControl';
+import DataTable from '../DataTable/DataTable';
+import DataFieldControl from '../DataTable/DataFieldControl';
 import {
   getSortedFieldArray,
   sortColumns,
   useStyles,
-} from './DataTable/DataTableUtils';
+} from '../DataTable/DataTableUtils';
 // import { useLocalStorage } from '../utils/hooks';
 
 function BodyAnnotationTable({ data, dataConfig, showBodies }) {
