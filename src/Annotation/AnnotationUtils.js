@@ -186,14 +186,17 @@ export function getAnnotationIcon(kind, action, selected, verified) {
 }
 
 export function getBodyAnnotationColumnSetting(dataset) {
+  let columnSetting = null;
+
   if (dataset) {
     // FIXME: Temporary schema handling
     if (dataset.bodyAnnotationSchema) {
-      return dataset.bodyAnnotationSchema;
+      const { bodyAnnotationSchema } = dataset;
+      columnSetting = bodyAnnotationSchema;
     }
 
     if (dataset.name === 'hemibrain') {
-      return {
+      columnSetting = {
         shape: ['bodyid', 'type', 'instance', 'cell_body_fiber', 'comment'],
         collection: {
           bodyid: {
@@ -242,17 +245,15 @@ export function getBodyAnnotationColumnSetting(dataset) {
       };
     }
 
-    if (dataset.key === 'VNC') {
-      return {
+    if (dataset.key === 'vnc-test') {
+      columnSetting = {
         shape: ['bodyid', 'class', 'hemilineage', 'soma_side', 'description'],
         collection: {
           bodyid: {
-            title: 'Body ID',
             filterEnabled: true,
             rank: 1,
           },
           class: {
-            title: 'Class',
             filterEnabled: true,
             editElement: {
               type: 'input',
@@ -260,7 +261,6 @@ export function getBodyAnnotationColumnSetting(dataset) {
             rank: 2,
           },
           hemilineage: {
-            title: 'Hemilineage',
             filterEnabled: true,
             editElement: {
               type: 'input',
@@ -268,15 +268,19 @@ export function getBodyAnnotationColumnSetting(dataset) {
             rank: 3,
           },
           soma_side: {
-            title: 'Soma Side',
             filterEnabled: true,
             editElement: {
-              type: 'input',
+              type: 'select',
+              options: [
+                { value: '', label: 'N/A' },
+                { value: 'LHS', label: 'LHS' },
+                { value: 'RHS', label: 'RHS' },
+                { value: 'TBD', label: 'TBD' },
+              ],
             },
             rank: 4,
           },
           soma_neuromere: {
-            title: 'Soma Neuromere',
             filterEnabled: true,
             editElement: {
               type: 'input',
@@ -284,7 +288,6 @@ export function getBodyAnnotationColumnSetting(dataset) {
             rank: 5,
           },
           entry_nerve: {
-            title: 'Entry Nerve',
             filterEnabled: true,
             editElement: {
               type: 'input',
@@ -292,7 +295,6 @@ export function getBodyAnnotationColumnSetting(dataset) {
             rank: 6,
           },
           description: {
-            title: 'Description',
             filterEnabled: true,
             editElement: {
               type: 'input',
@@ -304,7 +306,18 @@ export function getBodyAnnotationColumnSetting(dataset) {
     }
   }
 
-  return null;
+  if (columnSetting && columnSetting.collection) {
+    const { collection } = columnSetting;
+    Object.keys(collection).forEach(
+      (key) => {
+        if (!collection[key].title) {
+          collection[key].title = key;
+        }
+      },
+    );
+  }
+
+  return columnSetting;
 }
 
 export function getAnnotationColumnSetting(dataset) {
@@ -342,6 +355,12 @@ export function getNewAnnotation(annotation, prop) {
   }
 
   newAnnotation.prop = { ...newAnnotation.prop, ...newProp };
+
+  Object.keys(newAnnotation.prop).forEach((key) => {
+    if (newAnnotation.prop[key] === null || newAnnotation.prop[key] === '') {
+      delete newAnnotation.prop[key];
+    }
+  });
 
   if (newAnnotation.prop.checked === false) {
     delete newAnnotation.prop.checked;

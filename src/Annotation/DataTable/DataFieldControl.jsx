@@ -8,6 +8,12 @@ import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import Checkbox from '@material-ui/core/Checkbox';
 
+function renderSelectValue(fields, value) {
+  const titles = fields.filter((field) => value.includes(field.field))
+    .map((field) => field.title);
+  return `${(titles.length <= 3) ? titles.join(', ') : `${titles[0]}, ${titles[1]}, ..., ${titles[titles.length - 1]}`}`;
+}
+
 function DataFieldControl({
   fields, selectedFields, onChange, fieldHint,
 }) {
@@ -24,11 +30,7 @@ function DataFieldControl({
           id="fieldSelection"
           input={<Input />}
           value={selectedFields}
-          renderValue={(value) => {
-            const titles = fields.filter((field) => value.includes(field.field))
-              .map((field) => field.title);
-            return `${(titles.length <= 3) ? titles.join(', ') : `${titles[0]}, ${titles[1]}, ..., ${titles[titles.length - 1]}`}`;
-          }}
+          renderValue={(value) => renderSelectValue(fields, value)}
           multiple
           onChange={handleChange}
         >
