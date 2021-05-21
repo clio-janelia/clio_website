@@ -27,6 +27,10 @@ export function getLayerFromDataset(dataset, name) {
 
 function getLayerSourceUrl(layer) {
   let sourceUrl = layer.location || layer.source;
+  if (sourceUrl && sourceUrl.url) {
+    sourceUrl = sourceUrl.url;
+  }
+
   // FIXME: we should expect explicit format info from the layer to determine the right format.
   // No such information is provided in the current database.
   if (sourceUrl && (sourceUrl.startsWith('gs://') || sourceUrl.startsWith('https://'))) {
