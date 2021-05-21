@@ -48,8 +48,7 @@ export default function NewUserForm({ onUpdate }) {
 
     fetch(usersUrl, options)
       .then((response) => response.text())
-      .then((data) => {
-        console.log(data);
+      .then(() => {
         onUpdate({ [userName]: permissions });
       });
   };

@@ -32,7 +32,6 @@ export const loadState = () => {
       return undefined;
     }
     const state = JSON.parse(serializedState);
-    console.log(state);
     const Immutabled = {};
     Object.keys(state).forEach((key) => {
       Immutabled[key] = Immutable.fromJS(state[key]);

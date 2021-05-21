@@ -74,8 +74,7 @@ function UserAdmin() {
     };
     fetch(usersUrl, options)
       .then((result) => result.text())
-      .then((res) => {
-        console.log(res);
+      .then(() => {
         setUserList((prevList) => {
           const newList = { ...prevList };
           delete newList[userName];
