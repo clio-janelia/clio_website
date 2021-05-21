@@ -34,18 +34,14 @@ export default function Settings() {
       {user && (
         <>
           <p>USER: {user.getBasicProfile().getName()}</p>
-          <p>
-            JWT:{' '}
-            <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-              {user.getAuthResponse().id_token}
-            </pre>
-          </p>
-          <p>
-            ClioStore Token:{' '}
-            <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-              {clioToken || 'loading...'}
-            </pre>
-          </p>
+          <p>Google ID Token: </p>
+          <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+            {user.getAuthResponse().id_token}
+          </pre>
+          <p>ClioStore/DVID Token: </p>
+          <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+            {clioToken || 'loading...'}
+          </pre>
         </>
       )}
       {isAdmin && (
