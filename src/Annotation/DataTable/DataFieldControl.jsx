@@ -35,7 +35,7 @@ function DataFieldControl({
           {fields.map((field) => (
             <MenuItem key={field.field} value={field.field}>
               <Checkbox checked={selectedFields.includes(field.field)} />
-              {`${field.title}${fieldHint ? ` (${field.field})` : ''}`}
+              {`${field.title}${(fieldHint && field.title !== field.field) ? ` (${field.field})` : ''}`}
             </MenuItem>
           ))}
         </Select>
