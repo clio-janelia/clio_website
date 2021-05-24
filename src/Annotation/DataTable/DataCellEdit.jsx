@@ -23,12 +23,12 @@ export default function DataCellEdit(props) {
 
   const handleChecked = (event) => handleInputChange(event, (target) => target.checked);
 
-  let widget = <div>{value}</div>;
+  let widget = <div>{value || ''}</div>;
   switch (config.type) {
     case 'input':
       widget = (
         <Input
-          value={inputValue}
+          value={inputValue || ''}
           placeholder={placeholder}
           onChange={handleValueChange}
         />
@@ -36,7 +36,7 @@ export default function DataCellEdit(props) {
       break;
     case 'select':
       widget = (
-        <Select onChange={handleValueChange} value={inputValue}>
+        <Select onChange={handleValueChange} value={inputValue || ''}>
           {
             config.options.map((option) => (
               <MenuItem
@@ -76,6 +76,6 @@ DataCellEdit.propTypes = {
 };
 
 DataCellEdit.defaultProps = {
-  value: '',
+  value: null,
   placeholder: '',
 };

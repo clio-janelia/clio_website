@@ -24,7 +24,12 @@ export default function DataEdit(props) {
   const [newData, setNewData] = React.useState(dataForEditing);
 
   const isFieldValid = React.useCallback((field, value) => {
-    const column = config.columns.find((c) => (c.field === field));
+    let column = null;
+    if (config.validitingColumns) {
+      column = config.validitingColumns[field];
+    } else {
+      column = config.columns.find((c) => (c.field === field));
+    }
     if (column) {
       if (column.checkValidity) {
         return column.checkValidity(value);
@@ -79,7 +84,7 @@ export default function DataEdit(props) {
                 setNewData({ ...newData, [column.field]: value });
               }
             }
-            value={data[column.field]}
+            value={(column.field in newData) ? newData[column.field] : data[column.field]}
             placeholder={column.placeholder}
           />
         </TableCell>
