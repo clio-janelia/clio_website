@@ -84,7 +84,7 @@ export default function DataEdit(props) {
                 setNewData({ ...newData, [column.field]: value });
               }
             }
-            value={data[column.field]}
+            value={(column.field in newData) ? newData[column.field] : data[column.field]}
             placeholder={column.placeholder}
           />
         </TableCell>
