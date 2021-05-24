@@ -102,6 +102,7 @@ function DataTableRow(props) {
             },
             ...visibleColumns,
           ],
+          validitingColumns: columns.collection,
         }}
         data={row}
         cancelEdit={cancelEdit}
