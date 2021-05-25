@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/core/styles';
+import ClearIcon from '@material-ui/icons/HighlightOffOutlined';
+import IconButton from '@material-ui/core/IconButton';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -11,6 +12,7 @@ import TablePagination from '@material-ui/core/TablePagination';
 import DataTableHead from './DataTableHead';
 import DataTableRow from './DataTableRow';
 import {
+  useStyles,
   COLUMNS_PROP_TYPES,
 } from './DataTableUtils';
 
@@ -47,21 +49,18 @@ function stableSort(array, comparator) {
   return array;
 }
 
-const useStyles = makeStyles({
-  dataTableRoot: {
-    width: '100%',
-    backgroundColor: 'white',
-  },
-  container: {
-    maxHeight: 440,
-  },
-});
-
 export default function DataTable({
-  data, config, selectedId, getId, getLocateIcon, makeHeaderRow, makeTableControl,
+  data,
+  config,
+  selectedId,
+  getId,
+  getLocateIcon,
+  makeHeaderRow,
+  makeTableControl,
+  makeCheckedSetControl,
 }) {
   const classes = useStyles();
-  const rowsPerPageOptions = [5, 10, 20, { label: 'All', value: -1 }];
+  const rowsPerPageOptions = [5, 10, 20];
 
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState(null);
@@ -69,15 +68,28 @@ export default function DataTable({
   const [filteredRows, setFilteredRows] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0]);
+  const [checkedSet, setCheckedSet] = useState(new Set());
 
   const handleRequestSort = (event, field) => {
     setOrder((orderBy === field && order === 'asc') ? 'desc' : 'asc');
     setOrderBy(field);
   };
 
+  const uncheckAll = React.useCallback(() => {
+    setCheckedSet(new Set());
+  }, []);
+
   const rowHeight = 44;
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredRows.length - page * rowsPerPage);
   const maxPage = Math.max(0, Math.floor((filteredRows.length - 1) / rowsPerPage));
+
+  useEffect(() => {
+    setCheckedSet((prevCheckedSet) => new Set(
+      [...prevCheckedSet].filter(
+        (id) => data.rows.find((row) => getId(row) === id),
+      ),
+    ));
+  }, [data.rows, getId]);
 
   useEffect(() => {
     if (page > maxPage) {
@@ -150,7 +162,7 @@ export default function DataTable({
 
   const pagination = (
     <TablePagination
-      rowsPerPageOptions={rowsPerPageOptions}
+      rowsPerPageOptions={[...rowsPerPageOptions, filteredRows.length > 100 ? 100 : { label: 'All', value: -1 }]}
       colSpan={3}
       count={filteredRows.length}
       rowsPerPage={rowsPerPage}
@@ -165,9 +177,46 @@ export default function DataTable({
     />
   );
 
+  let checkedSetControl = null;
+  if (checkedSet.size) {
+    checkedSetControl = (
+      <div>
+        {`☑ ⨉ ${checkedSet.size}`}
+        <IconButton color="primary" onClick={uncheckAll}><ClearIcon /></IconButton>
+        {makeCheckedSetControl ? makeCheckedSetControl(checkedSet) : null}
+      </div>
+    );
+  }
+
+  const getTableRow = (row) => {
+    const rowId = getId(row);
+
+    return (
+      <DataTableRow
+        key={rowId}
+        columns={config.columns}
+        row={row}
+        selected={rowId === selectedId}
+        getLocateIcon={getLocateIcon}
+        rowChecked={checkedSet.has(rowId)}
+        onRowChecked={(checked) => {
+          setCheckedSet((prevCheckedSet) => {
+            const newCheckedSet = new Set(prevCheckedSet);
+            if (checked) {
+              newCheckedSet.add(rowId);
+            } else {
+              newCheckedSet.delete(rowId);
+            }
+            return newCheckedSet;
+          });
+        }}
+      />
+    );
+  };
+
   return (
     <div className={classes.dataTableRoot}>
-      {makeTableControl ? makeTableControl({ filteredRows }) : null}
+      {makeTableControl ? makeTableControl({ filteredRows, checkedSet }) : null}
       <TableContainer className={classes.container}>
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
           <DataTableHead
@@ -183,15 +232,7 @@ export default function DataTable({
               actualPage * rowsPerPage,
               actualPage * rowsPerPage + rowsPerPage,
             ) : filteredRows).map(
-              (row) => (
-                <DataTableRow
-                  key={getId(row)}
-                  columns={config.columns}
-                  row={row}
-                  selected={getId(row) === selectedId}
-                  getLocateIcon={getLocateIcon}
-                />
-              ),
+              (row) => getTableRow(row),
             )}
             {emptyRows > 0 && (
               <TableRow style={{ height: rowHeight * emptyRows }}>
@@ -201,7 +242,10 @@ export default function DataTable({
           </TableBody>
         </Table>
       </TableContainer>
-      {pagination}
+      <div className={classes.controlRow}>
+        {checkedSetControl}
+        <div style={{ marginLeft: 'auto' }}>{pagination}</div>
+      </div>
     </div>
   );
 }
@@ -218,6 +262,7 @@ DataTable.propTypes = {
   getLocateIcon: PropTypes.func,
   makeHeaderRow: PropTypes.func,
   makeTableControl: PropTypes.func,
+  makeCheckedSetControl: PropTypes.func,
 };
 
 DataTable.defaultProps = {
@@ -225,4 +270,5 @@ DataTable.defaultProps = {
   getLocateIcon: null,
   makeHeaderRow: null,
   makeTableControl: null,
+  makeCheckedSetControl: null,
 };

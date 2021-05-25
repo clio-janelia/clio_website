@@ -10,6 +10,7 @@ import LocateIcon from '@material-ui/icons/RoomOutlined';
 import LocateIconSelected from '@material-ui/icons/Room';
 import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import Tooltip from '@material-ui/core/Tooltip';
+import Checkbox from '@material-ui/core/Checkbox';
 import DataEdit from './DataEdit';
 import {
   getVisibleColumns,
@@ -22,7 +23,7 @@ import {
 function DataTableRow(props) {
   const classes = useStyles();
   const {
-    columns, row, selected, getLocateIcon,
+    columns, row, selected, getLocateIcon, rowChecked, onRowChecked,
   } = props;
 
   const allColumnFields = getColumnFields(columns);
@@ -67,6 +68,7 @@ function DataTableRow(props) {
 
   const locateButtonWithoutTooptip = (
     <IconButton
+      className={classes.tableRowIcon}
       onClick={row.locateAction}
       style={(selected && row.locateStyle) ? row.locateStyle : null}
     >
@@ -82,6 +84,19 @@ function DataTableRow(props) {
       </Tooltip>
     ) : locateButtonWithoutTooptip;
 
+  let checkWidget;
+  if (onRowChecked) {
+    checkWidget = (
+      <Checkbox
+        className={classes.tableRowIcon}
+        checked={rowChecked || false}
+        onChange={
+          (event) => onRowChecked(event.target.checked)
+        }
+      />
+    );
+  }
+
   if (editing) {
     return (
       <DataEdit
@@ -91,8 +106,9 @@ function DataTableRow(props) {
               field: '#toolColumn',
               makeCell: function ToolColumn(children) {
                 return (
-                  <TableCell key="#toolColumn" className={classes.toolColumn}>
+                  <TableCell padding="none" key="#toolColumn" className={classes.toolColumn}>
                     <Box display="flex" flexDirection="row">
+                      {checkWidget}
                       {locateButton}
                       {children}
                     </Box>
@@ -113,7 +129,7 @@ function DataTableRow(props) {
 
   const editButton = (
     <Tooltip enterDelay={500} title="Edit">
-      <IconButton onClick={handleEditClicked}>
+      <IconButton className={classes.tableRowIcon} onClick={handleEditClicked}>
         <EditIcon />
       </IconButton>
     </Tooltip>
@@ -121,7 +137,7 @@ function DataTableRow(props) {
 
   const deleteButton = (
     <Tooltip enterDelay={500} title="Delete">
-      <IconButton onClick={row.deleteAction}>
+      <IconButton className={classes.tableRowIcon} onClick={row.deleteAction}>
         <DeleteIcon />
       </IconButton>
     </Tooltip>
@@ -158,6 +174,7 @@ function DataTableRow(props) {
         className={classes.toolColumn}
       >
         <Box display="flex" flexDirection="row">
+          {checkWidget}
           {row.locateAction ? locateButton : undefined}
           {row.updateAction ? editButton : undefined}
           {row.deleteAction ? deleteButton : undefined}
@@ -183,11 +200,15 @@ DataTableRow.propTypes = {
   row: PropTypes.object.isRequired, // Row data with a shape specified in column settings
   selected: PropTypes.bool,
   getLocateIcon: PropTypes.func,
+  rowChecked: PropTypes.bool,
+  onRowChecked: PropTypes.func,
 };
 
 DataTableRow.defaultProps = {
   selected: false,
   getLocateIcon: undefined,
+  rowChecked: false,
+  onRowChecked: undefined,
 };
 
 export default DataTableRow;
