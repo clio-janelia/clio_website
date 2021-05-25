@@ -21,12 +21,6 @@ const useStyles = makeStyles(() => (
       flexFlow: 'column',
       width: props.width,
     }),
-    controlRow: {
-      display: 'flex',
-      flexFlow: 'row',
-      justifyContent: 'left',
-      minHeight: '0px',
-    },
   }
 ));
 
