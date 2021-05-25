@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
+import ViewIcon from '@material-ui/icons/VisibilityOutlined';
 import DataTable from '../DataTable/DataTable';
 import DataFieldControl from '../DataTable/DataFieldControl';
 import {
@@ -29,17 +32,18 @@ function BodyAnnotationTable({ data, dataConfig, showBodies }) {
       />
     ) : null;
 
-    const showBodyButton = showBodies ? (
-      <Button
-        color="primary"
-        variant="contained"
-        onClick={
-          () => showBodies(filteredRows.map((row) => row.bodyid))
-        }
-      >
-        View Bodies
-      </Button>
-    ) : null;
+    let showBodyButton = null;
+    if (showBodies) {
+      showBodyButton = (
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={() => showBodies(filteredRows.map((row) => row.bodyid))}
+        >
+          View Bodies
+        </Button>
+      );
+    }
 
     if (!fieldControl && !showBodyButton) {
       return null;
@@ -53,12 +57,29 @@ function BodyAnnotationTable({ data, dataConfig, showBodies }) {
     );
   }, [columns, classes, showBodies]);
 
+  const makeCheckedSetControl = React.useCallback((checkedSet) => (
+    showBodies ? (
+      <Tooltip title="View checked bodies">
+        <IconButton
+          onClick={() => {
+            if (checkedSet && checkedSet.size) {
+              showBodies([...checkedSet]);
+            }
+          }}
+        >
+          <ViewIcon />
+        </IconButton>
+      </Tooltip>
+    ) : null
+  ), [showBodies]);
+
   return (
     <DataTable
       data={{ rows: data }}
       config={{ ...dataConfig, columns }}
       getId={React.useCallback((row) => row.bodyid, [])}
       makeTableControl={makeTableControl}
+      makeCheckedSetControl={makeCheckedSetControl}
     />
   );
 }

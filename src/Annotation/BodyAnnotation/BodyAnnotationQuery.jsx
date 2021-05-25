@@ -80,7 +80,7 @@ function BodyAnnotationQuery({
         onQueryStringChanged={handleQueryStringChange}
         queryStringify={queryStringify}
       />
-      <Tooltip title="Submit Query">
+      <Tooltip title={loading ? '' : 'Submit Query'}>
         <IconButton
           color="primary"
           onClick={submitQuery}
@@ -89,7 +89,7 @@ function BodyAnnotationQuery({
           {loading ? <WaitIcon /> : <SubmitIcon />}
         </IconButton>
       </Tooltip>
-      <Tooltip title="Query Selected Segments">
+      <Tooltip title={loading ? '' : 'Query Selected Segments'}>
         <IconButton
           color="primary"
           onClick={querySelectedSelements}

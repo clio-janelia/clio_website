@@ -3,6 +3,17 @@ import { makeStyles } from '@material-ui/core/styles';
 
 export const useStyles = makeStyles(() => (
   {
+    dataTableRoot: {
+      width: '100%',
+      backgroundColor: 'white',
+    },
+    container: {
+      maxHeight: 440,
+    },
+    tableRowIcon: {
+      margin: 0,
+      padding: '0px 6px 0px 6px',
+    },
     toolColumn: {
       position: 'sticky',
       backgroundColor: '#fcfcfc',

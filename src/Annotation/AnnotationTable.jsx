@@ -16,6 +16,9 @@ import {
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import Box from '@material-ui/core/Box';
+import IconButton from '@material-ui/core/IconButton';
+import DeleteChecked from '@material-ui/icons/DeleteSweepOutlined';
+import Tooltip from '@material-ui/core/Tooltip';
 import {
   getSortedFieldArray,
   sortColumns,
@@ -99,6 +102,14 @@ function AnnotationTable(props) {
         });
         actions.setViewerCameraPosition(pos);
       },
+      /*
+      setChecked: (id, on) => {
+        setData({
+          ...data,
+          rows: data.rows.map((row) => ((row.id === id) ? { ...row, isChecked: on } : row)),
+        });
+      },
+      */
     }), [layerName, user, actions],
   );
 
@@ -308,6 +319,28 @@ function AnnotationTable(props) {
     </div>
   ), [groupSelection, fieldSelection]);
 
+  const makeCheckedSetControl = React.useCallback((checkedSet) => (
+    <Tooltip title="Delete Checked Annotations">
+      <IconButton
+        onClick={() => {
+          const deleteActions = [];
+          data.rows.forEach((row) => {
+            if (row.deleteAction) {
+              if (checkedSet.has(row.id)) {
+                deleteActions.push(() => {
+                  row.deleteAction();
+                });
+              }
+            }
+          });
+          deleteActions.forEach((action) => action());
+        }}
+      >
+        <DeleteChecked />
+      </IconButton>
+    </Tooltip>
+  ), [data.rows]);
+
   return (
     <div>
       <DataTable
@@ -318,6 +351,7 @@ function AnnotationTable(props) {
         getLocateIcon={getLocateIcon}
         makeHeaderRow={makeTableHeaderRow}
         makeTableControl={makeTableControl}
+        makeCheckedSetControl={makeCheckedSetControl}
       />
       <hr />
       {tools ? (

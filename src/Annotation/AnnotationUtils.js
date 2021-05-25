@@ -480,7 +480,9 @@ function isAnnotationEditable(annotation, user) {
 export function getRowItemFromAnnotation(annotation, config) {
   let item = getRowItemWithoutAction(annotation);
   if (item) { // point annotation
-    const { layerName, locate, user } = config;
+    const {
+      layerName, locate, user,
+    } = config;
     const newAnnotation = { ...annotation };
     const { id } = annotation;
     const pos = getAnnotationPos(annotation);
@@ -489,6 +491,11 @@ export function getRowItemFromAnnotation(annotation, config) {
       locateAction: () => {
         locate(layerName, id, pos);
       },
+      /*
+      checkAction: (on) => {
+        setChecked(item.id, on);
+      },
+      */
     };
     if (isAnnotationEditable(annotation, user)) {
       item.deleteAction = () => {

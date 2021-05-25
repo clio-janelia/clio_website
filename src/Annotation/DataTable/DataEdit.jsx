@@ -4,16 +4,19 @@ import TableRow from '@material-ui/core/TableRow';
 import IconButton from '@material-ui/core/IconButton';
 import DoneIcon from '@material-ui/icons/DoneAllTwoTone';
 import RevertIcon from '@material-ui/icons/NotInterestedOutlined';
-import { TableCell } from '@material-ui/core';
-// import Box from '@material-ui/core/Box';
+import TableCell from '@material-ui/core/TableCell';
 
 import DataCellEdit from './DataCellEdit';
+import {
+  useStyles,
+} from './DataTableUtils';
 
 export default function DataEdit(props) {
   const {
     takeChange, cancelEdit, config, data,
   } = props;
 
+  const classes = useStyles();
   const dataForEditing = {};
   config.columns.forEach((column) => {
     if (column.editElement && data[column.field] !== undefined) {
@@ -56,6 +59,7 @@ export default function DataEdit(props) {
     if (column.field === '#toolColumn') {
       const children = [
         <IconButton
+          className={classes.tableRowIcon}
           key="DataEdit.Done"
           aria-label="ok"
           disabled={!isNewDataValid() || !hasChanged()}
@@ -64,6 +68,7 @@ export default function DataEdit(props) {
           <DoneIcon />
         </IconButton>,
         <IconButton
+          className={classes.tableRowIcon}
           key="DataEdit.Cancel"
           aria-label="cancel"
           onClick={cancelEdit}
