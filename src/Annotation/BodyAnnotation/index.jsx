@@ -83,7 +83,7 @@ function BodyAnnotation({
       ...annotation,
       updateAction: (change) => {
         if (Object.keys(change).length > 0) {
-          updateBodyAnnotation(projectUrl, token, dataset, {
+          updateBodyAnnotation(projectUrl, token, config.user, dataset, {
             ...change, bodyid,
           }, (newAnnotation) => {
             setAnnotations((prevAnnotations) => updateAnnotations(prevAnnotations, newAnnotation));

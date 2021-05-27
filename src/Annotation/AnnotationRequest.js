@@ -89,7 +89,7 @@ export async function queryBodyAnnotations(projectUrl, token, dataset, query) {
 }
 
 export async function updateBodyAnnotation(
-  projectUrl, token, dataset, annotation, processNewAnnotation,
+  projectUrl, token, user, dataset, annotation, processNewAnnotation,
 ) {
   if (annotation && annotation.bodyid) {
     const upload = (a) => {
@@ -104,9 +104,13 @@ export async function updateBodyAnnotation(
     };
 
     const data = await getBodyAnnotation(projectUrl, token, dataset, annotation.bodyid);
-    let newAnnotation = annotation;
+    let newAnnotation = { ...annotation, last_modified_by: user };
     if (data && data.bodyid) {
       newAnnotation = { ...data, ...annotation };
+    }
+
+    if (!newAnnotation.user) {
+      newAnnotation.user = user;
     }
 
     return upload(newAnnotation).then(
