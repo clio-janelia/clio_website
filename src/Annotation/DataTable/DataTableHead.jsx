@@ -38,7 +38,7 @@ export default function DataTableHead({
             whiteSpace: 'nowrap',
           }}
           InputProps={{
-            style: { width: `${column.title.length * 7}px` },
+            style: { width: `${(column.textLengthHint || column.title.length) * 7}px` },
           }}
         />
         <TableSortLabel
