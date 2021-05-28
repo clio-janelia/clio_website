@@ -80,23 +80,30 @@ function BodyAnnotationQuery({
         onQueryStringChanged={handleQueryStringChange}
         queryStringify={queryStringify}
       />
-      <Tooltip title={loading ? '' : 'Submit Query'}>
-        <IconButton
-          color="primary"
-          onClick={submitQuery}
-          disabled={loading}
-        >
-          {loading ? <WaitIcon /> : <SubmitIcon />}
-        </IconButton>
+      <Tooltip
+        title={loading ? 'Loading' : 'Submit Query'}
+        arrow
+      >
+        <span>
+          <IconButton
+            color="primary"
+            onClick={submitQuery}
+            disabled={loading}
+          >
+            {loading ? <WaitIcon /> : <SubmitIcon />}
+          </IconButton>
+        </span>
       </Tooltip>
-      <Tooltip title={loading ? '' : 'Query Selected Segments'}>
-        <IconButton
-          color="primary"
-          onClick={querySelectedSelements}
-          disabled={loading}
-        >
-          <SelectedSegmentsIcon />
-        </IconButton>
+      <Tooltip title={loading ? 'Loading' : 'Query Selected Segments'} arrow>
+        <span>
+          <IconButton
+            color="primary"
+            onClick={querySelectedSelements}
+            disabled={loading}
+          >
+            <SelectedSegmentsIcon />
+          </IconButton>
+        </span>
       </Tooltip>
       {/* <Button
         color="primary"

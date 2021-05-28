@@ -2,6 +2,8 @@ import React from 'react';
 
 import PropTypes from 'prop-types';
 import Input from '@material-ui/core/Input';
+import TextField from '@material-ui/core/TextField';
+import AutoComplete from '@material-ui/lab/Autocomplete';
 import Select from '@material-ui/core/Select';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -14,10 +16,14 @@ export default function DataCellEdit(props) {
   const [inputValue, setInputValue] = React.useState(value);
 
   const handleInputChange = (event, getTargetValue) => {
-    const tartetValue = getTargetValue(event.target);
-    setInputValue(tartetValue);
-    onValueChange(tartetValue);
+    if (event) {
+      const targetValue = getTargetValue(event.target);
+      setInputValue(targetValue);
+      onValueChange(targetValue);
+    }
   };
+
+  const handleTextChange = (event) => handleInputChange(event, (target) => target.textContent);
 
   const handleValueChange = (event) => handleInputChange(event, (target) => target.value);
 
@@ -26,13 +32,27 @@ export default function DataCellEdit(props) {
   let widget = <div>{value || ''}</div>;
   switch (config.type) {
     case 'input':
-      widget = (
-        <Input
-          value={inputValue || ''}
-          placeholder={placeholder}
-          onChange={handleValueChange}
-        />
-      );
+      if (config.options) {
+        widget = (
+          <AutoComplete
+            freeSolo
+            options={config.options}
+            inputValue={inputValue || ''}
+            onInputChange={(event, newValue) => handleInputChange(event, () => newValue)}
+            onChange={handleTextChange}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            renderInput={(params) => <TextField {...params} />}
+          />
+        );
+      } else {
+        widget = (
+          <Input
+            value={inputValue || ''}
+            placeholder={placeholder}
+            onChange={handleValueChange}
+          />
+        );
+      }
       break;
     case 'select':
       widget = (
