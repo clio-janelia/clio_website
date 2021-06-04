@@ -18,6 +18,7 @@ import TableCell from '@material-ui/core/TableCell';
 import Box from '@material-ui/core/Box';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteChecked from '@material-ui/icons/DeleteSweepOutlined';
+import TransferIcon from '@material-ui/icons/AssignmentReturnedOutlined';
 import Tooltip from '@material-ui/core/Tooltip';
 import {
   getSortedFieldArray,
@@ -37,6 +38,9 @@ import {
   getAnnotationToolFromLayer,
   encodeAnnotation,
 } from './AnnotationUtils';
+import {
+  pointToBodyAnnotation,
+} from './AnnotationRequest';
 import AnnotationToolControl from './AnnotationToolControl';
 import AnnotationUserGroup from './AnnotationUserGroup';
 import ImportAnnotation from './ImportAnnotation';
@@ -54,6 +58,8 @@ function AnnotationTable(props) {
     actions,
     tools,
     user,
+    projectUrl,
+    dataset,
     setSelectionChangedCallback,
     dataSource,
   } = props;
@@ -145,8 +151,7 @@ function AnnotationTable(props) {
       const { parameters } = source;
       const url = getAnnotationUrl(parameters);
       if (filteredRows) {
-        /* eslint-disable-next-line no-underscore-dangle */
-        return Promise.resolve(filteredRows.map((row) => encodeAnnotation(row._annotation)));
+        return Promise.resolve(filteredRows.map((row) => encodeAnnotation(row.source_annotation)));
       }
 
       return fetch(url, {
@@ -319,27 +324,79 @@ function AnnotationTable(props) {
     </div>
   ), [groupSelection, fieldSelection]);
 
-  const makeCheckedSetControl = React.useCallback((checkedSet) => (
-    <Tooltip title="Delete Checked Annotations">
-      <IconButton
-        onClick={() => {
-          const deleteActions = [];
-          data.rows.forEach((row) => {
-            if (row.deleteAction) {
-              if (checkedSet.has(row.id)) {
-                deleteActions.push(() => {
-                  row.deleteAction();
+  const makeCheckedSetControl = React.useCallback((checkedSet) => {
+    const { rows } = data;
+    return (
+      <span>
+        <Tooltip title="Delete checked annotations">
+          <IconButton
+            onClick={() => {
+              const deleteActions = [];
+              rows.forEach((row) => {
+                if (row.deleteAction) {
+                  if (checkedSet.has(row.id)) {
+                    deleteActions.push(() => {
+                      row.deleteAction();
+                    });
+                  }
+                }
+              });
+              deleteActions.forEach((action) => action());
+            }}
+            style={{ color: 'red' }}
+          >
+            <DeleteChecked />
+          </IconButton>
+        </Tooltip>
+        { (checkedSet.size < 10 && dataConfig.kind === 'Normal') ? (
+          <Tooltip title="Transform checked annotations to body">
+            <IconButton
+              color="primary"
+              onClick={() => {
+                const succList = [];
+                const failedList = [];
+                let currentPromise = null;
+                checkedSet.forEach((checkedId) => {
+                  const row = rows.find((r) => r.id === checkedId);
+                  if (row) {
+                    const { point } = row.source_annotation;
+                    const transform = () => pointToBodyAnnotation({
+                      projectUrl,
+                      token: dataConfig.token,
+                      user,
+                      dataset,
+                    }, row.source_annotation).then((bodyAnnotation) => {
+                      succList.push(`${point.join(',')}➟${bodyAnnotation.bodyid}`);
+                    }).catch((error) => {
+                      failedList.push(`${point.join(',')}:${error.message}`);
+                    });
+                    if (currentPromise) {
+                      currentPromise = currentPromise.finally(transform);
+                    } else {
+                      currentPromise = transform();
+                    }
+                  }
                 });
-              }
-            }
-          });
-          deleteActions.forEach((action) => action());
-        }}
-      >
-        <DeleteChecked />
-      </IconButton>
-    </Tooltip>
-  ), [data.rows]);
+                if (currentPromise) {
+                  currentPromise.finally(() => {
+                    const message = `[Point to Body] SUMMARY: ${succList.length} succeeded; ${failedList.length} failed. ⎈DETAIL: ${succList.join('; ')}${succList.length === 1 ? '; ' : ''}${failedList.join('; ')}`;
+                    if (succList.length + failedList.length > 0) {
+                      actions.addAlert({
+                        severity: failedList.length > 0 ? 'warning' : 'success',
+                        message,
+                      });
+                    }
+                  });
+                }
+              }}
+            >
+              <TransferIcon style={{ transform: 'rotate(-90deg)' }} />
+            </IconButton>
+          </Tooltip>
+        ) : null}
+      </span>
+    );
+  }, [data, dataConfig.token, dataset, projectUrl, user, actions, dataConfig.kind]);
 
   return (
     <div>
@@ -374,6 +431,8 @@ AnnotationTable.propTypes = {
   dataConfig: PropTypes.object.isRequired,
   dataSource: PropTypes.object.isRequired,
   user: PropTypes.string.isRequired,
+  projectUrl: PropTypes.string.isRequired,
+  dataset: PropTypes.object.isRequired,
   actions: PropTypes.object.isRequired,
   tools: PropTypes.arrayOf(PropTypes.object),
   setSelectionChangedCallback: PropTypes.func,

@@ -247,6 +247,8 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
     const annotationConfig = {
       width: `${sidebarWidth}px`,
+      dataset,
+      projectUrl,
       datasetName: dataset.name,
       user: roles.email,
       layers: [

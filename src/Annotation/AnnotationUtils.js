@@ -399,6 +399,10 @@ export function getAnnotationPos(annotation) {
   return null;
 }
 
+export function getAnnotationDescription(annotation) {
+  return annotation && annotation.ext && annotation.ext.description;
+}
+
 export function encodeAnnotation(annotation) {
   let encodedObj = {
     kind: KIND_MAP[annotation.type],
@@ -461,7 +465,7 @@ function getRowItemWithoutAction(annotation) {
     checked: isAnnotationVerified(annotation),
     timestamp: getAnnotationTimestamp(annotation),
     defaultEditing: false,
-    _annotation: annotation,
+    source_annotation: annotation,
   };
 }
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
 import PropTypes from 'prop-types';
-import ClearIcon from '@material-ui/icons/HighlightOffOutlined';
+import ClearIcon from '@material-ui/icons/HighlightOffTwoTone';
 import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -182,7 +183,9 @@ export default function DataTable({
     checkedSetControl = (
       <div>
         {`☑ ⨉ ${checkedSet.size}`}
-        <IconButton color="primary" onClick={uncheckAll}><ClearIcon /></IconButton>
+        <Tooltip title="Uncheck all">
+          <IconButton onClick={uncheckAll}><ClearIcon /></IconButton>
+        </Tooltip>
         {makeCheckedSetControl ? makeCheckedSetControl(checkedSet) : null}
       </div>
     );

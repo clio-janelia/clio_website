@@ -47,7 +47,7 @@ export default function AnnotationPanel(props) {
 
   React.useEffect(() => {
     setTabValue('0');
-  }, [config.datasetName]);
+  }, [config.dataset.name]);
 
   const numTabs = config.layers.length + validChildren.length;
   const totalWidth = config.width.replace(/\D/g, '');
@@ -66,6 +66,8 @@ export default function AnnotationPanel(props) {
         locateItem={layer.locateItem}
         setSelectionChangedCallback={layer.setSelectionChangedCallback}
         dataSource={layer.dataSource}
+        projectUrl={config.projectUrl}
+        dataset={config.dataset}
         user={config.user}
         actions={actions}
       />
@@ -99,7 +101,8 @@ export default function AnnotationPanel(props) {
 
 AnnotationPanel.propTypes = {
   config: PropTypes.shape({
-    datasetName: PropTypes.string.isRequired,
+    projectUrl: PropTypes.string.isRequired,
+    dataset: PropTypes.object.isRequired,
     user: PropTypes.string.isRequired,
     layers: PropTypes.arrayOf(PropTypes.shape({
       dataConfig: PropTypes.object,

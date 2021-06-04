@@ -25,7 +25,7 @@ export function getLayerFromDataset(dataset, name) {
   return layers.find((layer) => layer.name === name);
 }
 
-function getLayerSourceUrl(layer) {
+export function getLayerSourceUrl(layer) {
   let sourceUrl = layer.location || layer.source;
   if (sourceUrl && sourceUrl.url) {
     sourceUrl = sourceUrl.url;
@@ -210,14 +210,30 @@ export function hasMergeableLayer(dataset) {
 const defaultDvidService = 'https://ngsupport-bmcp5imp6q-uk.a.run.app';
 const defaultLocateService = `${defaultDvidService}/locate-body`;
 
-export function getLocateServiceUrl(sourceUrl, user) {
+export function parseDvidSource(sourceUrl) {
   if (sourceUrl) {
-    const urlPattern = /^dvid:\/\/((http|https):\/\/[^/]+)\/([^/]+)\/([^/]+)(\?.*)?$/;
+    // dvid://https://<base>/<uuid>/<data name>?<query string>
+    const urlPattern = /^dvid:\/\/(http|https):\/\/([^/]+)\/([^/]+)\/([^/]+)(\?.*)?$/;
     const match = sourceUrl.match(urlPattern);
     if (match) {
-      const baseUrl = match[1];
-      const nodeKey = match[3];
-      return `${defaultLocateService}?dvid=${baseUrl}&uuid=${nodeKey}&${(user ? `&u=${user}` : '')}`;
+      return {
+        protocol: match[1],
+        host: match[2],
+        uuid: match[3],
+        dataInstance: match[4],
+        queryString: match[5],
+      };
+    }
+  }
+
+  return null;
+}
+
+export function getLocateServiceUrl(sourceUrl, user) {
+  if (sourceUrl) {
+    const dvidConfig = parseDvidSource(sourceUrl);
+    if (dvidConfig) {
+      return `${defaultLocateService}?dvid=${dvidConfig.protocol}://${dvidConfig.host}&uuid=${dvidConfig.uuid}&${(user ? `&u=${user}` : '')}`;
     }
   }
 
