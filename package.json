@@ -1,6 +1,6 @@
 {
   "name": "clioWeb",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "private": true,
   "dependencies": {
     "@babel/core": "7.4.3",
