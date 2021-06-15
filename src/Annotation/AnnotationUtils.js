@@ -4,6 +4,8 @@ import LocateIcon from '@material-ui/icons/RoomOutlined';
 import LocateIconSelected from '@material-ui/icons/Room';
 import LineLocateIcon from '@material-ui/icons/PinDropOutlined';
 import LineLocateIconSelected from '@material-ui/icons/PinDrop';
+import SphereLocateIcon from '@material-ui/icons/NatureOutlined';
+import SphereLocateIconSelected from '@material-ui/icons/Nature';
 import { green } from '@material-ui/core/colors';
 
 import {
@@ -13,26 +15,59 @@ import {
 
 import { hasMergeableLayer } from '../utils/neuroglancer';
 
+const KIND_MAP = {
+  0: 'point',
+  1: 'lineseg',
+  4: 'sphere',
+};
+
 export const ANNOTATION_COLUMNS = {
   type: {
     title: 'Type',
     filterEnabled: true,
-    editElement: {
-      type: 'select',
-      options: [
-        {
-          label: 'None',
-          value: null,
-        },
-        {
-          label: 'Merge',
-          value: 'Merge',
-        },
-        {
-          label: 'Split',
-          value: 'Split',
-        },
-      ],
+    getEditElement: (row) => {
+      switch (row.kind) {
+        case 'point':
+          return {
+            type: 'select',
+            options: [
+              {
+                label: 'None',
+                value: null,
+              },
+              {
+                label: 'Merge',
+                value: 'Merge',
+              },
+              {
+                label: 'Split',
+                value: 'Split',
+              },
+            ],
+          };
+        case 'lineseg':
+          return {
+            type: 'input',
+          };
+        case 'sphere':
+          return {
+            type: 'select',
+            options: [
+              {
+                label: 'None',
+                value: null,
+              },
+              {
+                label: 'Soma',
+                value: 'Soma',
+              },
+            ],
+          };
+        default:
+          return {
+            type: 'input',
+          };
+      }
     },
     rank: 1,
   },
@@ -177,6 +212,12 @@ export function getAnnotationIcon(kind, action, selected, verified) {
   if (action === 'locate') {
     if (kind === 'lineseg') {
       return selected ? <LineLocateIconSelected style={style} /> : <LineLocateIcon style={style} />;
+    }
+
+    if (kind === 'sphere') {
+      return selected
+        ? <SphereLocateIconSelected style={style} />
+        : <SphereLocateIcon style={style} />;
     }
 
     return selected ? <LocateIconSelected style={style} /> : <LocateIcon style={style} />;
@@ -381,10 +422,13 @@ function getLineAnnotationPos(annotation) {
   ];
 }
 
-const KIND_MAP = {
-  0: 'point',
-  1: 'lineseg',
-};
+function getSphereAnnotationPos(annotation) {
+  return [
+    Math.round((annotation.pointA[0] + annotation.pointB[0]) / 2),
+    Math.round((annotation.pointA[1] + annotation.pointB[1]) / 2),
+    Math.round((annotation.pointA[2] + annotation.pointB[2]) / 2),
+  ];
+}
 
 export function getAnnotationPos(annotation) {
   switch (annotation.type) {
@@ -392,6 +436,8 @@ export function getAnnotationPos(annotation) {
       return getPointAnnotationPos(annotation);
     case 1:
       return getLineAnnotationPos(annotation);
+    case 4:
+      return getSphereAnnotationPos(annotation);
     default:
       break;
   }
@@ -413,6 +459,7 @@ export function encodeAnnotation(annotation) {
       encodedObj.pos = [...annotation.point];
       break;
     case 'lineseg':
+    case 'sphere':
       encodedObj.pos = [...annotation.pointA, ...annotation.pointB];
       break;
     default:
@@ -568,6 +615,10 @@ function getAnnotationFormat(entry) {
     return 'ngline';
   }
 
+  if (entry.type === 'sphere') {
+    return 'ngsphere';
+  }
+
   return undefined;
 }
 
@@ -628,6 +679,20 @@ const convertAnnotation = {
     if ('pointA' in entry && 'pointB' in entry) {
       const annotation = {
         kind: 'lineseg',
+        pos: round([...entry.pointA, ...entry.pointB]),
+      };
+      if (entry.description) {
+        annotation.description = entry.description;
+      }
+      return annotation;
+    }
+
+    return null;
+  },
+  ngsphere: (entry) => {
+    if ('pointA' in entry && 'pointB' in entry) {
+      const annotation = {
+        kind: 'sphere',
         pos: round([...entry.pointA, ...entry.pointB]),
       };
       if (entry.description) {

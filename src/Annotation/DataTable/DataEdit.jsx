@@ -79,11 +79,15 @@ export default function DataEdit(props) {
       return column.makeCell(children);
     }
 
-    if (column.editElement) {
+    if (column.editElement || column.getEditElement) {
+      let { editElement } = column;
+      if (column.getEditElement) {
+        editElement = column.getEditElement(data);
+      }
       return (
         <TableCell key={column.field}>
           <DataCellEdit
-            config={column.editElement}
+            config={editElement}
             onValueChange={
               (value) => {
                 setNewData({ ...newData, [column.field]: value });

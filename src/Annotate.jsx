@@ -221,6 +221,11 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       label: 'Line',
       tooltip: 'Ctrl+Click in the data viewer to start adding a line. Ctrl+Click again to finish the line.',
     };
+    const sphereTool = {
+      name: 'annotateSphere',
+      label: 'Sphere',
+      tooltip: 'Ctrl+Click in the data viewer to start adding a sphere. Ctrl+Click again to finish the sphere.',
+    };
 
     const setSelectionChangedCallback = (callback) => {
       selectionDetailsStateChangedHandlers.splice(
@@ -254,7 +259,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       layers: [
         {
           name: 'annotations',
-          tools: [pointTool, lineTool],
+          tools: [pointTool, lineTool, sphereTool],
           dataConfig: {
             columns: getAnnotationColumnSetting(dataset),
             kind: 'Normal',
