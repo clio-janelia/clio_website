@@ -45,11 +45,9 @@ export default function Settings() {
         </>
       )}
       {isAdmin && (
-        <>
-          <Link to="/users">User Admin</Link>
-          <GlobalSettingsAdmin />
-        </>
+        <Link to="/users">User Admin</Link>
       )}
+      <GlobalSettingsAdmin isAdmin={isAdmin || false} />
     </div>
   );
 }
