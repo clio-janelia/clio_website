@@ -125,23 +125,22 @@ export function makeLayersFromDataset(dataset, inferringType) {
   layers = layers.map((layer) => {
     const layerUrl = getLayerSourceUrl(layer);
 
-    if (mainImageLayer && (layerUrl !== mainImageLayer.source.url)) {
-      const layerConfig = {
-        ...layer,
-        source: {
-          url: layerUrl,
-        },
-      };
-
+    if (layerUrl && layerUrl !== (mainImageLayer && mainImageLayer.source.url)) {
+      const layerConfig = { ...layer };
       if (!layer.type && inferringType) {
         layerConfig.type = inferredLayerType(layer);
       }
 
-      if (layerConfig.type === 'segmentation') {
-        layerConfig.source.subsources = {
-          skeletons: false,
+      if (layerConfig.type === 'segmentation' && typeof (layerConfig.source || '') === 'string') {
+        layerConfig.source = {
+          url: layerUrl,
+          subsources: {
+            default: true,
+            mesh: true,
+          },
+          enableDefaultSubsources: false,
         };
-        layerConfig.source.enableDefaultSubsources = true;
+        delete layerConfig.location;
       }
 
       return layerConfig;
@@ -155,6 +154,19 @@ export function makeLayersFromDataset(dataset, inferringType) {
       mainImageLayer,
       ...layers,
     ];
+  }
+
+  const { orderedLayers } = dataset;
+  if (orderedLayers && orderedLayers.length > 0) {
+    const ranks = {};
+    layers.forEach((layer, index) => {
+      ranks[layer.name] = index + layers.length;
+    });
+    orderedLayers.forEach((layerName, index) => {
+      ranks[layerName] = index;
+    });
+
+    layers.sort((layer1, layer2) => ranks[layer1.name] - ranks[layer2.name]);
   }
 
   return layers;
