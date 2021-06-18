@@ -100,17 +100,21 @@ export function makeViewOptionsFromDataset(dataset, customOptions) {
       ...dataset.dimensions,
     };
   }
+
+  const predefined = dataset.neuroglancer || {};
+
   return {
     dimensions,
     position: dataset.position || [],
-    crossSectionScale: dataset.crossSectionScale || 2,
-    projectionScale: dataset.projectionScale || 2600,
-    projectionOrientation: [
+    crossSectionScale: predefined.crossSectionScale || null,
+    projectionScale: predefined.projectionScale || null,
+    projectionOrientation: predefined.projectionOrientation || [
       -0.2363949418067932,
       -0.28796303272247314,
       0.011459439061582088,
       0.927935004234314,
     ],
+    crossSectionOrientation: predefined.crossSectionOrientation || null,
     layout: '4panel',
     showSlices: true,
     ...customOptions,
