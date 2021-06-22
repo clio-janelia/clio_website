@@ -95,7 +95,11 @@ export default function TransferResults({
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = applyDatasetLocation(imageSliceUrlTemplate, dataset);
+    try {
+      imageRootUrl = applyDatasetLocation(imageSliceUrlTemplate, dataset);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   // take a slice of the array before reversing it so that we don't change the

@@ -30,7 +30,11 @@ export default function SearchCard({ search, actions, dataset }) {
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = applyDatasetLocation(config.imageSliceUrlTemplate, dataset);
+    try {
+      imageRootUrl = applyDatasetLocation(config.imageSliceUrlTemplate, dataset);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   function handleSelect(point) {

@@ -1,8 +1,17 @@
-import { getDatasetLocation } from './neuroglancer';
+import { getDatasetLocationWithoutProtocol } from './neuroglancer';
 
 /* eslint-disable-next-line  import/prefer-default-export */
 export function applyDatasetLocation(urlTemplate, dataset) {
-  return urlTemplate.replace('<location>', getDatasetLocation(dataset).replace('gs://', ''));
+  let location = dataset;
+  if (typeof location !== 'string') {
+    location = getDatasetLocationWithoutProtocol(dataset);
+  }
+
+  if (!location && urlTemplate.includes('<location>')) {
+    throw Error('Cannot process the template because no location is found in the dataset.');
+  }
+
+  return urlTemplate.replace('<location>', location);
 }
 
 function makeDataset(baseDataset, version) {

@@ -10,6 +10,7 @@ import {
   configureLayersChangedSignals,
   addLayerSignalRemover,
   getSelectedAnnotationId,
+  parseUrlHash,
 } from '@janelia-flyem/react-neuroglancer';
 
 // import Divider from '@material-ui/core/Divider';
@@ -37,6 +38,8 @@ import {
   getUrlFromLayer,
   getAnnotationToolFromLayer,
   encodeAnnotation,
+  getNewAnnotation,
+  getAnnotationPos,
 } from './AnnotationUtils';
 import {
   pointToBodyAnnotation,
@@ -96,17 +99,43 @@ function AnnotationTable(props) {
     setSelectedGroups(groups);
   }, [getSelectedGroups, setSelectedGroups]);
 
+  const locate = React.useCallback((targetLayerName, id, pos) => {
+    actions.setViewerAnnotationSelection({
+      layerName: targetLayerName,
+      annotationId: id,
+      host: getAnnotationSelectionHost(),
+    });
+    actions.setViewerCameraPosition(pos);
+  }, [actions]);
+
   const annotationToItem = React.useCallback(
     (annotation) => getRowItemFromAnnotation(annotation, {
       layerName,
       user,
-      locate: (targetLayerName, id, pos) => {
-        actions.setViewerAnnotationSelection({
-          layerName: targetLayerName,
-          annotationId: id,
-          host: getAnnotationSelectionHost(),
-        });
-        actions.setViewerCameraPosition(pos);
+      locate,
+      deleteAction: (id) => {
+        const source = getAnnotationSource(undefined, layerName);
+        // console.log(source);
+        const reference = source.getReference(id);
+        try {
+          source.delete(reference);
+        } catch (e) {
+          // FIXME: needs better error handling.
+          console.log(e);
+        } finally {
+          reference.dispose();
+        }
+      },
+      updateAction: (annot, change) => {
+        if (Object.keys(change).length > 0) {
+          const source = getAnnotationSource(undefined, layerName);
+          if (source) {
+            const pos = getAnnotationPos(annotation);
+            source.update(source.getReference(annot.id), getNewAnnotation(annot, change));
+            source.commit(source.getReference(annot.id));
+            locate(layerName, annot.id, pos);
+          }
+        }
       },
       /*
       setChecked: (id, on) => {
@@ -116,7 +145,7 @@ function AnnotationTable(props) {
         });
       },
       */
-    }), [layerName, user, actions],
+    }), [layerName, user, locate],
   );
 
   const uploadAnnotations = React.useCallback((payload) => {
@@ -132,7 +161,7 @@ function AnnotationTable(props) {
       }
       return fetch(url, {
         method: 'POST',
-        body: toAnnotationPayload(payload),
+        body: toAnnotationPayload(payload, parseUrlHash),
         headers,
       }).then((response) => {
         source.invalidateCache();

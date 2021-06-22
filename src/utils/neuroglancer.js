@@ -11,21 +11,27 @@ function inferredLayerType(layer) {
 
 function getLayersFromDataset(dataset) {
   let layers = [];
-  if (dataset.layers) {
-    layers = dataset.layers;
-  } else if (dataset.neuroglancer) {
-    layers = dataset.neuroglancer.layers;
+  if (dataset) {
+    if (dataset.layers) {
+      layers = dataset.layers;
+    } else if (dataset.neuroglancer) {
+      layers = dataset.neuroglancer.layers;
+    }
   }
 
-  return layers;
+  return layers || [];
 }
 
 export function getLayerFromDataset(dataset, name) {
   const layers = getLayersFromDataset(dataset);
-  return layers.find((layer) => layer.name === name);
+  return layers.find((layer) => layer.name === name) || null;
 }
 
 export function getLayerSourceUrl(layer) {
+  if (!layer) {
+    return '';
+  }
+
   let sourceUrl = layer.location || layer.source;
   if (sourceUrl && sourceUrl.url) {
     sourceUrl = sourceUrl.url;
@@ -37,31 +43,35 @@ export function getLayerSourceUrl(layer) {
     sourceUrl = `precomputed://${sourceUrl}`;
   }
 
-  return sourceUrl;
+  return sourceUrl || '';
 }
 
 function getMainImageLayer(dataset) {
   let newLayer = null;
-  const layers = getLayersFromDataset(dataset);
-  if (dataset.mainLayer) {
-    const layer = layers.find((_layer) => _layer.name === dataset.mainLayer);
-    if (layer) {
-      newLayer = { ...layer };
+  if (dataset) {
+    const layers = getLayersFromDataset(dataset);
+    if (dataset.mainLayer) {
+      const layer = layers.find((_layer) => _layer.name === dataset.mainLayer);
+      if (layer) {
+        newLayer = { ...layer };
+      }
     }
-  }
 
-  if (!newLayer) {
-    const mainImageUrl = getLayerSourceUrl(dataset);
-    const layer = layers.find((_layer) => getLayerSourceUrl(_layer) === mainImageUrl);
-    newLayer = layer ? { ...layer } : { source: { url: mainImageUrl } };
-  }
+    if (!newLayer) {
+      const mainImageUrl = getLayerSourceUrl(dataset);
+      if (mainImageUrl) {
+        const layer = layers.find((_layer) => getLayerSourceUrl(_layer) === mainImageUrl);
+        newLayer = layer ? { ...layer } : { source: { url: mainImageUrl } };
+      }
+    }
 
-  if (newLayer) {
-    newLayer.name = newLayer.name || dataset.key;
-    if (!newLayer.source.url) {
-      newLayer.source = {
-        url: getLayerSourceUrl(newLayer),
-      };
+    if (newLayer) {
+      newLayer.name = newLayer.name || dataset.key;
+      if (!newLayer.source.url) {
+        newLayer.source = {
+          url: getLayerSourceUrl(newLayer),
+        };
+      }
     }
   }
 
@@ -69,19 +79,22 @@ function getMainImageLayer(dataset) {
 }
 
 /* eslint-disable-next-line  import/prefer-default-export */
-export function getDatasetLocation(dataset) {
-  if ('location' in dataset) {
-    return dataset.location;
-  }
-
-  if (dataset.mainLayer) {
-    const layer = getLayerFromDataset(dataset);
-    if (layer) {
-      return layer.source;
+export function getDatasetLocationWithoutProtocol(dataset) {
+  let location = '';
+  if (dataset) {
+    if ('location' in dataset || 'source' in dataset) {
+      location = dataset.location || dataset.source;
+    } else if (dataset.mainLayer) {
+      location = getLayerSourceUrl(getMainImageLayer(dataset));
+    }
+    const matched = location.match(/(.*):\/\/(.*)/);
+    if (matched) {
+      /* eslint-disable-next-line prefer-destructuring */
+      location = matched[2];
     }
   }
 
-  return '';
+  return location;
 }
 
 export function makeViewOptionsFromDataset(dataset, customOptions) {
@@ -160,17 +173,19 @@ export function makeLayersFromDataset(dataset, inferringType) {
     ];
   }
 
-  const { orderedLayers } = dataset;
-  if (orderedLayers && orderedLayers.length > 0) {
-    const ranks = {};
-    layers.forEach((layer, index) => {
-      ranks[layer.name] = index + layers.length;
-    });
-    orderedLayers.forEach((layerName, index) => {
-      ranks[layerName] = index;
-    });
+  if (layers.length > 0) {
+    const { orderedLayers } = dataset;
+    if (orderedLayers && orderedLayers.length > 0) {
+      const ranks = {};
+      layers.forEach((layer, index) => {
+        ranks[layer.name] = index + layers.length;
+      });
+      orderedLayers.forEach((layerName, index) => {
+        ranks[layerName] = index;
+      });
 
-    layers.sort((layer1, layer2) => ranks[layer1.name] - ranks[layer2.name]);
+      layers.sort((layer1, layer2) => ranks[layer1.name] - ranks[layer2.name]);
+    }
   }
 
   return layers;
@@ -229,7 +244,7 @@ const defaultLocateService = `${defaultDvidService}/locate-body`;
 export function parseDvidSource(sourceUrl) {
   if (sourceUrl) {
     // dvid://https://<base>/<uuid>/<data name>?<query string>
-    const urlPattern = /^dvid:\/\/(http|https):\/\/([^/]+)\/([^/]+)\/([^/]+)(\?.*)?$/;
+    const urlPattern = /^dvid:\/\/(http|https):\/\/([^/]+)\/([^/]+)\/([^/?]+)(\?.*)?$/;
     const match = sourceUrl.match(urlPattern);
     if (match) {
       return {

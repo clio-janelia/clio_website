@@ -112,7 +112,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   useEffect(() => {
     if (dataset && user) {
       const layers = [
-        ...makeLayersFromDataset(dataset, true),
+        ...makeLayersFromDataset(dataset, false),
         {
           name: 'annotations',
           type: 'annotation',

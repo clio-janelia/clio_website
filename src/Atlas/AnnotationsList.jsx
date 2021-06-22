@@ -15,7 +15,8 @@ import Chip from '@material-ui/core/Chip';
 import DoneIcon from '@material-ui/icons/Done';
 
 import { makeStyles } from '@material-ui/core/styles';
-import { getDatasetLocation } from '../utils/neuroglancer';
+// import { getDatasetLocationWithoutProtocol } from '../utils/neuroglancer';
+import { applyDatasetLocation } from '../utils/config';
 
 const useStyles = makeStyles((theme) => ({
   selected: {
@@ -69,14 +70,22 @@ export default function AnnotationsList({
 
     let thumbnailUrl = '';
     const selectedDataSet = datasets[dataSet] || {};
-    if (selectedDataSet && 'location' in selectedDataSet) {
-      const datasetLocation = getDatasetLocation(selectedDataSet).replace('gs://', '');
+    try {
       const xyzString = `${location[0] - 128}_${location[1] - 128}_${location[2]}`;
-
-      thumbnailUrl = imageSliceUrlTemplate
-        .replace('<location>', datasetLocation)
-        .replace('<xyz>', xyzString);
+      thumbnailUrl = applyDatasetLocation(imageSliceUrlTemplate, selectedDataSet).replace('<xyz>', xyzString);
+    } catch (err) {
+      console.log(err);
     }
+
+    /*
+    const datasetLocation = getDatasetLocationWithoutProtocol(selectedDataSet);
+    if (datasetLocation) {
+
+      // thumbnailUrl = imageSliceUrlTemplate
+      //   .replace('<location>', datasetLocation)
+      //   .replace('<xyz>', xyzString);
+    }
+    */
 
     const key = `${name}_${timestamp}`;
     const isSelected = selected && key === `${selected.title}_${selected.timestamp}`;

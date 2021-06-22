@@ -142,7 +142,11 @@ export default function MatchListLoader({
   let imageRootUrl = '';
 
   if (dataset) {
-    imageRootUrl = applyDatasetLocation(config.imageSliceUrlTemplate, dataset);
+    try {
+      imageRootUrl = applyDatasetLocation(config.imageSliceUrlTemplate, dataset);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (

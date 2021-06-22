@@ -8,11 +8,6 @@ import SphereLocateIcon from '@material-ui/icons/NatureOutlined';
 import SphereLocateIconSelected from '@material-ui/icons/Nature';
 import { green } from '@material-ui/core/colors';
 
-import {
-  getAnnotationSource,
-  parseUrlHash,
-} from '@janelia-flyem/react-neuroglancer';
-
 import { hasMergeableLayer } from '../utils/neuroglancer';
 
 const KIND_MAP = {
@@ -532,7 +527,7 @@ export function getRowItemFromAnnotation(annotation, config) {
   let item = getRowItemWithoutAction(annotation);
   if (item) { // point annotation
     const {
-      layerName, locate, user,
+      layerName, locate, user, deleteAction, updateAction,
     } = config;
     const newAnnotation = { ...annotation };
     const { id } = annotation;
@@ -542,36 +537,15 @@ export function getRowItemFromAnnotation(annotation, config) {
       locateAction: () => {
         locate(layerName, id, pos);
       },
-      /*
-      checkAction: (on) => {
-        setChecked(item.id, on);
-      },
-      */
     };
     if (isAnnotationEditable(annotation, user)) {
-      item.deleteAction = () => {
-        const source = getAnnotationSource(undefined, layerName);
-        // console.log(source);
-        const reference = source.getReference(id);
-        try {
-          source.delete(reference);
-        } catch (e) {
-          // FIXME: needs better error handling.
-          console.log(e);
-        } finally {
-          reference.dispose();
-        }
-      };
-      item.updateAction = (change) => {
-        if (Object.keys(change).length > 0) {
-          const source = getAnnotationSource(undefined, layerName);
-          if (source) {
-            source.update(source.getReference(id), getNewAnnotation(newAnnotation, change));
-            source.commit(source.getReference(id));
-            locate(layerName, id, pos);
-          }
-        }
-      };
+      if (deleteAction) {
+        item.deleteAction = () => deleteAction(id);
+      }
+
+      if (updateAction) {
+        item.updateAction = (change) => updateAction(newAnnotation, change);
+      }
     }
   }
 
@@ -737,11 +711,11 @@ function extractAnnotationArray(obj) {
   return obj;
 }
 
-function extractAnnotationJsonFromUrls(buffer) {
+function extractAnnotationJsonFromUrls(buffer, parseLine) {
   const lines = buffer.split('\n');
   let annotations = [];
   lines.forEach((line) => {
-    const spec = parseUrlHash(line);
+    const spec = parseLine(line);
     const annotationGroup = extractAnnotationArray(spec);
     if (annotationGroup) {
       annotations = annotations.concat(annotationGroup);
@@ -751,12 +725,12 @@ function extractAnnotationJsonFromUrls(buffer) {
   return annotations;
 }
 
-export function toAnnotationPayload(buffer, user) {
+export function toAnnotationPayload(buffer, user, parseLine) {
   let obj = [];
   try {
     obj = extractAnnotationArray(JSON.parse(buffer));
   } catch (_) {
-    obj = extractAnnotationJsonFromUrls(buffer);
+    obj = extractAnnotationJsonFromUrls(buffer, parseLine);
   }
 
   const annotations = [];
