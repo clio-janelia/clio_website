@@ -50,6 +50,32 @@ function stableSort(array, comparator) {
   return array;
 }
 
+function CheckedSetControl({ checkedSet, uncheckAll, makeCheckedSetControl }) {
+  if (checkedSet.size) {
+    return (
+      <div>
+        {`☑ ⨉ ${checkedSet.size}`}
+        <Tooltip title="Uncheck all">
+          <IconButton onClick={uncheckAll}><ClearIcon /></IconButton>
+        </Tooltip>
+        {makeCheckedSetControl ? makeCheckedSetControl(checkedSet) : null}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+CheckedSetControl.propTypes = {
+  checkedSet: PropTypes.object.isRequired,
+  uncheckAll: PropTypes.func.isRequired,
+  makeCheckedSetControl: PropTypes.func,
+};
+
+CheckedSetControl.defaultProps = {
+  makeCheckedSetControl: null,
+};
+
 export default function DataTable({
   data,
   config,
@@ -178,19 +204,6 @@ export default function DataTable({
     />
   );
 
-  let checkedSetControl = null;
-  if (checkedSet.size) {
-    checkedSetControl = (
-      <div>
-        {`☑ ⨉ ${checkedSet.size}`}
-        <Tooltip title="Uncheck all">
-          <IconButton onClick={uncheckAll}><ClearIcon /></IconButton>
-        </Tooltip>
-        {makeCheckedSetControl ? makeCheckedSetControl(checkedSet) : null}
-      </div>
-    );
-  }
-
   const getTableRow = (row) => {
     const rowId = getId(row);
 
@@ -246,7 +259,11 @@ export default function DataTable({
         </Table>
       </TableContainer>
       <div className={classes.controlRow}>
-        {checkedSetControl}
+        <CheckedSetControl
+          checkedSet={checkedSet}
+          uncheckAll={uncheckAll}
+          makeCheckedSetControl={makeCheckedSetControl}
+        />
         <div style={{ marginLeft: 'auto' }}>{pagination}</div>
       </div>
     </div>

@@ -297,7 +297,7 @@ function AnnotationTable(props) {
 
   const makeTableHeaderRow = React.useCallback((dataHeaders, filteredRows) => (
     <TableRow>
-      <TableCell padding="none" className={classes.toolColumn}>
+      <TableCell padding="none" className={classes.headToolColumn}>
         <Box display="flex" flexDirection="row">
           {dataConfig.allowingImport ? (
             <ImportAnnotation

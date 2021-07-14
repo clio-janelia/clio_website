@@ -58,7 +58,7 @@ export default function DataTableHead({
   } else {
     headers = (
       <TableRow>
-        <TableCell className={classes.toolColumn} />
+        <TableCell className={classes.headToolColumn} />
         {filterRow}
       </TableRow>
     );

@@ -8,7 +8,7 @@ export const useStyles = makeStyles(() => (
       backgroundColor: 'white',
     },
     container: {
-      maxHeight: 440,
+      maxHeight: '65vh',
     },
     tableRowIcon: {
       margin: 0,
@@ -20,6 +20,13 @@ export const useStyles = makeStyles(() => (
       opacity: 0.9,
       left: 0,
       zIndex: 3,
+    },
+    headToolColumn: {
+      position: 'sticky',
+      backgroundColor: '#fcfcfc',
+      opacity: 0.9,
+      left: 0,
+      zIndex: 5,
     },
     controlRow: {
       display: 'flex',
