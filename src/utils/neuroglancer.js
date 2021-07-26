@@ -114,9 +114,13 @@ export function makeViewOptionsFromDataset(dataset, customOptions) {
     };
   }
 
-  const predefined = dataset.neuroglancer || {};
+  const predefined = { ...(dataset.neuroglancer || {}) };
+  delete predefined.layers;
+  delete predefined.selectedLayer;
 
   return {
+    showSlices: true, // Show slices in the 3D view by default
+    ...predefined,
     dimensions,
     position: dataset.position || [],
     crossSectionScale: predefined.crossSectionScale || null,
@@ -129,7 +133,6 @@ export function makeViewOptionsFromDataset(dataset, customOptions) {
     ],
     crossSectionOrientation: predefined.crossSectionOrientation || null,
     layout: '4panel',
-    showSlices: true,
     ...customOptions,
   };
 }
