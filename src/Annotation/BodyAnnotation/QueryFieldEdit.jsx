@@ -14,6 +14,7 @@ function QueryFieldEdit({
     }
   }, [initialField, field, value, onFieldChanged, appending]);
 
+  /*
   useEffect(() => {
     setField(initialField);
   }, [initialField]);
@@ -21,6 +22,7 @@ function QueryFieldEdit({
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
+  */
 
   const append = useCallback(() => {
     onFieldChanged(initialField, field, value);

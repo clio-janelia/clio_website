@@ -37,7 +37,7 @@ function ExpandableEdit({
         }
       }
     >
-      {`${(initialValue === null || initialValue === undefined) ? '' : initialValue}`}
+      {`${initialValue || ''}`}
     </div>
   );
 }

@@ -9,7 +9,7 @@ function FieldEditList({ inputMap, handleFieldChange }) {
 
   return inputMap && Object.keys(inputMap).map((key) => {
     let value = inputMap[key];
-    if (Array.isArray(inputMap[key])) {
+    if (Array.isArray(value) || typeof value === 'number') {
       value = JSON.stringify(value);
     }
     return (
@@ -56,8 +56,6 @@ function QueryMapEdit({ initialMap, forceUpdate, onMapChanged }) {
     <div>
       <FieldEditList inputMap={inputMap} handleFieldChange={handleFieldChange} />
       <QueryFieldEdit
-        initialField={null}
-        initialValue={null}
         onFieldChanged={handleFieldChange}
         appending
       />

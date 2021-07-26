@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import ViewIcon from '@material-ui/icons/VisibilityOutlined';
+import HighlightIcon from '@material-ui/icons/HighlightOutlined';
 import DataTable from '../DataTable/DataTable';
 import DataFieldControl from '../DataTable/DataFieldControl';
 import {
@@ -35,13 +35,14 @@ function BodyAnnotationTable({ data, dataConfig, showBodies }) {
     let showBodyButton = null;
     if (showBodies) {
       showBodyButton = (
-        <Button
-          color="primary"
-          variant="contained"
-          onClick={() => showBodies(filteredRows.map((row) => row.bodyid))}
-        >
-          View Bodies
-        </Button>
+        <Tooltip title="Highlight listed bodies in the viewer">
+          <IconButton
+            color="primary"
+            onClick={() => showBodies(filteredRows.map((row) => row.bodyid))}
+          >
+            <HighlightIcon />
+          </IconButton>
+        </Tooltip>
       );
     }
 
