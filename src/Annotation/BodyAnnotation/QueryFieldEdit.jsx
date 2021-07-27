@@ -14,33 +14,18 @@ function QueryFieldEdit({
     }
   }, [initialField, field, value, onFieldChanged, appending]);
 
-  /*
-  useEffect(() => {
-    setField(initialField);
-  }, [initialField]);
-
-  useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-  */
-
   const append = useCallback(() => {
     onFieldChanged(initialField, field, value);
-    setField(null);
-    setValue(null);
   }, [initialField, onFieldChanged, field, value]);
 
   const appendActive = useCallback((v) => {
     if (appending) {
       onFieldChanged(initialField, field, v);
-      setField(null);
-      // FIXME: a hack solution for cleaning up the value
-      setTimeout(() => setValue(null), 10);
     }
   }, [initialField, onFieldChanged, appending, field]);
 
   return (
-    <div style={appending ? { color: 'gray' } : null}>
+    <div>
       {
         appending
           ? <span style={{ color: 'green', cursor: 'pointer' }} onClick={append} onKeyDown={() => {}}>+</span>
@@ -48,10 +33,14 @@ function QueryFieldEdit({
       }
       {'  '}
       <ExpandableEdit
+        key={`${field || ''}_field`}
+        role={appending ? 'active' : ''}
         initialValue={field}
         onValueChanged={(v) => setField(v)}
       />:
       <ExpandableEdit
+        key={`${value || ''}_value`}
+        role={appending ? 'active' : ''}
         initialValue={value}
         onValueChanged={(v) => setValue(v)}
         onValueEntered={(v) => appendActive(v)}

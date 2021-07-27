@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { Paper } from '@material-ui/core';
 import QueryFieldEdit from './QueryFieldEdit';
 
 function FieldEditList({ inputMap, handleFieldChange }) {
-  if (typeof inputMap === 'string') {
-    return null;
+  if (!inputMap || typeof inputMap === 'string' || Object.keys(inputMap).length === 0) {
+    return <Paper variant="outlined" style={{ color: 'gray' }}>No query specified</Paper>;
   }
 
   return inputMap && Object.keys(inputMap).map((key) => {
@@ -25,6 +26,7 @@ function FieldEditList({ inputMap, handleFieldChange }) {
 
 function QueryMapEdit({ initialMap, forceUpdate, onMapChanged }) {
   const [inputMap, setInputMap] = useState(initialMap);
+  const [activeEntryGen, setActiveEntryGen] = useState(1); // For clearing up the active entry
 
   const handleFieldChange = useCallback((key, field, value) => {
     setInputMap((prevMap) => {
@@ -42,6 +44,11 @@ function QueryMapEdit({ initialMap, forceUpdate, onMapChanged }) {
     });
   }, [setInputMap]);
 
+  const appendField = useCallback((key, field, value) => {
+    handleFieldChange(key, field, value);
+    setActiveEntryGen((prevGen) => prevGen + 1);
+  }, [handleFieldChange]);
+
   useEffect(() => {
     onMapChanged(inputMap);
   }, [inputMap, onMapChanged]);
@@ -54,9 +61,12 @@ function QueryMapEdit({ initialMap, forceUpdate, onMapChanged }) {
 
   return (
     <div>
-      <FieldEditList inputMap={inputMap} handleFieldChange={handleFieldChange} />
+      <Paper variant="outlined">
+        <FieldEditList inputMap={inputMap} handleFieldChange={handleFieldChange} />
+      </Paper>
       <QueryFieldEdit
-        onFieldChanged={handleFieldChange}
+        key={`active_entry_${activeEntryGen}`}
+        onFieldChanged={appendField}
         appending
       />
     </div>
