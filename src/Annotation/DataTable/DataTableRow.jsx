@@ -164,6 +164,10 @@ function DataTableRow(props) {
       return value ? 'Y' : 'N';
     }
 
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+
     return value;
   };
 

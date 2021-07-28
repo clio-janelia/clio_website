@@ -8,6 +8,7 @@ import Select from '@material-ui/core/Select';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import StringListEdit from './StringListEdit';
 
 export default function DataCellEdit(props) {
   const {
@@ -28,6 +29,11 @@ export default function DataCellEdit(props) {
   const handleValueChange = (event) => handleInputChange(event, (target) => target.value);
 
   const handleChecked = (event) => handleInputChange(event, (target) => target.checked);
+
+  const handleListChange = (list) => {
+    setInputValue(list);
+    onValueChange(list);
+  };
 
   let widget = <div>{value || ''}</div>;
   switch (config.type) {
@@ -53,6 +59,14 @@ export default function DataCellEdit(props) {
           />
         );
       }
+      break;
+    case 'list':
+      widget = (
+        <StringListEdit
+          value={inputValue || []}
+          onChange={handleListChange}
+        />
+      );
       break;
     case 'select':
       widget = (
@@ -87,7 +101,9 @@ export default function DataCellEdit(props) {
 }
 
 DataCellEdit.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+  value: PropTypes.oneOfType(
+    [PropTypes.string, PropTypes.bool, PropTypes.arrayOf(PropTypes.string)],
+  ),
   onValueChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   config: PropTypes.shape({

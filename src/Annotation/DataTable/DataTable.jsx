@@ -150,6 +150,9 @@ export default function DataTable({
               if (typeof rowValue === 'number') {
                 rowValue = rowValue.toString();
               }
+              if (Array.isArray(rowValue)) {
+                rowValue = rowValue.join(', ');
+              }
               return (rowValue && rowValue.toLowerCase().includes(filterString));
             }
             return true;
