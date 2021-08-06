@@ -11,20 +11,55 @@ import {
   useStyles,
 } from './DataTableUtils';
 
+const sameValue = (a, b, defaultValue = undefined) => {
+  const v1 = a === undefined ? defaultValue : a;
+  const v2 = b === undefined ? defaultValue : b;
+
+  if (typeof v1 !== typeof v2) {
+    return false;
+  }
+
+  if ((v1 === v2)
+    || (JSON.stringify(v1) === JSON.stringify(v2))) {
+    return true;
+  }
+
+  return false;
+};
+
+const getDefaultValue = (columns, field, data) => {
+  const column = columns.find((c) => c.field === field);
+  if (column) {
+    if (column.defaultValue !== undefined) {
+      return column.defaultValue;
+    }
+
+    const editElement = column.getEditElement ? column.getEditElement(data) : column.editElement;
+
+    if (editElement) {
+      switch (editElement.type) {
+        case 'point':
+        case 'list':
+          return [];
+        case 'checkbox':
+          return false;
+        default:
+          return '';
+      }
+    }
+  }
+
+  return '';
+};
+
 export default function DataEdit(props) {
   const {
-    takeChange, cancelEdit, config, data,
+    takeChange, cancelEdit, config, defaultData,
   } = props;
 
   const classes = useStyles();
-  const dataForEditing = {};
-  config.columns.forEach((column) => {
-    if (column.editElement && data[column.field] !== undefined) {
-      dataForEditing[column.field] = data[column.field];
-    }
-  });
 
-  const [newData, setNewData] = React.useState(dataForEditing);
+  const [dataChange, setDataChange] = React.useState({});
 
   const isFieldValid = React.useCallback((field, value) => {
     let column = null;
@@ -43,13 +78,28 @@ export default function DataEdit(props) {
     return false;
   }, [config]);
 
-  const isNewDataValid = React.useCallback(() => (
-    Object.keys(newData).every((field) => isFieldValid(field, newData[field]))
-  ), [newData, isFieldValid]);
+  const isDataValid = React.useCallback(() => (
+    Object.keys(dataChange).every((field) => isFieldValid(field, dataChange[field]))
+  ), [dataChange, isFieldValid]);
 
-  const hasChanged = React.useCallback(() => (
-    Object.keys(newData).some((field) => dataForEditing[field] !== newData[field])
-  ), [newData, dataForEditing]);
+  const hasChanged = React.useCallback(() => {
+    console.debug(dataChange);
+    return Object.keys(dataChange).length > 0;
+  }, [dataChange]);
+
+  const handleValueChange = React.useCallback((field, value) => {
+    setDataChange((prevDataChange) => {
+      const newDataChange = { ...prevDataChange, [field]: value };
+      if (sameValue(
+        defaultData[field],
+        value,
+        getDefaultValue(config.columns, field, defaultData),
+      )) {
+        delete newDataChange[field];
+      }
+      return newDataChange;
+    });
+  }, [defaultData, config.columns]);
 
   const columnToCell = (column) => {
     if (column.cell) {
@@ -62,8 +112,8 @@ export default function DataEdit(props) {
           className={classes.tableRowIcon}
           key="DataEdit.Done"
           aria-label="ok"
-          disabled={!isNewDataValid() || !hasChanged()}
-          onClick={() => takeChange(newData)}
+          disabled={!isDataValid() || !hasChanged()}
+          onClick={() => takeChange(dataChange)}
         >
           <DoneIcon />
         </IconButton>,
@@ -82,18 +132,17 @@ export default function DataEdit(props) {
     if (column.editElement || column.getEditElement) {
       let { editElement } = column;
       if (column.getEditElement) {
-        editElement = column.getEditElement(data);
+        editElement = column.getEditElement(defaultData);
       }
       return (
         <TableCell key={column.field}>
           <DataCellEdit
+            field={column.field}
             config={editElement}
-            onValueChange={
-              (value) => {
-                setNewData({ ...newData, [column.field]: value });
-              }
+            onValueChange={handleValueChange}
+            value={
+              (column.field in dataChange) ? dataChange[column.field] : defaultData[column.field]
             }
-            value={(column.field in newData) ? newData[column.field] : data[column.field]}
             placeholder={column.placeholder}
           />
         </TableCell>
@@ -102,7 +151,7 @@ export default function DataEdit(props) {
 
     return (
       <TableCell key={column.field}>
-        {data[column.field]}
+        {defaultData[column.field]}
       </TableCell>
     );
   };
@@ -116,7 +165,7 @@ export default function DataEdit(props) {
 
 DataEdit.propTypes = {
   config: PropTypes.object.isRequired,
-  data: PropTypes.object.isRequired,
+  defaultData: PropTypes.object.isRequired,
   takeChange: PropTypes.func.isRequired,
   cancelEdit: PropTypes.func.isRequired,
 };

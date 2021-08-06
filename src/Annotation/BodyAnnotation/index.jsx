@@ -65,7 +65,25 @@ function BodyAnnotation({
     let locateAction = null;
     const { position, point, bodyid } = annotation;
     const predefinedPosition = position || point;
-    if (predefinedPosition) {
+
+    const updateAction = (change) => {
+      if (Object.keys(change).length > 0) {
+        const newAnnotation = {
+          ...change, bodyid,
+        };
+        if (change.position) {
+          newAnnotation.position_type = change.position.length > 0 ? 'user' : 'deleted';
+        }
+        updateBodyAnnotation(projectUrl, token, config.user, dataset, newAnnotation, (updated) => {
+          setAnnotations((prevAnnotations) => updateAnnotations(prevAnnotations, updated));
+        }).catch((error) => {
+          const message = `Failed to update annotation for ${bodyid}: ${error.message}.`;
+          actions.addAlert({ severity: 'warning', message });
+        });
+      }
+    };
+
+    if (predefinedPosition && predefinedPosition.length === 3) {
       locateAction = () => {
         actions.setViewerCameraPosition(predefinedPosition);
       };
@@ -81,18 +99,7 @@ function BodyAnnotation({
     return {
       id: bodyid,
       ...annotation,
-      updateAction: (change) => {
-        if (Object.keys(change).length > 0) {
-          updateBodyAnnotation(projectUrl, token, config.user, dataset, {
-            ...change, bodyid,
-          }, (newAnnotation) => {
-            setAnnotations((prevAnnotations) => updateAnnotations(prevAnnotations, newAnnotation));
-          }).catch((error) => {
-            const message = `Failed to update annotation for ${bodyid}: ${error.message}.`;
-            actions.addAlert({ severity: 'warning', message });
-          });
-        }
-      },
+      updateAction,
       locateAction,
     };
   });

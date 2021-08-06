@@ -100,6 +100,7 @@ function DataTableRow(props) {
   if (editing) {
     return (
       <DataEdit
+        key="DataEdit"
         config={{
           columns: [
             {
@@ -120,7 +121,7 @@ function DataTableRow(props) {
           ],
           validitingColumns: columns.collection,
         }}
-        data={row}
+        defaultData={row}
         cancelEdit={cancelEdit}
         takeChange={takeChange}
       />

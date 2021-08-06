@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import PropTypes from 'prop-types';
 import Input from '@material-ui/core/Input';
@@ -9,18 +9,25 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import StringListEdit from './StringListEdit';
+import PointEdit from './PointEdit';
 
 export default function DataCellEdit(props) {
   const {
-    value, placeholder, onValueChange, config,
+    field, value, placeholder, onValueChange, config,
   } = props;
-  const [inputValue, setInputValue] = React.useState(value);
+  const [inputValue, setInputValue] = useState(value);
+
+  useEffect(() => {
+    if (value !== inputValue) {
+      console.debug('DataCellEdit useEffect:', field, inputValue);
+      onValueChange(field, inputValue);
+    }
+  }, [field, value, inputValue, onValueChange]);
 
   const handleInputChange = (event, getTargetValue) => {
     if (event) {
       const targetValue = getTargetValue(event.target);
       setInputValue(targetValue);
-      onValueChange(targetValue);
     }
   };
 
@@ -29,11 +36,6 @@ export default function DataCellEdit(props) {
   const handleValueChange = (event) => handleInputChange(event, (target) => target.value);
 
   const handleChecked = (event) => handleInputChange(event, (target) => target.checked);
-
-  const handleListChange = (list) => {
-    setInputValue(list);
-    onValueChange(list);
-  };
 
   let widget = <div>{value || ''}</div>;
   switch (config.type) {
@@ -64,7 +66,7 @@ export default function DataCellEdit(props) {
       widget = (
         <StringListEdit
           value={inputValue || []}
-          onChange={handleListChange}
+          onChange={setInputValue}
         />
       );
       break;
@@ -93,6 +95,14 @@ export default function DataCellEdit(props) {
         />
       );
       break;
+    case 'point':
+      widget = (
+        <PointEdit
+          defaultValue={inputValue || []}
+          onValueChange={setInputValue}
+        />
+      );
+      break;
     default:
       break;
   }
@@ -101,8 +111,14 @@ export default function DataCellEdit(props) {
 }
 
 DataCellEdit.propTypes = {
+  field: PropTypes.string.isRequired,
   value: PropTypes.oneOfType(
-    [PropTypes.string, PropTypes.bool, PropTypes.arrayOf(PropTypes.string)],
+    [
+      PropTypes.string,
+      PropTypes.bool,
+      PropTypes.arrayOf(PropTypes.string),
+      PropTypes.arrayOf(PropTypes.number),
+    ],
   ),
   onValueChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
@@ -112,6 +128,6 @@ DataCellEdit.propTypes = {
 };
 
 DataCellEdit.defaultProps = {
-  value: null,
+  value: undefined,
   placeholder: '',
 };

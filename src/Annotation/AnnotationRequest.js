@@ -161,6 +161,7 @@ export async function pointToBodyAnnotation(
         const newAnnotation = {
           bodyid: label.Label,
           position: pos,
+          position_type: 'user',
         };
 
         let pointDescription = getAnnotationDescription(pointAnnotation);
