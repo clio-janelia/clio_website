@@ -21,7 +21,7 @@ const queryStringify = (json) => {
 
   let newJson = json;
   if (json.bodyid && typeof json.bodyid === 'string') {
-    newJson = { ...json, bodyid: json.bodyid.match(/\d+/g).map(Number) };
+    newJson = { ...json, bodyid: (json.bodyid.match(/\d+/g) || []).map((n) => parseInt(n, 10)) };
   }
 
   return JSON.stringify(

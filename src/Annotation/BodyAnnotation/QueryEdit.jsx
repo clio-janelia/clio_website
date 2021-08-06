@@ -12,7 +12,6 @@ function QueryEdit({
   defaultQueryString, onQueryStringChanged, initialMode, queryStringify,
 }) {
   const [queryString, setQueryString] = useState(defaultQueryString);
-  const [updatingMapEdit, setUpdatingMapEdit] = useState(false);
   const [mode, setMode] = useState(initialMode);
 
   useEffect(() => {
@@ -21,7 +20,6 @@ function QueryEdit({
 
   useEffect(() => {
     setQueryString(defaultQueryString);
-    setUpdatingMapEdit(true);
   }, [defaultQueryString]);
 
   let widget = (
@@ -30,7 +28,6 @@ function QueryEdit({
       value={queryString}
       onChange={(event) => {
         setQueryString(event.target.value);
-        setUpdatingMapEdit(true);
       }}
       multiline
       rows={3}
@@ -42,7 +39,6 @@ function QueryEdit({
   const handleQueryChangeFromMap = useCallback((query) => {
     if (query) {
       setQueryString(queryStringify(query));
-      setUpdatingMapEdit(false);
     }
   }, [setQueryString, queryStringify]);
 
@@ -55,8 +51,8 @@ function QueryEdit({
     }
     widget = (
       <QueryMapEdit
+        key={`QueryMapEdit.${queryStringify(initialMap)}`}
         initialMap={initialMap}
-        forceUpdate={updatingMapEdit}
         onMapChanged={handleQueryChangeFromMap}
         style={{ width: '100%' }}
       />

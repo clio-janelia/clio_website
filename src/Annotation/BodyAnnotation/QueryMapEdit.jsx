@@ -24,7 +24,7 @@ function FieldEditList({ inputMap, handleFieldChange }) {
   });
 }
 
-function QueryMapEdit({ initialMap, forceUpdate, onMapChanged }) {
+function QueryMapEdit({ initialMap, onMapChanged }) {
   const [inputMap, setInputMap] = useState(initialMap);
   const [activeEntryGen, setActiveEntryGen] = useState(1); // For clearing up the active entry
 
@@ -53,12 +53,6 @@ function QueryMapEdit({ initialMap, forceUpdate, onMapChanged }) {
     onMapChanged(inputMap);
   }, [inputMap, onMapChanged]);
 
-  useEffect(() => {
-    if (forceUpdate) {
-      setInputMap(initialMap);
-    }
-  }, [initialMap, forceUpdate]);
-
   return (
     <div>
       <Paper variant="outlined">
@@ -78,13 +72,11 @@ QueryMapEdit.propTypes = {
     PropTypes.object,
     PropTypes.string,
   ]),
-  forceUpdate: PropTypes.bool,
   onMapChanged: PropTypes.func.isRequired,
 };
 
 QueryMapEdit.defaultProps = {
   initialMap: null,
-  forceUpdate: false,
 };
 
 export default QueryMapEdit;
