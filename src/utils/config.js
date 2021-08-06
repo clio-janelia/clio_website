@@ -20,7 +20,7 @@ function makeDataset(baseDataset, version) {
       ...baseDataset,
       ...version,
       title: `${baseDataset.title}-${version.title}`,
-      name: `${baseDataset.key}-${version.version}`,
+      name: `${baseDataset.key}-${version.version || version.tag || version.title || ''}`,
     };
 
     if (version.neuroglancer) {
