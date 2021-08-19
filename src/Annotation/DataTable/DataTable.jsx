@@ -235,7 +235,7 @@ export default function DataTable({
 
   return (
     <div className={classes.dataTableRoot}>
-      {makeTableControl ? makeTableControl({ filteredRows, checkedSet }) : null}
+      {makeTableControl ? makeTableControl(filteredRows, checkedSet) : null}
       <TableContainer className={classes.container}>
         <Table stickyHeader className={classes.table} size="small" aria-label="simple table">
           <DataTableHead

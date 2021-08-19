@@ -35,15 +35,17 @@ export default function AnnotationPanel(props) {
     validChildren = Array.isArray(children) ? children.filter((child) => child) : [children];
   }
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-    const index = parseInt(newValue, 10);
-    if (config.layers[index]) {
-      actions.selectViewerLayer(config.layers[index].name);
-    } else {
-      actions.selectViewerLayer('');
+  const handleTabChange = React.useCallback((event, newValue) => {
+    if (tabValue !== newValue) {
+      setTabValue(newValue);
+      const index = parseInt(newValue, 10);
+      if (config.layers[index]) {
+        actions.selectViewerLayer(config.layers[index].name);
+      } else {
+        actions.selectViewerLayer('');
+      }
     }
-  };
+  }, [config.layers, actions, tabValue]);
 
   React.useEffect(() => {
     setTabValue('0');
