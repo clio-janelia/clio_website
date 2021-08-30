@@ -51,9 +51,11 @@ function stableSort(array, comparator) {
 }
 
 function CheckedSetControl({ checkedSet, uncheckAll, makeCheckedSetControl }) {
+  const classes = useStyles();
+
   if (checkedSet.size) {
     return (
-      <div>
+      <div className={classes.controlRow}>
         {`☑ ⨉ ${checkedSet.size}`}
         <Tooltip title="Uncheck all">
           <IconButton onClick={uncheckAll}><ClearIcon /></IconButton>

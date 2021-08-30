@@ -448,9 +448,6 @@ function AnnotationTable(props) {
           onToolChanged={handleToolChange}
         />
       ) : null}
-      {/* {dataConfig.bodyAnnotation ? (
-        <BodyAnnotationTable config={dataConfig.bodyAnnotation} />
-      ) : null} */}
     </div>
   );
 }

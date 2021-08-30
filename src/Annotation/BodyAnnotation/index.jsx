@@ -35,7 +35,7 @@ function BodyAnnotation({
   const [loading, setLoading] = useState(false);
 
   const mergeableLayer = getMergeableLayerFromDataset(dataset);
-  // const mergeableLayerName = mergeableLayer && mergeableLayer.name;
+  const mergeableLayerName = mergeableLayer && mergeableLayer.name;
   /*
   const segmentationLayer = useSelector(
     (state) => getLayerFromState(state, mergeableLayerName),
@@ -61,7 +61,7 @@ function BodyAnnotation({
     return newAnnotations;
   };
 
-  const rows = annotations.map((annotation) => {
+  const rows = React.useMemo(() => annotations.map((annotation) => {
     let locateAction = null;
     const { position, point, bodyid } = annotation;
     const predefinedPosition = position || point;
@@ -102,7 +102,7 @@ function BodyAnnotation({
       updateAction,
       locateAction,
     };
-  });
+  }), [annotations, actions, config.user, dataset, locateServiceUrl, projectUrl, token]);
 
   useEffect(() => {
     if (query && Object.keys(query).length > 0) {
@@ -126,6 +126,16 @@ function BodyAnnotation({
     actions.setViewerSegments(ids);
   }, [actions]);
 
+  const setBodyColor = React.useCallback((ids, color) => {
+    if (ids.length > 0) {
+      const segmentColors = ids.reduce((acc, id) => {
+        acc[id] = color;
+        return acc;
+      }, {});
+      actions.setViewerSegmentColors({ layerName: mergeableLayerName, segmentColors, mode: 'append' });
+    }
+  }, [actions, mergeableLayerName]);
+
   return (
     <div className={classes.annotationRoot}>
       <BodyAnnotationQuery
@@ -140,6 +150,7 @@ function BodyAnnotation({
         data={rows}
         dataConfig={config.dataConfig}
         showBodies={showBodies}
+        setBodyColor={setBodyColor}
       />
     </div>
   );

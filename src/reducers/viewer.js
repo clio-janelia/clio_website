@@ -196,8 +196,15 @@ export default function viewerReducer(state = viewerState, action) {
     }
     case C.SET_VIEWER_SEGMENT_COLORS: {
       const layerName = action.payload.layerName || 'segmentation';
-      const segmentColors = action.payload.segmentColors || action.payload;
-      return setInLayerArray(syncedState(state), layerName, ['segmentColors'], segmentColors);
+      let segmentColors = action.payload.segmentColors || action.payload;
+      const currentState = syncedState(state);
+      if (action.payload.mode === 'append') {
+        const currentSegmentColors = getInLayerArray(currentState, layerName, ['segmentColors']);
+        if (currentSegmentColors) {
+          segmentColors = { ...currentSegmentColors, ...segmentColors };
+        }
+      }
+      return setInLayerArray(currentState, layerName, ['segmentColors'], segmentColors);
     }
     case C.SET_VIEWER_SEGMENT_EQUIVALENCES: {
       const layerName = action.payload.layerName || 'segmentation';

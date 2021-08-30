@@ -1,10 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-// import IconButton from '@material-ui/core/IconButton';
-// import Tooltip from '@material-ui/core/Tooltip';
-// import HighlightIcon from '@material-ui/icons/HighlightOutlined';
 import DataFieldControl from '../DataTable/DataFieldControl';
-import HighlightBodyControl from './HighlightBodyControl';
+import BodyListControl from './BodyListControl';
 import {
   getSortedFieldArray,
   sortColumns,
@@ -12,7 +9,7 @@ import {
 } from '../DataTable/DataTableUtils';
 
 export default function BodyAnnotationTableControl({
-  rows, columns, setColumns, showBodies,
+  rows, columns, setColumns, showBodies, setBodyColor,
 }) {
   const classes = useStyles();
 
@@ -30,6 +27,8 @@ export default function BodyAnnotationTableControl({
     />
   ) : null;
 
+  const getBodies = React.useCallback(() => rows.map((row) => row.bodyid), [rows]);
+
   if (!fieldControl && !showBodies) {
     return null;
   }
@@ -37,10 +36,11 @@ export default function BodyAnnotationTableControl({
   return (
     <div className={classes.controlRow}>
       {fieldControl}
-      <HighlightBodyControl
-        title="Highlight listed bodies in the viewer"
-        showBodies={showBodies}
-        getBodies={() => rows.map((row) => row.bodyid)}
+      <BodyListControl
+        sourceString="listed bodies"
+        highlightBodies={showBodies}
+        getBodies={getBodies}
+        setBodyColor={setBodyColor}
       />
     </div>
   );
@@ -51,8 +51,10 @@ BodyAnnotationTableControl.propTypes = {
   columns: PropTypes.object.isRequired,
   setColumns: PropTypes.func.isRequired,
   showBodies: PropTypes.func,
+  setBodyColor: PropTypes.func,
 };
 
 BodyAnnotationTableControl.defaultProps = {
   showBodies: null,
+  setBodyColor: null,
 };
