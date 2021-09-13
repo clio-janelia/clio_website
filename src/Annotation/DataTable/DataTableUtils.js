@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 
-export const useStyles = makeStyles(() => (
+export const useStyles = makeStyles((theme) => (
   {
     dataTableRoot: {
       width: '100%',
@@ -34,6 +34,10 @@ export const useStyles = makeStyles(() => (
       justifyContent: 'left',
       minHeight: '0px',
       alignItems: 'center',
+    },
+    primaryLight: {
+      backgroundColor: theme.palette.primary.light,
+      width: '100%',
     },
   }
 ));

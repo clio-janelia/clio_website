@@ -7,6 +7,7 @@ import {
   getMergeableLayerFromDataset,
   getLocateServiceUrl,
 } from '../../utils/neuroglancer';
+import BodyViewControl from './BodyViewControl';
 import BodyAnnotationTable from './BodyAnnotationTable';
 import BodyAnnotationQuery from './BodyAnnotationQuery';
 import {
@@ -136,8 +137,20 @@ function BodyAnnotation({
     }
   }, [actions, mergeableLayerName]);
 
+  const resetBodySelection = React.useCallback(() => {
+    actions.setViewerSegments([]);
+  }, [actions]);
+
+  const resetBodyColor = React.useCallback(() => {
+    actions.setViewerSegmentColors({ layerName: mergeableLayerName, segmentColors: {}, mode: 'replace' });
+  }, [actions, mergeableLayerName]);
+
   return (
     <div className={classes.annotationRoot}>
+      <BodyViewControl
+        resetBodySelection={resetBodySelection}
+        resetBodyColor={resetBodyColor}
+      />
       <BodyAnnotationQuery
         defaultQuery={query}
         onQueryChanged={onQueryChanged}
