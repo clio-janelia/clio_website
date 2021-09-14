@@ -84,6 +84,7 @@ export default function DataTable({
   selectedId,
   getId,
   getLocateIcon,
+  localize,
   makeHeaderRow,
   makeTableControl,
   makeCheckedSetControl,
@@ -219,6 +220,7 @@ export default function DataTable({
         row={row}
         selected={rowId === selectedId}
         getLocateIcon={getLocateIcon}
+        localize={localize}
         rowChecked={checkedSet.has(rowId)}
         onRowChecked={(checked) => {
           setCheckedSet((prevCheckedSet) => {
@@ -285,6 +287,7 @@ DataTable.propTypes = {
   getId: PropTypes.func.isRequired, // Get id for row
   selectedId: PropTypes.string, // Selected ID
   getLocateIcon: PropTypes.func,
+  localize: PropTypes.func,
   makeHeaderRow: PropTypes.func,
   makeTableControl: PropTypes.func,
   makeCheckedSetControl: PropTypes.func,
@@ -293,6 +296,7 @@ DataTable.propTypes = {
 DataTable.defaultProps = {
   selectedId: null,
   getLocateIcon: null,
+  localize: null,
   makeHeaderRow: null,
   makeTableControl: null,
   makeCheckedSetControl: null,

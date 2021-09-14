@@ -5,7 +5,7 @@ import BodyAnnotationTableControl from './BodyAnnotationTableControl';
 import BodyListControl from './BodyListControl';
 
 function BodyAnnotationTable({
-  data, dataConfig, showBodies, setBodyColor,
+  data, dataConfig, showBodies, setBodyColor, localize,
 }) {
   const [columns, setColumns] = useState(dataConfig.columns);
 
@@ -35,6 +35,7 @@ function BodyAnnotationTable({
       getId={React.useCallback((row) => row.bodyid, [])}
       makeTableControl={makeTableControl}
       makeCheckedSetControl={makeCheckedSetControl}
+      localize={localize}
     />
   );
 }
@@ -44,11 +45,13 @@ BodyAnnotationTable.propTypes = {
   dataConfig: PropTypes.object.isRequired,
   showBodies: PropTypes.func,
   setBodyColor: PropTypes.func,
+  localize: PropTypes.func,
 };
 
 BodyAnnotationTable.defaultProps = {
   showBodies: null,
   setBodyColor: null,
+  localize: null,
 };
 
 export default BodyAnnotationTable;

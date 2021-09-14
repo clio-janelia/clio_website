@@ -145,6 +145,10 @@ function BodyAnnotation({
     actions.setViewerSegmentColors({ layerName: mergeableLayerName, segmentColors: {}, mode: 'replace' });
   }, [actions, mergeableLayerName]);
 
+  const localize = React.useCallback((pos) => {
+    actions.setViewerCameraPosition(pos);
+  }, [actions]);
+
   return (
     <div className={classes.annotationRoot}>
       <BodyViewControl
@@ -164,6 +168,7 @@ function BodyAnnotation({
         dataConfig={config.dataConfig}
         showBodies={showBodies}
         setBodyColor={setBodyColor}
+        localize={localize}
       />
     </div>
   );

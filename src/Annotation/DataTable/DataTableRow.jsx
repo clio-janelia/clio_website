@@ -8,10 +8,10 @@ import DeleteIcon from '@material-ui/icons/DeleteOutlined';
 import EditIcon from '@material-ui/icons/EditOutlined';
 import LocateIcon from '@material-ui/icons/RoomOutlined';
 import LocateIconSelected from '@material-ui/icons/Room';
-import ReportProblemIcon from '@material-ui/icons/ReportProblem';
 import Tooltip from '@material-ui/core/Tooltip';
 import Checkbox from '@material-ui/core/Checkbox';
 import DataEdit from './DataEdit';
+import DataCell from './DataCell';
 import {
   getVisibleColumns,
   getColumnSetting,
@@ -23,7 +23,7 @@ import {
 function DataTableRow(props) {
   const classes = useStyles();
   const {
-    columns, row, selected, getLocateIcon, rowChecked, onRowChecked,
+    columns, row, selected, getLocateIcon, localize, rowChecked, onRowChecked,
   } = props;
 
   const allColumnFields = getColumnFields(columns);
@@ -144,34 +144,6 @@ function DataTableRow(props) {
     </Tooltip>
   );
 
-  const getCellElement = (column) => {
-    const value = row[column.field];
-    if (column.checkValidity) {
-      let errorHint = '';
-      if (!column.checkValidity(value, (error) => {
-        errorHint = error;
-      })) {
-        return (
-          <Tooltip title={errorHint} style={{ color: 'orange' }}>
-            <IconButton onClick={handleEditClicked}>
-              <ReportProblemIcon />
-            </IconButton>
-          </Tooltip>
-        );
-      }
-    }
-
-    if (typeof value === 'boolean') {
-      return value ? 'Y' : 'N';
-    }
-
-    if (Array.isArray(value)) {
-      return value.join(', ');
-    }
-
-    return value;
-  };
-
   return (
     <TableRow>
       <TableCell
@@ -193,7 +165,12 @@ function DataTableRow(props) {
           scope="row"
           style={column.style}
         >
-          {getCellElement(column)}
+          <DataCell
+            column={column}
+            value={row[column.field]}
+            onErrorClick={handleEditClicked}
+            localize={localize}
+          />
         </TableCell>
       ))}
     </TableRow>
@@ -205,6 +182,7 @@ DataTableRow.propTypes = {
   row: PropTypes.object.isRequired, // Row data with a shape specified in column settings
   selected: PropTypes.bool,
   getLocateIcon: PropTypes.func,
+  localize: PropTypes.func,
   rowChecked: PropTypes.bool,
   onRowChecked: PropTypes.func,
 };
@@ -212,6 +190,7 @@ DataTableRow.propTypes = {
 DataTableRow.defaultProps = {
   selected: false,
   getLocateIcon: undefined,
+  localize: undefined,
   rowChecked: false,
   onRowChecked: undefined,
 };
