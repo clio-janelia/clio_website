@@ -67,9 +67,8 @@ export default function Help() {
             reuse pre-trained classifiers to facilitate &quot;first pass&quot; analysis of the
             dataset. The motivation is that Clio can allow users to form initial hypotheses in the
             dataset and then follow those insights with more rigor. For users familiar with the EM
-            connectomics and the <a href="https://neuprint.janelia.org">neuprint</a>
-            ecosystem, Clio can be considered as a complementary, lower-level entry point into EM
-            data.
+            connectomics and the <a href="https://neuprint.janelia.org">neuprint</a> ecosystem,
+            Clio can be considered as a complementary, lower-level entry point into EM data.
           </Typography>
           <Typography variant="h3" gutterBottom>
             Clio web application
