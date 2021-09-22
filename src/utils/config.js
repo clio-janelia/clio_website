@@ -60,12 +60,38 @@ function expandDataset(key, dataset) {
   return [baseDataset];
 }
 
+function fixLayers(layers) {
+  return layers.map((layer) => {
+    if (layer.shader) {
+      return {
+        ...layer,
+        shader: layer.shader.replaceAll('\\n', '\n').replaceAll('\\"', '"'),
+      };
+    }
+    return layer;
+  });
+}
+
+
+function fixDataset(dataset) {
+  const newDataset = { ...dataset };
+  if (newDataset.layers) {
+    newDataset.layers = fixLayers(newDataset.layers);
+  }
+  if (newDataset.neuroglancer && newDataset.neuroglancer.layers) {
+    newDataset.neuroglancer.layers = fixLayers(newDataset.neuroglancer.layers);
+  }
+
+  return newDataset;
+}
+
 export function expandDatasets(datasets) {
   let expanded = [];
   Object.keys(datasets).forEach((key) => {
     expanded = [...expanded, ...expandDataset(key, datasets[key])];
   });
-  return expanded;
+
+  return expanded.map((dataset) => fixDataset(dataset));
 }
 
 export function getDataset(datasets, key, version) {
