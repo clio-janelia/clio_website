@@ -366,9 +366,14 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           <Button
             color="primary"
             onClick={
-              () => setSidebarWidth(
-                (sidebarWidth === SIDEBAR_WIDTH_PX) ? SIDEBAR_EXPANDED_WIDTH_PX : SIDEBAR_WIDTH_PX,
-              )
+              () => {
+                actions.syncViewer();
+                setSidebarWidth(
+                  (sidebarWidth === SIDEBAR_WIDTH_PX)
+                    ? SIDEBAR_EXPANDED_WIDTH_PX
+                    : SIDEBAR_WIDTH_PX,
+                );
+              }
             }
           >
             { (sidebarWidth === SIDEBAR_WIDTH_PX) ? '<-- Wider -->' : '--> Narrower <--' }
