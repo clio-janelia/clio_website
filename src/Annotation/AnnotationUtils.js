@@ -9,6 +9,7 @@ import SphereLocateIconSelected from '@material-ui/icons/Nature';
 import { green } from '@material-ui/core/colors';
 
 import { hasMergeableLayer } from '../utils/neuroglancer';
+import { setSyncStateNeeded } from '../reducers/viewer';
 
 const KIND_MAP = {
   0: 'point',
@@ -535,6 +536,7 @@ export function getRowItemFromAnnotation(annotation, config) {
     item = {
       ...item,
       locateAction: () => {
+        setSyncStateNeeded(true);
         locate(layerName, id, pos);
       },
     };

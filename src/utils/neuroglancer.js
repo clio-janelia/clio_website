@@ -119,6 +119,7 @@ export function makeViewOptionsFromDataset(dataset, customOptions) {
   delete predefined.selectedLayer;
 
   return {
+    title: dataset.name,
     showSlices: true, // Show slices in the 3D view by default
     ...predefined,
     dimensions,
@@ -268,6 +269,23 @@ export function getLocateServiceUrl(sourceUrl, user) {
     const dvidConfig = parseDvidSource(sourceUrl);
     if (dvidConfig) {
       return `${defaultLocateService}?dvid=${dvidConfig.protocol}://${dvidConfig.host}&uuid=${dvidConfig.uuid}&${(user ? `&u=${user}` : '')}`;
+    }
+  }
+
+  return null;
+}
+
+export function saveViewerState(name, state) {
+  window.sessionStorage.setItem(name, JSON.stringify(state));
+}
+
+export function retrieveViewerState(name) {
+  const stateStr = window.sessionStorage.getItem(name);
+  if (stateStr) {
+    try {
+      return JSON.parse(stateStr);
+    } catch (_) {
+      return null;
     }
   }
 

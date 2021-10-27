@@ -9,10 +9,12 @@ import Input from '@material-ui/core/Input';
 import Checkbox from '@material-ui/core/Checkbox';
 // import { useTheme } from '@material-ui/styles';
 
-function AnnotationUserGroup({ groups, selectedGroups, onChange }) {
+function AnnotationUserGroup({ groups, getSelectedGroups, onChange }) {
   const handleChange = (event) => {
     onChange(event.target.value);
   };
+
+  const selectedGroups = getSelectedGroups();
 
   return (
     <div>
@@ -41,7 +43,7 @@ function AnnotationUserGroup({ groups, selectedGroups, onChange }) {
 
 AnnotationUserGroup.propTypes = {
   groups: PropTypes.arrayOf(PropTypes.string).isRequired,
-  selectedGroups: PropTypes.arrayOf(PropTypes.string).isRequired,
+  getSelectedGroups: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
 };
 

@@ -123,6 +123,37 @@ const getInLayerArray = (state, layerName, propPathArray) => {
   return state.getIn(['ngState', 'layers', i, ...propPathArray]);
 };
 
+function isEquivalenceChanged(equivalences, currentEquivalences) {
+  if (equivalences.length === 0 || currentEquivalences.length === 0) {
+    return equivalences.length !== currentEquivalences.length;
+  }
+
+  const edgeCount1 = equivalences.reduce((result, a) => result + a.length - 1, 0);
+  const edgeCount2 = currentEquivalences.reduce((result, a) => result + a.length - 1, 0);
+  if (edgeCount1 !== edgeCount2) {
+    return true;
+  }
+
+  // Assumptions:
+  //   1. Components in equivalences are isolated
+  //   2. currentEquivalences only contains non-redundant pairwise equivalences
+  return !currentEquivalences.every(
+    (pair) => equivalences.some(
+      (group) => group.includes(parseInt(pair[0], 10)) && group.includes(parseInt(pair[1], 10)),
+    ),
+  );
+}
+
+function isSegmentColorChanged(segmentColors, currentSegmentColors) {
+  if (Object.keys(segmentColors).length === Object.keys(currentSegmentColors).length) {
+    return Object.keys(segmentColors).some(
+      (key) => segmentColors[key] !== currentSegmentColors[key],
+    );
+  }
+
+  return true;
+}
+
 export default function viewerReducer(state = viewerState, action) {
   switch (action.type) {
     case C.VIEWER_RESET: {
@@ -198,18 +229,24 @@ export default function viewerReducer(state = viewerState, action) {
       const layerName = action.payload.layerName || 'segmentation';
       let segmentColors = action.payload.segmentColors || action.payload;
       const currentState = syncedState(state);
-      if (action.payload.mode === 'append') {
-        const currentSegmentColors = getInLayerArray(currentState, layerName, ['segmentColors']);
-        if (currentSegmentColors) {
-          segmentColors = { ...currentSegmentColors, ...segmentColors };
+      const currentSegmentColors = getInLayerArray(currentState, layerName, ['segmentColors']);
+      if (isSegmentColorChanged(segmentColors || {}, currentSegmentColors || {})) {
+        if (action.payload.mode === 'append') {
+          if (currentSegmentColors) {
+            segmentColors = { ...currentSegmentColors, ...segmentColors };
+          }
         }
+        return setInLayerArray(currentState, layerName, ['segmentColors'], segmentColors);
       }
-      return setInLayerArray(currentState, layerName, ['segmentColors'], segmentColors);
+      return state;
     }
     case C.SET_VIEWER_SEGMENT_EQUIVALENCES: {
       const layerName = action.payload.layerName || 'segmentation';
       const equivalences = action.payload.equivalences || action.payload;
-      return setInLayerArray(syncedState(state), layerName, ['equivalences'], equivalences);
+      const currentState = syncedState(state);
+      const currentEquivalences = getInLayerArray(currentState, layerName, ['equivalences']);
+      const changed = isEquivalenceChanged(equivalences || [], currentEquivalences || []);
+      return changed ? setInLayerArray(currentState, layerName, ['equivalences'], equivalences) : state;
     }
     case C.SET_VIEWER_CROSS_SECTION_SCALE: {
       return (syncedState(state).setIn(['ngState', 'crossSectionScale'], action.payload));

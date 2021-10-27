@@ -69,6 +69,7 @@ function AnnotationTable(props) {
   const [data, setData] = React.useState({});
   const [selectedAnnotation, setSelectedAnnotation] = useState(null);
   const [columns, setColumns] = useState(dataConfig.columns);
+  // const isInitialMount = useRef(true);
 
   const sourceUrl = useSelector((state) => {
     const layer = getLayerFromState(state, layerName);
@@ -94,10 +95,12 @@ function AnnotationTable(props) {
     [sourceUrl],
   );
 
+  /*
   useEffect(() => {
     const groups = getSelectedGroups();
     setSelectedGroups(groups);
   }, [getSelectedGroups, setSelectedGroups]);
+  */
 
   const locate = React.useCallback((targetLayerName, id, pos) => {
     actions.setViewerAnnotationSelection({
@@ -324,8 +327,8 @@ function AnnotationTable(props) {
     ? (
       <AnnotationUserGroup
         groups={groups}
-        selectedGroups={getSelectedGroups()}
-        onChange={(value) => { setSelectedGroups(value); }}
+        getSelectedGroups={getSelectedGroups}
+        onChange={setSelectedGroups}
       />
     ) : null;
 

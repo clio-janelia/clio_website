@@ -9,10 +9,13 @@ import PropTypes from 'prop-types';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getNeuroglancerColor } from '@janelia-flyem/react-neuroglancer';
 import activeElementNeedsKeypress from './utils/events';
+import debounce from './utils/debounce';
 import {
   makeLayersFromDataset,
   hasMergeableLayer,
   makeViewOptionsFromDataset,
+  retrieveViewerState,
+  saveViewerState,
 } from './utils/neuroglancer';
 import AnnotationPanel from './Annotation/AnnotationPanel';
 import {
@@ -111,37 +114,40 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
   useEffect(() => {
     if (dataset && user) {
-      const layers = [
-        ...makeLayersFromDataset(dataset, false),
-        {
-          name: 'annotations',
-          type: 'annotation',
-          source: {
-            url: getAnnotationUrl(false),
+      let viewerOptions = retrieveViewerState(dataset.name);
+      if (viewerOptions === null) {
+        const layers = [
+          ...makeLayersFromDataset(dataset, false),
+          {
+            name: 'annotations',
+            type: 'annotation',
+            source: {
+              url: getAnnotationUrl(false),
+            },
+            shader: ANNOTATION_SHADER,
+            tool: 'annotatePoint',
           },
-          shader: ANNOTATION_SHADER,
-          tool: 'annotatePoint',
-        },
-        {
-          name: 'atlas',
-          type: 'annotation',
-          source: {
-            url: getAnnotationUrl(true),
+          {
+            name: 'atlas',
+            type: 'annotation',
+            source: {
+              url: getAnnotationUrl(true),
+            },
+            shader: ATLAS_SHADER,
+            tool: 'annotatePoint',
           },
-          shader: ATLAS_SHADER,
-          tool: 'annotatePoint',
-        },
-      ];
+        ];
 
-      const viewerOptions = makeViewOptionsFromDataset(
-        dataset,
-        {
-          layers,
-          selectedLayer: {
-            layer: 'annotations',
+        viewerOptions = makeViewOptionsFromDataset(
+          dataset,
+          {
+            layers,
+            selectedLayer: {
+              layer: 'annotations',
+            },
           },
-        },
-      );
+        );
+      }
 
       actions.initViewer(viewerOptions);
     }
@@ -160,7 +166,13 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     if (dataset && user) {
       const token = user.getAuthResponse().id_token;
       const backend = new MergeBackendCloud(dataset, projectUrl, token, actions.addAlert);
-      mergeManager.current.init(actions, getNeuroglancerColor, backend, neuPrintManager.current);
+      // FIXME: needs a better solution of avoiding race conditions while updating body states.
+      // The delayed update is a temporary workaround.
+      setTimeout(() => {
+        mergeManager.current.init(
+          actions, getNeuroglancerColor, backend, neuPrintManager.current,
+        );
+      }, 3000);
     }
   }, [actions, dataset, projectUrl, mergeManager, user]);
 
@@ -185,10 +197,17 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       handler();
     });
   };
+  const onViewerStateChanged = React.useCallback(debounce((state) => {
+    saveViewerState(dataset.name, state);
+  }, 250, false), [dataset]);
 
   // Add `onVisibleChanged` to the props of the child, which is a react-neuroglancer viewer.
   const childrenWithMoreProps = React.Children.map(children, (child) => (
-    React.cloneElement(child, { onVisibleChanged, onSelectionDetailsStateChanged }, null)
+    React.cloneElement(child, {
+      onVisibleChanged,
+      onSelectionDetailsStateChanged,
+      onViewerStateChanged,
+    }, null)
   ));
 
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
