@@ -198,8 +198,10 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     });
   };
   const onViewerStateChanged = React.useCallback(debounce((state) => {
-    saveViewerState(dataset.name, state);
-  }, 250, false), [dataset]);
+    if (state.title) {
+      saveViewerState(state.title, state);
+    }
+  }, 250, false), []);
 
   // Add `onVisibleChanged` to the props of the child, which is a react-neuroglancer viewer.
   const childrenWithMoreProps = React.Children.map(children, (child) => (
