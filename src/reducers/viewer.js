@@ -238,7 +238,7 @@ export default function viewerReducer(state = viewerState, action) {
         }
         return setInLayerArray(currentState, layerName, ['segmentColors'], segmentColors);
       }
-      return state;
+      return currentState;
     }
     case C.SET_VIEWER_SEGMENT_EQUIVALENCES: {
       const layerName = action.payload.layerName || 'segmentation';
@@ -246,7 +246,7 @@ export default function viewerReducer(state = viewerState, action) {
       const currentState = syncedState(state);
       const currentEquivalences = getInLayerArray(currentState, layerName, ['equivalences']);
       const changed = isEquivalenceChanged(equivalences || [], currentEquivalences || []);
-      return changed ? setInLayerArray(currentState, layerName, ['equivalences'], equivalences) : state;
+      return changed ? setInLayerArray(currentState, layerName, ['equivalences'], equivalences) : currentState;
     }
     case C.SET_VIEWER_CROSS_SECTION_SCALE: {
       return (syncedState(state).setIn(['ngState', 'crossSectionScale'], action.payload));
