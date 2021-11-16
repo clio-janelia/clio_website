@@ -168,12 +168,14 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       const backend = new MergeBackendCloud(dataset, projectUrl, token, actions.addAlert);
       // FIXME: needs a better solution of avoiding race conditions while updating body states.
       // The delayed update is a temporary workaround.
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         mergeManager.current.init(
           actions, getNeuroglancerColor, backend, neuPrintManager.current,
         );
       }, 3000);
+      return () => clearTimeout(timeout);
     }
+    return () => {};
   }, [actions, dataset, projectUrl, mergeManager, user]);
 
   const onKeyPress = (event) => {

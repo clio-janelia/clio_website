@@ -123,7 +123,7 @@ export function makeViewOptionsFromDataset(dataset, customOptions) {
     showSlices: true, // Show slices in the 3D view by default
     ...predefined,
     dimensions,
-    position: dataset.position || [],
+    position: predefined.position || dataset.position || [],
     crossSectionScale: predefined.crossSectionScale || null,
     projectionScale: predefined.projectionScale || null,
     projectionOrientation: predefined.projectionOrientation || [
@@ -283,7 +283,12 @@ export function retrieveViewerState(name) {
   const stateStr = window.sessionStorage.getItem(name);
   if (stateStr) {
     try {
-      return JSON.parse(stateStr);
+      const state = JSON.parse(stateStr);
+      if (state.crossSectionOrientation === undefined) {
+        // Make sure crossSectionOrientation is defined to override the previous value
+        state.crossSectionOrientation = null;
+      }
+      return state;
     } catch (_) {
       return null;
     }
