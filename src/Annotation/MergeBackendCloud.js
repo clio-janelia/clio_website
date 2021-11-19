@@ -1,16 +1,18 @@
 export default class MergeBackendCloud {
-  constructor(dataset, projectUrl, token, addAlert) {
+  constructor(dataset, projectUrl, user, addAlert) {
     this.dataset = dataset;
     this.projectUrl = projectUrl;
-    this.token = token;
+    this.user = user;
     this.addAlert = addAlert;
   }
+
+  getToken = () => this.user.getAuthResponse().id_token;
 
   store = (mainToOthers, otherToMain) => {
     const options = {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${this.getToken()}`,
       },
     };
     options.body = JSON.stringify(mainToOthers);
@@ -43,7 +45,7 @@ export default class MergeBackendCloud {
 
     const options = {
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${this.getToken()}`,
       },
     };
     let url = this.urlMainToOthers();
@@ -87,7 +89,7 @@ export default class MergeBackendCloud {
     const options = {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${this.getToken()}`,
         'Content-Type': 'application/json',
       },
     };

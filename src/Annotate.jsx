@@ -164,8 +164,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const mergeManager = React.useRef(new MergeManager());
   useEffect(() => {
     if (dataset && user) {
-      const token = user.getAuthResponse().id_token;
-      const backend = new MergeBackendCloud(dataset, projectUrl, token, actions.addAlert);
+      const backend = new MergeBackendCloud(dataset, projectUrl, user, actions.addAlert);
       // FIXME: needs a better solution of avoiding race conditions while updating body states.
       // The delayed update is a temporary workaround.
       const timeout = setTimeout(() => {
