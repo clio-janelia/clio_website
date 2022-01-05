@@ -25,6 +25,7 @@ import {
   getSortedFieldArray,
   sortColumns,
   useStyles,
+  getColumnFields,
 } from './DataTable/DataTableUtils';
 import DataFieldControl from './DataTable/DataFieldControl';
 import DataTable from './DataTable/DataTable';
@@ -95,13 +96,6 @@ function AnnotationTable(props) {
     [sourceUrl],
   );
 
-  /*
-  useEffect(() => {
-    const groups = getSelectedGroups();
-    setSelectedGroups(groups);
-  }, [getSelectedGroups, setSelectedGroups]);
-  */
-
   const locate = React.useCallback((targetLayerName, id, pos) => {
     actions.setViewerAnnotationSelection({
       layerName: targetLayerName,
@@ -140,14 +134,6 @@ function AnnotationTable(props) {
           }
         }
       },
-      /*
-      setChecked: (id, on) => {
-        setData({
-          ...data,
-          rows: data.rows.map((row) => ((row.id === id) ? { ...row, isChecked: on } : row)),
-        });
-      },
-      */
     }), [layerName, user, locate],
   );
 
@@ -310,10 +296,13 @@ function AnnotationTable(props) {
             />
           ) : null}
           {dataConfig.allowingExport ? (
-            <ExportAnnotation
-              kind={dataConfig.kind}
-              getData={() => getAnnotations(filteredRows)}
-            />
+            <>
+              <ExportAnnotation
+                kind={dataConfig.kind}
+                getData={() => getAnnotations(filteredRows)}
+                fields={getColumnFields(dataConfig.columns)}
+              />
+            </>
           ) : null}
         </Box>
       </TableCell>

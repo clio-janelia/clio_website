@@ -486,9 +486,14 @@ function getAnnotationTimestamp(annotation) {
 
 function getRowItemWithoutAction(annotation) {
   const { id } = annotation;
-  const pos = getAnnotationPos(annotation);
+  const pos = annotation.pos || getAnnotationPos(annotation);
   const prop = {
-    comment: '', type: '', title: '', ...annotation.prop, ...annotation.ext,
+    comment: annotation.description || '',
+    type: '',
+    title: annotation.title || '',
+    user: annotation.user,
+    ...annotation.prop,
+    ...annotation.ext,
   };
   if (prop.description) {
     prop.comment = prop.description;
@@ -572,6 +577,32 @@ export function isValidAnnotation(annotation, dataConfig) {
   };
 
   return Object.keys(item).every((field) => isFieldValid(field, item[field]));
+}
+
+function stringifyCsvCell(cell) {
+  if (cell === null || cell === undefined) {
+    return '';
+  }
+
+  const str = (typeof cell === 'string') ? cell : JSON.stringify(cell);
+  if (str.includes(',') || str.includes('"')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+
+  return str;
+}
+
+export function annotationToCsv(annotations, fields) {
+  const csv = [];
+  if (fields && fields.length > 0) {
+    csv.push(fields);
+    annotations.forEach((annotation) => {
+      const item = getRowItemWithoutAction(annotation);
+      csv.push(fields.map((field) => item[field]));
+    });
+  }
+
+  return csv.length > 0 ? csv.map((row) => row.map(stringifyCsvCell).join(',')).join('\n') : '';
 }
 
 function getAnnotationFormat(entry) {
