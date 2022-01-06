@@ -10,7 +10,15 @@ function FieldEditList({ inputMap, handleFieldChange }) {
 
   return inputMap && Object.keys(inputMap).map((key) => {
     let value = inputMap[key];
-    if (Array.isArray(value) || typeof value === 'number') {
+    if (typeof value === 'string') {
+      try {
+        // Quote parsible string to keep string type
+        JSON.parse(value);
+        value = `'${value}'`;
+      /* eslint-disable-next-line no-empty */
+      } catch (e) {
+      }
+    } else {
       value = JSON.stringify(value);
     }
     return (
@@ -38,7 +46,21 @@ function QueryMapEdit({ initialMap, onMapChanged }) {
         delete newMap[key];
       }
       if (field) {
-        newMap[field] = value;
+        let newValue = value;
+
+        try {
+          const re = /^\s*'(.*)'\s*$/;
+          const m = re.exec(value);
+          if (m) {
+            [, newValue] = m;
+          } else {
+            newValue = JSON.parse(value);
+          }
+        /* eslint-disable-next-line no-empty */
+        } catch (e) {
+        } finally {
+          newMap[field] = newValue;
+        }
       }
       return newMap;
     });

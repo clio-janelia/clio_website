@@ -19,15 +19,9 @@ const queryStringify = (json) => {
     return json;
   }
 
-  let newJson = json;
-  if (json.bodyid && typeof json.bodyid === 'string') {
-    newJson = { ...json, bodyid: (json.bodyid.match(/\d+/g) || []).map((n) => parseInt(n, 10)) };
-  }
+  const s = Object.keys(json).reduce((result, key) => `${result}\n  "${key}": ${JSON.stringify(json[key])},`, '');
 
-  return JSON.stringify(
-    newJson,
-    (_, v) => (Array.isArray(v) ? JSON.stringify(v) : v), 2,
-  ).replace(/"\[/g, '[').replace(/\]"/g, ']');
+  return s ? `{${s.slice(0, -1)}\n}` : '{}';
 };
 
 function BodyAnnotationQuery({
