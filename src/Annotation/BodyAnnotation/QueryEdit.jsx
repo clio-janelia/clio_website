@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import TextField from '@material-ui/core/TextField';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import FormGroup from '@material-ui/core/FormGroup';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
@@ -23,15 +23,15 @@ function QueryEdit({
   }, [defaultQueryString]);
 
   let widget = (
-    <TextField
+    <TextareaAutosize
       label="Query"
       value={queryString}
       onChange={(event) => {
         setQueryString(event.target.value);
       }}
-      multiline
-      rows={3}
-      variant="outlined"
+      rowsMin={3}
+      spellCheck="false"
+      placeholder="Enter JSON query here"
       style={{ width: '100%' }}
     />
   );
@@ -75,7 +75,7 @@ function QueryEdit({
   );
 
   return (
-    <div style={{ width: '50%' }}>
+    <div style={{ width: '80%' }}>
       {control}
       <br />
       {widget}

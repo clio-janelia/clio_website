@@ -31,7 +31,7 @@ function ExpandableEdit({
     paddingRight: '5px',
     marginTop: '2px',
     marginBottom: '2px',
-    maxWidth: '200px',
+    maxWidth: '100%',
     display: 'inline-block',
     verticalAlign: 'top',
   };
