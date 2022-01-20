@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import Typography from '@material-ui/core/Typography';
 import { Link } from 'react-router-dom';
 import GlobalSettingsAdmin from './GlobalSettingsAdmin';
+import { addAlert } from './actions/alerts';
+import { resetTopLevelUrl } from './actions/clio';
 
 export default function Settings() {
   const [clioToken, setClioToken] = useState();
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   const isAdmin = roles.global_roles && roles.global_roles.includes('admin');
@@ -23,10 +26,24 @@ export default function Settings() {
       const tokenUrl = `${clioUrl}/server/token`;
 
       fetch(tokenUrl, options)
-        .then((res) => res.json())
-        .then((res) => setClioToken(res));
+        .then((res) => {
+          console.log(res);
+          if (!res.ok) {
+            throw new Error(`Token URL returned a ${res.status} error`);
+          }
+          return res.json();
+        })
+        .then((res) => setClioToken(res))
+        .catch((e) => {
+          dispatch(addAlert({
+            severity: 'error',
+            message: `Failed to set Top level Url: ${e.message}`,
+          }));
+          dispatch(resetTopLevelUrl());
+          console.log(e);
+        });
     }
-  }, [clioUrl, user]);
+  }, [clioUrl, user, dispatch]);
 
   return (
     <div className="about" style={{ margin: '1em' }}>

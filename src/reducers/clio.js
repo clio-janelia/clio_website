@@ -15,6 +15,9 @@ export default function clioReducer(state = clioState, action) {
     case C.CLIO_SET_TOP_LEVEL_FUNC: {
       return state.set('projectUrl', action.url);
     }
+    case C.CLIO_RESET_TOP_LEVEL_FUNC: {
+      return state.set('projectUrl', clioUrl);
+    }
     default: {
       return state;
     }

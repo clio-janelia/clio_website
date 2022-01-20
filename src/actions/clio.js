@@ -6,3 +6,9 @@ export default function setToplevelUrl(url) {
     url,
   };
 }
+
+export function resetTopLevelUrl() {
+  return {
+    type: C.CLIO_RESET_TOP_LEVEL_FUNC,
+  };
+}
