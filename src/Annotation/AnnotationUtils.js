@@ -373,21 +373,26 @@ export function getNewAnnotation(annotation, prop) {
   const newAnnotation = { ...annotation };
   const newProp = { ...prop };
   if (newAnnotation.ext) {
-    // newAnnotation.ext = { ...newAnnotation.ext, ...prop };
-    if (newProp.comment !== undefined) {
-      newAnnotation.ext.description = newProp.comment;
+    if ('comment' in newProp) {
+      newAnnotation.ext.description = newProp.comment || null;
       delete newProp.comment;
     }
-    if (newProp.title !== undefined) {
-      newAnnotation.ext.title = newProp.title;
+    if ('title' in newProp) {
+      if (newProp.title === undefined) {
+        delete newAnnotation.ext.title;
+      } else {
+        newAnnotation.ext.title = newProp.title;
+      }
       delete newProp.title;
     }
   }
 
-  if (!newProp.type) {
-    delete newProp.type;
-    if (newAnnotation.prop) {
-      delete newAnnotation.prop.type;
+  if ('type' in newProp) {
+    if (!newProp.type) {
+      delete newProp.type;
+      if (newAnnotation.prop) {
+        delete newAnnotation.prop.type;
+      }
     }
   }
 
