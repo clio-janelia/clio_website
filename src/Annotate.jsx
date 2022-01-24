@@ -154,12 +154,16 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   }, [user, actions, dataset, getAnnotationUrl]);
 
   const neuPrintManager = React.useRef(new NeuPrintManager());
-  useEffect(() => {
-    if (dataset && user) {
-      const token = user.getAuthResponse().id_token;
-      neuPrintManager.current.init(dataset, projectUrl, token, actions.addAlert);
+  const getToken = React.useCallback(() => {
+    if (user) {
+      return user.getAuthResponse().id_token;
     }
-  }, [actions, dataset, projectUrl, neuPrintManager, user]);
+    throw new Error('Cannot not access data without a user specified.');
+  }, [user]);
+
+  useEffect(() => {
+    neuPrintManager.current.init(dataset, projectUrl, getToken, actions.addAlert);
+  }, [actions, dataset, projectUrl, neuPrintManager, getToken]);
 
   const mergeManager = React.useRef(new MergeManager());
   useEffect(() => {
@@ -383,6 +387,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
               tabName="connections"
               neuPrintManager={neuPrintManager.current}
               mergeManager={mergeManager.current}
+              addAlert={actions.addAlert}
             />
           </AnnotationPanel>
           <Button

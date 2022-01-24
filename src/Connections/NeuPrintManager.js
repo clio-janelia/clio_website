@@ -1,8 +1,8 @@
 export default class NeuPrintManager {
-  init = (dataset, projectUrl, token, addAlert) => {
+  init = (dataset, projectUrl, getToken, addAlert) => {
     this.dataset = dataset;
     this.projectUrl = projectUrl;
-    this.token = token;
+    this.getToken = getToken;
     this.addAlert = addAlert;
   }
 
@@ -51,6 +51,10 @@ export default class NeuPrintManager {
   // Internal
 
   doQuery = (cypher) => {
+    if (!this.dataset) {
+      return Promise.reject(new Error('No dataset specified for neuPrint query.'));
+    }
+
     const url = `${this.projectUrl}/neuprint/${this.dataset.key}`;
 
     let dataset = `${this.dataset.key}`;
@@ -62,7 +66,7 @@ export default class NeuPrintManager {
     const options = {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${this.getToken()}`,
       },
       body,
     };
@@ -74,9 +78,6 @@ export default class NeuPrintManager {
         }
         const err = `Getting from ${url} failed: ${res.statusText}`;
         throw new Error(err);
-      })
-      .catch((exc) => {
-        this.addAlert({ severity: 'error', message: exc.message });
       }));
   }
 }

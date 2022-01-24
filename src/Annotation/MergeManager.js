@@ -153,6 +153,8 @@ export default class MergeManager {
           types.forEach((item) => { this.idToType[item.id] = item.type; });
           this.issueMergeTypeWarnings(idsForTypes);
           this.updateMainToTypeMerged();
+        }).catch((err) => {
+          this.actions.addAlert({ severity: 'error', message: err.message });
         });
     }
   };
@@ -280,6 +282,8 @@ export default class MergeManager {
               // TODO: If any ID from `this.mainToOthers` keys or values is missing from `types`
               // then the official data has changed in conflict with a local merge.
               // So add a warning color and tooltip to the `MergePanel` table.
+            }).catch((err) => {
+              this.actions.addAlert({ severity: 'error', message: err.message });
             });
         }
       });

@@ -47,7 +47,7 @@ const DATA_TABLE_CONFIG = {
 };
 
 export default function ConnectionsPanel(props) {
-  const { neuPrintManager, mergeManager } = props;
+  const { neuPrintManager, mergeManager, addAlert } = props;
   const classes = useStyles();
 
   // Use Redux instead of `React.useState` for `main`, `which` and `data` so
@@ -98,8 +98,10 @@ export default function ConnectionsPanel(props) {
           setData({ rows: newData });
           setUpdated(true);
         }
+      }).catch((err) => {
+        addAlert({ severity: 'error', message: err.message });
       });
-  }, [main, which, neuPrintManager, mergeManager, dispatch]);
+  }, [main, which, neuPrintManager, mergeManager, addAlert, dispatch]);
 
   const onClickButtonSelected = () => {
     if (mergeManager.selection.length > 0) {
@@ -180,4 +182,5 @@ export default function ConnectionsPanel(props) {
 ConnectionsPanel.propTypes = {
   neuPrintManager: PropTypes.object.isRequired,
   mergeManager: PropTypes.object.isRequired,
+  addAlert: PropTypes.func.isRequired,
 };
