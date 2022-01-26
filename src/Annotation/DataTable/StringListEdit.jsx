@@ -4,10 +4,10 @@ import Chip from '@material-ui/core/Chip';
 import ExpandableEdit from '../BodyAnnotation/ExpandableEdit';
 
 export default function StringListEdit({
-  value,
+  defaultValue,
   onChange,
 }) {
-  const [items, setItems] = React.useState(value);
+  const [items, setItems] = React.useState(defaultValue);
 
   useEffect(() => {
     onChange(items);
@@ -50,10 +50,10 @@ export default function StringListEdit({
 }
 
 StringListEdit.propTypes = {
-  value: PropTypes.arrayOf(PropTypes.string),
+  defaultValue: PropTypes.arrayOf(PropTypes.string),
   onChange: PropTypes.func.isRequired,
 };
 
 StringListEdit.defaultProps = {
-  value: [],
+  defaultValue: [],
 };

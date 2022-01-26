@@ -29,7 +29,7 @@ export const defaultDvidService = 'https://ngsupport-bmcp5imp6q-uk.a.run.app';
 export const defaultLocateService = `${defaultDvidService}/locate-body`;
 
 function BodyAnnotation({
-  config, dataset, projectUrl, token, query, onQueryChanged, actions, mergeManager,
+  config, dataset, projectUrl, getToken, query, onQueryChanged, actions, mergeManager,
 }) {
   const classes = useStyles({ width: config.width });
   const [annotations, setAnnotations] = useState([]);
@@ -75,9 +75,11 @@ function BodyAnnotation({
         if (change.position) {
           newAnnotation.position_type = change.position.length > 0 ? 'user' : 'deleted';
         }
-        updateBodyAnnotation(projectUrl, token, config.user, dataset, newAnnotation, (updated) => {
-          setAnnotations((prevAnnotations) => updateAnnotations(prevAnnotations, updated));
-        }).catch((error) => {
+        updateBodyAnnotation(
+          projectUrl, getToken(), config.user, dataset, newAnnotation, (updated) => {
+            setAnnotations((prevAnnotations) => updateAnnotations(prevAnnotations, updated));
+          },
+        ).catch((error) => {
           const message = `Failed to update annotation for ${bodyid}: ${error.message}.`;
           actions.addAlert({ severity: 'warning', message });
         });
@@ -103,12 +105,12 @@ function BodyAnnotation({
       updateAction,
       locateAction,
     };
-  }), [annotations, actions, config.user, dataset, locateServiceUrl, projectUrl, token]);
+  }), [annotations, actions, config.user, dataset, locateServiceUrl, projectUrl, getToken]);
 
   useEffect(() => {
     if (query && Object.keys(query).length > 0) {
       setLoading(true);
-      queryBodyAnnotations(projectUrl, token, dataset, query).then(
+      queryBodyAnnotations(projectUrl, getToken(), dataset, query).then(
         (response) => {
           setAnnotations(response);
           setLoading(false);
@@ -121,7 +123,7 @@ function BodyAnnotation({
     } else {
       setAnnotations([]);
     }
-  }, [dataset, projectUrl, token, query, actions]);
+  }, [dataset, projectUrl, getToken, query, actions]);
 
   const showBodies = React.useCallback((ids) => {
     actions.setViewerSegments(ids);
@@ -176,7 +178,7 @@ function BodyAnnotation({
 
 BodyAnnotation.propTypes = {
   projectUrl: PropTypes.string.isRequired,
-  token: PropTypes.string.isRequired,
+  getToken: PropTypes.func.isRequired,
   config: PropTypes.object.isRequired,
   dataset: PropTypes.object.isRequired,
   query: PropTypes.object,

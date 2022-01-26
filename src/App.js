@@ -142,13 +142,6 @@ function App() {
         .then((result) => result.json())
         .then((res) => {
           const datasetsArray = expandDatasets(res);
-          /*
-          const datasetsArray = Object.entries(res).map(([name, meta]) => {
-            const updated = meta;
-            updated.name = name;
-            return updated;
-          });
-          */
           setDatasets(datasetsArray);
         })
         .catch((err) => console.log(err));

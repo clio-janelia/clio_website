@@ -9,7 +9,6 @@ import SphereLocateIconSelected from '@material-ui/icons/Nature';
 import { green } from '@material-ui/core/colors';
 
 import { hasMergeableLayer } from '../utils/neuroglancer';
-import { setSyncStateNeeded } from '../reducers/viewer';
 
 const KIND_MAP = {
   0: 'point',
@@ -29,7 +28,7 @@ export const ANNOTATION_COLUMNS = {
             options: [
               {
                 label: 'None',
-                value: null,
+                value: undefined,
               },
               {
                 label: 'Merge',
@@ -51,7 +50,7 @@ export const ANNOTATION_COLUMNS = {
             options: [
               {
                 label: 'None',
-                value: null,
+                value: undefined,
               },
               {
                 label: 'Soma',
@@ -103,7 +102,7 @@ export const ATLAS_COLUMNS = [
     editElement: {
       type: 'input',
     },
-    checkValidity: (value, handleError) => {
+    validate: (value, handleError) => {
       const isValid = value && value.trim();
       if (handleError && !isValid) {
         handleError('The title field of atlas cannot be empty. It will NOT be saved until a valid title is specified.');
@@ -222,6 +221,48 @@ export function getAnnotationIcon(kind, action, selected, verified) {
   return null;
 }
 
+function updateSchema(columnSetting, jsonSchema) {
+  if (jsonSchema) {
+    const newColumnSetting = { ...columnSetting };
+    const { properties } = jsonSchema;
+    if (properties && newColumnSetting.collection) {
+      Object.keys(properties).forEach((key) => {
+        if (key in newColumnSetting.collection) {
+          newColumnSetting.collection[key].jsonSchema = properties[key];
+        }
+      });
+    }
+    return newColumnSetting;
+  }
+  return columnSetting;
+}
+
+function normalizeColumnCollection(collection) {
+  if (collection) {
+    const newCollection = { ...collection };
+    Object.keys(newCollection).forEach(
+      (key) => {
+        if (!newCollection[key].title) {
+          newCollection[key].title = key;
+        }
+        newCollection[key].normalize = (value) => {
+          let newValue = value;
+          if (typeof value === 'string') {
+            newValue = value.trim();
+          }
+          if (newValue === '') {
+            newValue = undefined;
+          }
+          return newValue;
+        };
+      },
+    );
+    return newCollection;
+  }
+
+  return collection;
+}
+
 export function getBodyAnnotationColumnSetting(dataset) {
   let columnSetting = null;
 
@@ -230,6 +271,10 @@ export function getBodyAnnotationColumnSetting(dataset) {
     if (dataset.bodyAnnotationSchema) {
       const { bodyAnnotationSchema } = dataset;
       columnSetting = bodyAnnotationSchema;
+      const { typing } = dataset;
+      if (typing) {
+        columnSetting = updateSchema(columnSetting, typing.bodyAnnotation);
+      }
     }
 
     if (dataset.name === 'hemibrain') {
@@ -344,14 +389,7 @@ export function getBodyAnnotationColumnSetting(dataset) {
   }
 
   if (columnSetting && columnSetting.collection) {
-    const { collection } = columnSetting;
-    Object.keys(collection).forEach(
-      (key) => {
-        if (!collection[key].title) {
-          collection[key].title = key;
-        }
-      },
-    );
+    columnSetting.collection = normalizeColumnCollection(columnSetting.collection);
   }
 
   return columnSetting;
@@ -365,7 +403,7 @@ export function getAnnotationColumnSetting(dataset) {
 
   return {
     shape,
-    collection: ANNOTATION_COLUMNS,
+    collection: normalizeColumnCollection(ANNOTATION_COLUMNS),
   };
 }
 
@@ -546,8 +584,7 @@ export function getRowItemFromAnnotation(annotation, config) {
     item = {
       ...item,
       locateAction: () => {
-        setSyncStateNeeded(true);
-        locate(layerName, id, pos);
+        locate(layerName, id, pos, true);
       },
     };
     if (isAnnotationEditable(annotation, user)) {
@@ -573,8 +610,8 @@ export function isValidAnnotation(annotation, dataConfig) {
   const isFieldValid = (field, value) => {
     const column = dataConfig.columns.find((c) => (c.field === field));
     if (column) {
-      if (column.checkValidity) {
-        return column.checkValidity(value);
+      if (column.validate) {
+        return column.validate(value);
       }
     }
 

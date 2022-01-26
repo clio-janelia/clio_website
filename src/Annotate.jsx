@@ -289,7 +289,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             kind: 'Normal',
             allowingImport: true,
             allowingExport: true,
-            token: user.getAuthResponse().id_token,
+            getToken,
           },
           setSelectionChangedCallback,
           dataSource: {
@@ -306,7 +306,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             kind: 'Atlas',
             allowingImport: false,
             allowingExport: true,
-            token: user.getAuthResponse().id_token,
+            getToken,
           },
           setSelectionChangedCallback,
           dataSource: {
@@ -366,7 +366,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                   config={bodyAnnotationConfig}
                   dataset={dataset}
                   projectUrl={projectUrl}
-                  token={user ? user.getAuthResponse().id_token : ''}
+                  getToken={getToken}
                   query={bodyAnnotatinQuery[dataset.name]}
                   onQueryChanged={handleQueryChange}
                   actions={actions}

@@ -66,6 +66,7 @@ export default class NeuPrintManager {
     const options = {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${this.getToken()}`,
       },
       body,
@@ -76,8 +77,10 @@ export default class NeuPrintManager {
         if (res.ok) {
           return (res.json());
         }
-        const err = `Getting from ${url} failed: ${res.statusText}`;
-        throw new Error(err);
+        return res.json().then((resJson) => {
+          const err = `Getting from ${url} failed: ${res.statusText} ${resJson.detail || ''}`;
+          throw new Error(err);
+        });
       }));
   }
 }

@@ -7,9 +7,9 @@ import IconButton from '@material-ui/core/IconButton';
 export default function DataCell({
   column, value, onErrorClick, localize,
 }) {
-  if (column.checkValidity) {
+  if (column.validate) {
     let errorHint = '';
-    if (!column.checkValidity(value, (error) => {
+    if (!column.validate(value, (error) => {
       errorHint = error;
     })) {
       return (

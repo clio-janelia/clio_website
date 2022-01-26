@@ -36,7 +36,38 @@ describe('get body annotation column setting', () => {
     expect(getBodyAnnotationColumnSetting({
       bodyAnnotationSchema,
     }).collection.class.title === 'type');
-  })
+  });
+
+  it('should integrate additional schema', () => {
+    const bodyAnnotationSchema = {
+      collection: {
+        bodyid: {
+          filterEnabled: true,
+        },
+        class: {
+          title: 'type',
+        },
+      },
+    };
+    const columnsSetting = getBodyAnnotationColumnSetting({
+      bodyAnnotationSchema,
+      typing: {
+        bodyAnnotation: {
+          type: 'object',
+          properties: {
+            class: {
+              type: 'string'
+            },
+            bodyid: {
+              type: 'integer'
+            },
+          }
+        }
+      }
+    });
+    expect(columnsSetting.collection.bodyid.jsonSchema.type === 'integer');
+    expect(columnsSetting.collection.class.jsonSchema.type === 'string');
+  });
 });
 
 describe('get annotation position', () => {

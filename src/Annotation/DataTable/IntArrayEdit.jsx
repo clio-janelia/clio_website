@@ -18,8 +18,10 @@ const getDefaultValue = (v) => {
 };
 
 const isInteger = (v) => Number.isInteger(parseFloat(v, 10));
-// const notInteger = (v) => !isInteger(v);
 
+/**
+ * A component for editing an integer array.
+ */
 export default function IntArrayEdit({
   defaultValue,
   onValueChange,
@@ -110,9 +112,13 @@ export default function IntArrayEdit({
 }
 
 IntArrayEdit.propTypes = {
+  /** Default array values. */
   defaultValue: PropTypes.arrayOf(PropTypes.number),
+  /** Callback for responding to value change. */
   onValueChange: PropTypes.func.isRequired,
+  /** Labels for the array values. Its length also defines array length. */
   labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  /** Variant for the widget, which can be 'text', 'line' or 'separate'. */
   variant: PropTypes.string,
 };
 

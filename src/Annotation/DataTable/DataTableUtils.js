@@ -42,12 +42,29 @@ export const useStyles = makeStyles((theme) => (
   }
 ));
 
+export const FIELD_PROP_TYPES = {
+  field: PropTypes.string.isRequired,
+  title: PropTypes.string,
+  filterEnabled: PropTypes.bool,
+  placeholder: PropTypes.string,
+  jsonSchema: PropTypes.object,
+  editElement: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+  }),
+  validate: PropTypes.func,
+  normalize: PropTypes.func,
+  rank: PropTypes.number,
+};
+
+export const DATA_TABLE_CONFIG_PROP_TYPES = {
+  fields: PropTypes.objectOf(PropTypes.shape(FIELD_PROP_TYPES)).isRequired,
+  shape: PropTypes.arrayOf(PropTypes.string),
+  rank: PropTypes.arrayOf(PropTypes.string),
+  primaryKey: PropTypes.string.isRequired,
+};
+
 export const COLUMNS_PROP_TYPES = PropTypes.oneOfType([
-  PropTypes.arrayOf(PropTypes.shape({
-    field: PropTypes.string,
-    title: PropTypes.string,
-    filterEnabled: PropTypes.bool,
-  })),
+  PropTypes.arrayOf(PropTypes.shape(FIELD_PROP_TYPES)),
   PropTypes.shape({
     shape: PropTypes.arrayOf(PropTypes.string),
     collection: PropTypes.object,

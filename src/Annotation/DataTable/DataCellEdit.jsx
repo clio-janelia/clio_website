@@ -10,19 +10,38 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import StringListEdit from './StringListEdit';
 import PointEdit from './PointEdit';
+import IntEdit from './IntEdit';
+import { FIELD_PROP_TYPES } from './DataTableUtils';
 
+/**
+ * Widget for editing a single data table cell.
+ */
 export default function DataCellEdit(props) {
   const {
-    field, value, placeholder, onValueChange, config,
+    defaultValue, onValueChange, onValueRestore, onValueInvalid, config, editElement,
   } = props;
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(
+    config.normalize ? config.normalize(defaultValue) : defaultValue,
+  );
+  const { field } = config;
 
   useEffect(() => {
-    if (value !== inputValue) {
-      console.debug('DataCellEdit useEffect:', field, inputValue);
-      onValueChange(field, inputValue);
+    let handleChange;
+    if (config.validate && !config.validate(inputValue)) {
+      handleChange = onValueInvalid || onValueRestore;
     }
-  }, [field, value, inputValue, onValueChange]);
+
+    if (!handleChange) {
+      const normalizedValue = config.normalize ? config.normalize(inputValue) : inputValue;
+      if (onValueRestore && JSON.stringify(normalizedValue) === JSON.stringify(defaultValue)) {
+        handleChange = onValueRestore;
+      }
+      if (!handleChange) {
+        handleChange = (field_) => onValueChange(field_, normalizedValue);
+      }
+    }
+    handleChange(field);
+  }, [field, defaultValue, inputValue, onValueChange, onValueRestore, onValueInvalid, config]);
 
   const handleInputChange = (event, getTargetValue) => {
     if (event) {
@@ -37,15 +56,16 @@ export default function DataCellEdit(props) {
 
   const handleChecked = (event) => handleInputChange(event, (target) => target.checked);
 
-  let widget = <div>{value || ''}</div>;
-  switch (config.type) {
+  let widget = <div>{defaultValue || ''}</div>;
+  const { jsonSchema } = config;
+  switch (editElement.type) {
     case 'input':
-      if (config.options) {
+      if (editElement.options) {
         widget = (
           <AutoComplete
             freeSolo
-            options={config.options}
-            inputValue={inputValue || ''}
+            options={editElement.options}
+            defaultValue={defaultValue || ''}
             onInputChange={(event, newValue) => handleInputChange(event, () => newValue)}
             onChange={handleTextChange}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -55,26 +75,36 @@ export default function DataCellEdit(props) {
       } else {
         widget = (
           <Input
-            value={inputValue || ''}
-            placeholder={placeholder}
+            defaultValue={defaultValue || ''}
+            placeholder={config.placeholder || ''}
             onChange={handleValueChange}
           />
         );
       }
       break;
+    case 'integer':
+      widget = (
+        <IntEdit
+          defaultValue={defaultValue}
+          minimum={jsonSchema && jsonSchema.minimum}
+          maximum={jsonSchema && jsonSchema.maximum}
+          onValueChange={setInputValue}
+        />
+      );
+      break;
     case 'list':
       widget = (
         <StringListEdit
-          value={inputValue || []}
+          value={defaultValue || []}
           onChange={setInputValue}
         />
       );
       break;
     case 'select':
       widget = (
-        <Select onChange={handleValueChange} value={inputValue || ''}>
+        <Select onChange={handleValueChange} defaultValue={defaultValue || ''}>
           {
-            config.options.map((option) => (
+            editElement.options.map((option) => (
               <MenuItem
                 key={option.label}
                 value={option.value}
@@ -90,7 +120,7 @@ export default function DataCellEdit(props) {
       widget = (
         <FormControlLabel
           control={
-            <Checkbox onChange={handleChecked} checked={inputValue} />
+            <Checkbox onChange={handleChecked} defaultChecked={defaultValue} />
           }
         />
       );
@@ -98,7 +128,7 @@ export default function DataCellEdit(props) {
     case 'point':
       widget = (
         <PointEdit
-          defaultValue={inputValue || []}
+          defaultValue={defaultValue || []}
           onValueChange={setInputValue}
         />
       );
@@ -111,23 +141,24 @@ export default function DataCellEdit(props) {
 }
 
 DataCellEdit.propTypes = {
-  field: PropTypes.string.isRequired,
-  value: PropTypes.oneOfType(
+  defaultValue: PropTypes.oneOfType(
     [
       PropTypes.string,
       PropTypes.bool,
+      PropTypes.number,
       PropTypes.arrayOf(PropTypes.string),
       PropTypes.arrayOf(PropTypes.number),
     ],
   ),
   onValueChange: PropTypes.func.isRequired,
-  placeholder: PropTypes.string,
-  config: PropTypes.shape({
-    type: PropTypes.string,
+  onValueRestore: PropTypes.func,
+  onValueInvalid: PropTypes.func,
+  config: PropTypes.shape(FIELD_PROP_TYPES).isRequired,
+  editElement: PropTypes.shape({
+    type: PropTypes.string.isRequired,
   }).isRequired,
 };
 
 DataCellEdit.defaultProps = {
-  value: undefined,
-  placeholder: '',
+  defaultValue: undefined,
 };

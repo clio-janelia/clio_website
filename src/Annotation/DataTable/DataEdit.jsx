@@ -8,6 +8,7 @@ import TableCell from '@material-ui/core/TableCell';
 
 import DataCellEdit from './DataCellEdit';
 import {
+  FIELD_PROP_TYPES,
   useStyles,
 } from './DataTableUtils';
 
@@ -19,16 +20,30 @@ const sameValue = (a, b, defaultValue = undefined) => {
     return false;
   }
 
-  if ((v1 === v2)
-    || (JSON.stringify(v1) === JSON.stringify(v2))) {
-    return true;
-  }
-
-  return false;
+  return ((v1 === v2)
+    || (JSON.stringify(v1) === JSON.stringify(v2)));
 };
 
-const getDefaultValue = (columns, field, data) => {
-  const column = columns.find((c) => c.field === field);
+const getEditElement = (column, data) => {
+  if (column) {
+    if (column.getEditElement) {
+      return column.getEditElement(data);
+    }
+    if (column.editElement) {
+      const { editElement } = column;
+      if (column.jsonSchema) {
+        if (column.jsonSchema.type === 'integer' && editElement.type === 'input') {
+          editElement.type = 'integer';
+        }
+      }
+      return editElement;
+    }
+  }
+
+  return undefined;
+};
+
+const getDefaultValue = (column, data) => {
   if (column) {
     if (column.defaultValue !== undefined) {
       return column.defaultValue;
@@ -43,6 +58,8 @@ const getDefaultValue = (columns, field, data) => {
           return [];
         case 'checkbox':
           return false;
+        case 'integer':
+          return undefined;
         default:
           return '';
       }
@@ -54,7 +71,7 @@ const getDefaultValue = (columns, field, data) => {
 
 export default function DataEdit(props) {
   const {
-    takeChange, cancelEdit, config, defaultData,
+    onConfirmChange, onCancelEdit, config, defaultData,
   } = props;
 
   const classes = useStyles();
@@ -63,14 +80,17 @@ export default function DataEdit(props) {
 
   const isFieldValid = React.useCallback((field, value) => {
     let column = null;
+    /*
     if (config.validitingColumns) {
       column = config.validitingColumns[field];
     } else {
       column = config.columns.find((c) => (c.field === field));
     }
+    */
+    column = config.columns.find((c) => (c.field === field));
     if (column) {
-      if (column.checkValidity) {
-        return column.checkValidity(value);
+      if (column.validate) {
+        return column.validate(value);
       }
       return true;
     }
@@ -89,11 +109,12 @@ export default function DataEdit(props) {
 
   const handleValueChange = React.useCallback((field, value) => {
     setDataChange((prevDataChange) => {
+      const column = config.columns.find((c) => c.field === field);
       const newDataChange = { ...prevDataChange, [field]: value };
       if (sameValue(
         defaultData[field],
         value,
-        getDefaultValue(config.columns, field, defaultData),
+        getDefaultValue(column, defaultData),
       )) {
         delete newDataChange[field];
       }
@@ -113,7 +134,7 @@ export default function DataEdit(props) {
           key="DataEdit.Done"
           aria-label="ok"
           disabled={!isDataValid() || !hasChanged()}
-          onClick={() => takeChange(dataChange)}
+          onClick={() => onConfirmChange(dataChange)}
         >
           <DoneIcon />
         </IconButton>,
@@ -121,7 +142,7 @@ export default function DataEdit(props) {
           className={classes.tableRowIcon}
           key="DataEdit.Cancel"
           aria-label="cancel"
-          onClick={cancelEdit}
+          onClick={onCancelEdit}
         >
           <RevertIcon />
         </IconButton>,
@@ -130,20 +151,18 @@ export default function DataEdit(props) {
     }
 
     if (column.editElement || column.getEditElement) {
-      let { editElement } = column;
-      if (column.getEditElement) {
-        editElement = column.getEditElement(defaultData);
-      }
+      const editElement = getEditElement(column, defaultData);
+      // let { editElement } = column;
+      // if (column.getEditElement) {
+      //   editElement = column.getEditElement(defaultData);
+      // }
       return (
         <TableCell key={column.field}>
           <DataCellEdit
-            field={column.field}
-            config={editElement}
+            config={column}
             onValueChange={handleValueChange}
-            value={
-              (column.field in dataChange) ? dataChange[column.field] : defaultData[column.field]
-            }
-            placeholder={column.placeholder}
+            defaultValue={defaultData[column.field]}
+            editElement={editElement}
           />
         </TableCell>
       );
@@ -164,8 +183,10 @@ export default function DataEdit(props) {
 }
 
 DataEdit.propTypes = {
-  config: PropTypes.object.isRequired,
+  config: PropTypes.shape({
+    columns: PropTypes.arrayOf(PropTypes.shape(FIELD_PROP_TYPES)).isRequired,
+  }).isRequired,
   defaultData: PropTypes.object.isRequired,
-  takeChange: PropTypes.func.isRequired,
-  cancelEdit: PropTypes.func.isRequired,
+  onConfirmChange: PropTypes.func.isRequired,
+  onCancelEdit: PropTypes.func.isRequired,
 };

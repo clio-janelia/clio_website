@@ -21,6 +21,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteChecked from '@material-ui/icons/DeleteSweepOutlined';
 import TransferIcon from '@material-ui/icons/AssignmentReturnedOutlined';
 import Tooltip from '@material-ui/core/Tooltip';
+import { setSyncStateNeeded } from '../reducers/viewer';
 import {
   getSortedFieldArray,
   sortColumns,
@@ -96,7 +97,10 @@ function AnnotationTable(props) {
     [sourceUrl],
   );
 
-  const locate = React.useCallback((targetLayerName, id, pos) => {
+  const locate = React.useCallback((targetLayerName, id, pos, syncNeeded) => {
+    if (syncNeeded) {
+      setSyncStateNeeded(true);
+    }
     actions.setViewerAnnotationSelection({
       layerName: targetLayerName,
       annotationId: id,
@@ -130,7 +134,7 @@ function AnnotationTable(props) {
             const pos = getAnnotationPos(annotation);
             source.update(source.getReference(annot.id), getNewAnnotation(annot, change));
             source.commit(source.getReference(annot.id));
-            locate(layerName, annot.id, pos);
+            locate(layerName, annot.id, pos, false);
           }
         }
       },
@@ -146,7 +150,7 @@ function AnnotationTable(props) {
         'Content-Type': 'application/json',
       };
       if (parameters.authServer === 'neurohub') {
-        headers.Authorization = `Bearer ${dataConfig.token}`;
+        headers.Authorization = `Bearer ${dataConfig.getToken()}`;
       }
       return fetch(url, {
         method: 'POST',
@@ -176,7 +180,7 @@ function AnnotationTable(props) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${dataConfig.token}`,
+          Authorization: `Bearer ${dataConfig.getToken()}`,
         },
       });
     }
@@ -383,7 +387,7 @@ function AnnotationTable(props) {
                     const { point } = row.source_annotation;
                     const transform = () => pointToBodyAnnotation({
                       projectUrl,
-                      token: dataConfig.token,
+                      token: dataConfig.getToken(),
                       user,
                       dataset,
                     }, row.source_annotation).then((bodyAnnotation) => {
@@ -417,7 +421,7 @@ function AnnotationTable(props) {
         ) : null}
       </span>
     );
-  }, [data, dataConfig.token, dataset, projectUrl, user, actions, dataConfig.kind]);
+  }, [data, dataConfig, dataset, projectUrl, user, actions]);
 
   return (
     <div>

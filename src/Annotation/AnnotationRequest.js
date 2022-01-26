@@ -16,6 +16,10 @@ async function fetchJson(url, token, method, body) {
   }
   if (body) {
     options.body = body;
+    options.headers = {
+      ...options.headers,
+      'Content-Type': 'application/json',
+    };
   }
 
   const res = await fetch(url, options);
@@ -26,15 +30,20 @@ async function fetchJson(url, token, method, body) {
   throw new Error(`${options.method} ${url} failed: ${res.statusText}`);
 }
 
-function getBodyAnnotationUrl(projectUrl, dataset, cmd) {
-  let url = `${projectUrl}/json-annotations/${dataset.key}/neurons`;
+function getBodyAnnotationUrl(projectUrl, dataset, cmd, searchParams) {
+  const url = new URL(`${projectUrl}/json-annotations/${dataset.key}/neurons`);
   if (cmd) {
-    url += `/${cmd}`;
+    url.pathname += `/${cmd}`;
   }
   if (dataset.tag) {
-    url += `?version=${dataset.tag}`;
+    url.searchParams.append('version', dataset.tag);
   }
-  return url;
+  if (searchParams) {
+    Object.entries(searchParams).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
+  }
+  return url.toString();
 }
 
 function fillBodyAnnotations(annotations, bodies) {
@@ -113,7 +122,12 @@ export async function updateBodyAnnotation(
         }
       });
 
-      return fetchJson(getBodyAnnotationUrl(projectUrl, dataset), token, 'POST', JSON.stringify(processed));
+      return fetchJson(
+        getBodyAnnotationUrl(projectUrl, dataset, undefined, { replace: 'true' }),
+        token,
+        'POST',
+        JSON.stringify(processed),
+      );
     };
 
     const data = await getBodyAnnotation(projectUrl, token, dataset, annotation.bodyid);

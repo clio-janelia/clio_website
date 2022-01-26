@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import Box from '@material-ui/core/Box';
 import TableRow from '@material-ui/core/TableRow';
@@ -29,20 +29,20 @@ function DataTableRow(props) {
   const allColumnFields = getColumnFields(columns);
   const isValid = allColumnFields.every((field) => {
     const column = getColumnSetting(columns, field);
-    if (column.checkValidity) {
-      return column.checkValidity(row[column.field]);
+    if (column.validate) {
+      return column.validate(row[column.field]);
     }
     return true;
   });
 
   const isValidAfterChange = (change) => allColumnFields.every((field) => {
     const column = getColumnSetting(columns, field);
-    if (column.checkValidity) {
+    if (column.validate) {
       let value = row[column.field];
       if (column.field in change) {
         value = change[column.field];
       }
-      return column.checkValidity(value);
+      return column.validate(value);
     }
     return true;
   });
@@ -97,6 +97,16 @@ function DataTableRow(props) {
     );
   }
 
+  const makeToolColumn = useCallback((children) => (
+    <TableCell padding="none" key="#toolColumn" className={classes.toolColumn}>
+      <Box display="flex" flexDirection="row">
+        {checkWidget}
+        {locateButton}
+        {children}
+      </Box>
+    </TableCell>
+  ), [classes, checkWidget, locateButton]);
+
   if (editing) {
     return (
       <DataEdit
@@ -105,25 +115,15 @@ function DataTableRow(props) {
           columns: [
             {
               field: '#toolColumn',
-              makeCell: function ToolColumn(children) {
-                return (
-                  <TableCell padding="none" key="#toolColumn" className={classes.toolColumn}>
-                    <Box display="flex" flexDirection="row">
-                      {checkWidget}
-                      {locateButton}
-                      {children}
-                    </Box>
-                  </TableCell>
-                );
-              },
+              makeCell: makeToolColumn,
             },
             ...visibleColumns,
           ],
-          validitingColumns: columns.collection,
+          // validitingColumns: columns.collection,
         }}
         defaultData={row}
-        cancelEdit={cancelEdit}
-        takeChange={takeChange}
+        onCancelEdit={cancelEdit}
+        onConfirmChange={takeChange}
       />
     );
   }
