@@ -13,6 +13,7 @@ export default class MergeBackendCloud {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.getToken()}`,
+        'Content-Type': 'application/json',
       },
     };
     options.body = JSON.stringify(mainToOthers);
@@ -46,6 +47,7 @@ export default class MergeBackendCloud {
     const options = {
       headers: {
         Authorization: `Bearer ${this.getToken()}`,
+        'Content-Type': 'application/json',
       },
     };
     let url = this.urlMainToOthers();
