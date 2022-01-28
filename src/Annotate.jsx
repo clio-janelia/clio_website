@@ -93,11 +93,14 @@ const useStyles = makeStyles((theme) => {
 // eslint-disable-next-line object-curly-newline
 export default function Annotate({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
-  const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
+  // const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
+  const dataset = datasets.find((ds) => ds.name === selectedDatasetName);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_WIDTH_PX);
   const classes = useStyles({ sidebarWidth });
   const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState({});
+  const [neuPrintManager, setNeuPrintManager] = React.useState(null);
+
 
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
   let { groups } = roles;
@@ -153,33 +156,39 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     }
   }, [user, actions, dataset, getAnnotationUrl]);
 
-  const neuPrintManager = React.useRef(new NeuPrintManager());
   const getToken = React.useCallback(() => {
     if (user) {
       return user.getAuthResponse().id_token;
     }
     throw new Error('Cannot not access data without a user specified.');
   }, [user]);
+  /*
+  const neuPrintManager = React.useRef(
+    new NeuPrintManager(dataset, projectUrl, getToken),
+    [dataset, projectUrl, getToken],
+  );
+  */
 
   useEffect(() => {
-    neuPrintManager.current.init(dataset, projectUrl, getToken, actions.addAlert);
-  }, [actions, dataset, projectUrl, neuPrintManager, getToken]);
+    setNeuPrintManager(new NeuPrintManager(dataset, projectUrl, getToken));
+    // neuPrintManager.current.init(dataset, projectUrl, getToken);
+  }, [dataset, projectUrl, getToken]);
 
   const mergeManager = React.useRef(new MergeManager());
   useEffect(() => {
-    if (dataset && user) {
+    if (dataset && user && neuPrintManager) {
       const backend = new MergeBackendCloud(dataset, projectUrl, user, actions.addAlert);
       // FIXME: needs a better solution of avoiding race conditions while updating body states.
       // The delayed update is a temporary workaround.
       const timeout = setTimeout(() => {
         mergeManager.current.init(
-          actions, getNeuroglancerColor, backend, neuPrintManager.current,
+          actions, getNeuroglancerColor, backend, neuPrintManager,
         );
       }, 3000);
       return () => clearTimeout(timeout);
     }
     return () => {};
-  }, [actions, dataset, projectUrl, mergeManager, user]);
+  }, [actions, dataset, projectUrl, mergeManager, user, neuPrintManager]);
 
   const onKeyPress = (event) => {
     // Ignore keyboard shortcuts when a Neuroglancer text input has focus.
@@ -234,6 +243,15 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     }
   }, [actions, dataset, setBodyAnnotationQuery]);
 
+  const bodyAnnotationConfig = React.useMemo(() => ({
+    width: `${sidebarWidth}px`,
+    // datasetName: dataset.name,
+    user: roles.email,
+    dataConfig: {
+      columns: getBodyAnnotationColumnSetting(dataset),
+    },
+  }), [dataset, roles.email, sidebarWidth]);
+
   if (dataset) {
     const pointTool = {
       name: 'annotatePoint',
@@ -263,15 +281,6 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
           selectionDetailsStateChangedHandlers.splice(index, 1);
         }
       };
-    };
-
-    const bodyAnnotationConfig = {
-      width: `${sidebarWidth}px`,
-      // datasetName: dataset.name,
-      user: roles.email,
-      dataConfig: {
-        columns: getBodyAnnotationColumnSetting(dataset),
-      },
     };
 
     const annotationConfig = {
@@ -383,12 +392,16 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                 />
               ) : null
             }
-            <ConnectionsPanel
-              tabName="connections"
-              neuPrintManager={neuPrintManager.current}
-              mergeManager={mergeManager.current}
-              addAlert={actions.addAlert}
-            />
+            {
+              neuPrintManager ? (
+                <ConnectionsPanel
+                  tabName="connections"
+                  neuPrintManager={neuPrintManager}
+                  mergeManager={mergeManager.current}
+                  addAlert={actions.addAlert}
+                />
+              ) : null
+            }
           </AnnotationPanel>
           <Button
             color="primary"

@@ -424,7 +424,7 @@ function AnnotationTable(props) {
   }, [data, dataConfig, dataset, projectUrl, user, actions]);
 
   return (
-    <div>
+    <div style={{ width: '100%' }}>
       <DataTable
         data={{ rows: data.rows || [] }}
         selectedId={selectedAnnotation}

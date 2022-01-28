@@ -191,4 +191,4 @@ BodyAnnotation.defaultProps = {
   query: null,
 };
 
-export default BodyAnnotation;
+export default React.memo(BodyAnnotation);

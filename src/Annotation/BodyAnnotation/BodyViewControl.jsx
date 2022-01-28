@@ -12,8 +12,8 @@ export default function BodyViewControl({
   const classes = useStyles();
 
   return (
-    <div className={classes.primaryLight} style={{ padding: '10px' }}>
-      <div className={classes.controlRow}>
+    <div className={classes.primaryLight}>
+      <div className={classes.controlRow} style={{ padding: '10px' }}>
         <Button
           color="primary"
           variant="contained"

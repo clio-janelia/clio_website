@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 
 import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
@@ -11,7 +10,6 @@ import TextField from '@material-ui/core/TextField';
 import PropTypes from 'prop-types';
 import DataTable from '../Annotation/DataTable/DataTable';
 import mergeConnectionRows from './ConnectionsUtils';
-import { setConnectionsPanelData, setConnectionsPanelMain, setConnectionsPanelWhich } from '../actions/connectionsPanel';
 
 const useStyles = makeStyles((theme) => ({
   spaced: {
@@ -50,20 +48,9 @@ export default function ConnectionsPanel(props) {
   const { neuPrintManager, mergeManager, addAlert } = props;
   const classes = useStyles();
 
-  // Use Redux instead of `React.useState` for `main`, `which` and `data` so
-  // heir values will be retaned when the user goes to another tab and then
-  // returns to this tab.
-
-  const dispatch = useDispatch();
-
-  const main = useSelector((state) => state.connectionsPanel.getIn(['main']));
-  const setMain = (m) => dispatch(setConnectionsPanelMain(m));
-
-  const which = useSelector((state) => state.connectionsPanel.getIn(['which']));
-  const setWhich = (w) => dispatch(setConnectionsPanelWhich(w));
-
-  const data = useSelector((state) => state.connectionsPanel.getIn(['data']));
-
+  const [main, setMain] = React.useState('');
+  const [which, setWhich] = React.useState('pre');
+  const [data, setData] = React.useState({ rows: [] });
   const [selected, setSelected] = React.useState(false);
   const [updated, setUpdated] = React.useState(false);
 
@@ -76,7 +63,7 @@ export default function ConnectionsPanel(props) {
   }, [mergeManager]);
 
   const updateTable = React.useCallback(() => {
-    const setData = (d) => dispatch(setConnectionsPanelData(d));
+    // const setData = (d) => dispatch(setConnectionsPanelData(d));
     const ids = mergeManager.expand([main]);
     neuPrintManager.getConnections(ids, which)
       .then((connections) => {
@@ -101,7 +88,7 @@ export default function ConnectionsPanel(props) {
       }).catch((err) => {
         addAlert({ severity: 'error', message: err.message });
       });
-  }, [main, which, neuPrintManager, mergeManager, addAlert, dispatch]);
+  }, [main, which, neuPrintManager, mergeManager, addAlert]);
 
   const onClickButtonSelected = () => {
     if (mergeManager.selection.length > 0) {
@@ -132,7 +119,7 @@ export default function ConnectionsPanel(props) {
   };
 
   return (
-    <div>
+    <div style={{ width: '100%' }}>
       <div className={classes.controlRow}>
         <TextField
           onKeyDown={onKeyDownMain}

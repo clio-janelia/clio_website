@@ -111,7 +111,7 @@ function MergePanel(props) {
   const onClickButtonPullRequest = () => setPullRequestConfirmationOpen(true);
 
   return (
-    <div>
+    <div style={{ width: '100%' }}>
       <div className={classes.mergeControlRow}>
         <Tooltip title={`Keyboard shortcut: "${KEY_BINDINGS.MERGE}"`}>
           <Button color="primary" variant="contained" onClick={onClickButtonMerge}>Merge</Button>

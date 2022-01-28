@@ -1,9 +1,8 @@
 export default class NeuPrintManager {
-  init = (dataset, projectUrl, getToken, addAlert) => {
+  constructor(dataset, projectUrl, getToken) {
     this.dataset = dataset;
     this.projectUrl = projectUrl;
     this.getToken = getToken;
-    this.addAlert = addAlert;
   }
 
   getConnections = (ids, which) => {
