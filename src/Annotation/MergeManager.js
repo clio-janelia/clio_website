@@ -1,6 +1,18 @@
 import { getMergeableLayerFromDataset } from '../utils/neuroglancer';
 
 export default class MergeManager {
+  constructor(actions, getNeuroglancerColor, backend, neuPrintManager) {
+    this.actions = actions;
+    this.getNeuroglancerColor = getNeuroglancerColor;
+    this.backend = backend;
+    this.neuPrintManager = neuPrintManager;
+    this.layerName = 'segmentation';
+    if (this.backend) {
+      const layer = this.backend.dataset && getMergeableLayerFromDataset(this.backend.dataset);
+      this.layerName = layer ? layer.name : this.layerName;
+    }
+  }
+
   init = (actions, getNeuroglancerColor, backend, neuPrintManager) => {
     this.actions = actions;
     this.getNeuroglancerColor = getNeuroglancerColor;
@@ -255,6 +267,10 @@ export default class MergeManager {
   };
 
   restore = () => {
+    if (!this.backend) {
+      return;
+    }
+
     this.backend.restore()
       .then(([mainToOthers, otherToMain]) => {
         this.mainToOthers = mainToOthers;

@@ -27,7 +27,6 @@ const viewerState = Immutable.Map({
         name: 'segmentation',
         type: 'segmentation',
         source: '',
-        segments: [0],
         segmentColors: {},
       },
       {

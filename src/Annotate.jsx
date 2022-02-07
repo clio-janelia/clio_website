@@ -99,7 +99,8 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_WIDTH_PX);
   const classes = useStyles({ sidebarWidth });
   const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState({});
-  const [neuPrintManager, setNeuPrintManager] = React.useState(null);
+  // const [neuPrintManager, setNeuPrintManager] = React.useState(null);
+  // const [mergeManager, setMergeManager] = React.useState(null);
 
 
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
@@ -116,7 +117,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   );
 
   useEffect(() => {
-    if (dataset && user) {
+    if (dataset) {
       let viewerOptions = retrieveViewerState(dataset.name);
       if (viewerOptions === null) {
         const layers = [
@@ -154,14 +155,9 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
       actions.initViewer(viewerOptions);
     }
-  }, [user, actions, dataset, getAnnotationUrl]);
+  }, [actions, dataset, getAnnotationUrl]);
 
-  const getToken = React.useCallback(() => {
-    if (user) {
-      return user.getAuthResponse().id_token;
-    }
-    throw new Error('Cannot not access data without a user specified.');
-  }, [user]);
+  const getToken = React.useCallback(() => user.getAuthResponse().id_token, [user]);
   /*
   const neuPrintManager = React.useRef(
     new NeuPrintManager(dataset, projectUrl, getToken),
@@ -169,41 +165,63 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   );
   */
 
+  /*
   useEffect(() => {
     setNeuPrintManager(new NeuPrintManager(dataset, projectUrl, getToken));
     // neuPrintManager.current.init(dataset, projectUrl, getToken);
   }, [dataset, projectUrl, getToken]);
+  */
 
-  const mergeManager = React.useRef(new MergeManager());
+  const neuPrintManager = React.useMemo(
+    () => (dataset ? new NeuPrintManager(dataset, projectUrl, getToken) : null),
+    [dataset, projectUrl, getToken],
+  );
+
+  const mergeManager = React.useMemo(() => {
+    if (dataset && neuPrintManager) {
+      const backend = new MergeBackendCloud(dataset, projectUrl, getToken, actions.addAlert);
+      return new MergeManager(actions, getNeuroglancerColor, backend, neuPrintManager);
+    }
+    return null;
+  }, [dataset, projectUrl, getToken, actions, neuPrintManager]);
+
+
+  // const mergeManager = React.useRef(new MergeManager());
+  /*
   useEffect(() => {
     if (dataset && user && neuPrintManager) {
       const backend = new MergeBackendCloud(dataset, projectUrl, user, actions.addAlert);
+      setMergeManager(new MergeManager(actions, getNeuroglancerColor, backend, neuPrintManager));
+    }
+  }, [actions, dataset, projectUrl, user, neuPrintManager]);
+  */
+
+  useEffect(() => {
+    if (mergeManager) {
       // FIXME: needs a better solution of avoiding race conditions while updating body states.
       // The delayed update is a temporary workaround.
       const timeout = setTimeout(() => {
-        mergeManager.current.init(
-          actions, getNeuroglancerColor, backend, neuPrintManager,
-        );
+        mergeManager.restore();
       }, 3000);
       return () => clearTimeout(timeout);
     }
     return () => {};
-  }, [actions, dataset, projectUrl, mergeManager, user, neuPrintManager]);
+  }, [mergeManager]);
 
-  const onKeyPress = (event) => {
+  const onKeyPress = useCallback((event) => {
     // Ignore keyboard shortcuts when a Neuroglancer text input has focus.
     if (activeElementNeedsKeypress()) {
       return;
     }
     if (hasMergeableLayer(dataset)) {
-      onKeyPressMerge(event, mergeManager.current);
+      onKeyPressMerge(event, mergeManager);
     }
-  };
+  }, [dataset, mergeManager]);
 
   // Neuroglancer's notion of "visible" corresponds to other applications' notion of "selected".
-  const onVisibleChanged = (segments, layer) => {
-    onVisibleChangedMerge(segments, layer, mergeManager.current);
-  };
+  const onVisibleChanged = useCallback((segments, layer) => {
+    onVisibleChangedMerge(segments, layer, mergeManager);
+  }, [mergeManager]);
 
   const selectionDetailsStateChangedHandlers = [];
   const onSelectionDetailsStateChanged = () => {
@@ -369,7 +387,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
             actions={actions}
           >
             {
-              bodyAnnotationConfig.dataConfig.columns ? (
+              bodyAnnotationConfig.dataConfig.columns && mergeManager ? (
                 <BodyAnnotation
                   tabName="bodies"
                   config={bodyAnnotationConfig}
@@ -379,25 +397,25 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
                   query={bodyAnnotatinQuery[dataset.name]}
                   onQueryChanged={handleQueryChange}
                   actions={actions}
-                  mergeManager={mergeManager.current}
+                  mergeManager={mergeManager}
                 />
               ) : null
             }
             {
-              hasMergeableLayer(dataset) ? (
+              hasMergeableLayer(dataset) && mergeManager ? (
                 <MergePanel
                   tabName="merges"
-                  mergeManager={mergeManager.current}
+                  mergeManager={mergeManager}
                   addAlert={actions.addAlert}
                 />
               ) : null
             }
             {
-              neuPrintManager ? (
+              neuPrintManager && mergeManager ? (
                 <ConnectionsPanel
                   tabName="connections"
                   neuPrintManager={neuPrintManager}
-                  mergeManager={mergeManager.current}
+                  mergeManager={mergeManager}
                   addAlert={actions.addAlert}
                 />
               ) : null

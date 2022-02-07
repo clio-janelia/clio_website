@@ -1,12 +1,12 @@
 export default class MergeBackendCloud {
-  constructor(dataset, projectUrl, user, addAlert) {
+  constructor(dataset, projectUrl, getToken, addAlert) {
     this.dataset = dataset;
     this.projectUrl = projectUrl;
-    this.user = user;
+    this.getToken = getToken;
     this.addAlert = addAlert;
   }
 
-  getToken = () => this.user.getAuthResponse().id_token;
+  // getToken = () => this.user.getAuthResponse().id_token;
 
   store = (mainToOthers, otherToMain) => {
     const options = {
