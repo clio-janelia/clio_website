@@ -6,6 +6,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import Radio from '@material-ui/core/Radio';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
+import ListEdit from '../../components/ListEdit';
 import QueryMapEdit from './QueryMapEdit';
 
 function QueryEdit({
@@ -17,10 +18,6 @@ function QueryEdit({
   useEffect(() => {
     onQueryStringChanged(queryString);
   }, [queryString, onQueryStringChanged]);
-
-  useEffect(() => {
-    setQueryString(defaultQueryString);
-  }, [defaultQueryString]);
 
   let widget = (
     <TextareaAutosize
@@ -42,21 +39,52 @@ function QueryEdit({
     }
   }, [setQueryString, queryStringify]);
 
-  if (mode === 'map') {
-    let initialMap = null;
-    try {
-      initialMap = JSON.parse(queryString);
-    } catch {
-      initialMap = null;
+  const handleEditValueChange = useCallback((value) => {
+    if (value) {
+      setQueryString(value.length > 1 ? `[\n${value.map((item) => (item || '{}')).join(',\n')}\n]` : value[0]);
+      // setQueryString(queryStringify(value));
     }
-    widget = (
-      <QueryMapEdit
-        key={`QueryMapEdit.${queryStringify(initialMap)}`}
-        initialMap={initialMap}
-        onMapChanged={handleQueryChangeFromMap}
-        style={{ width: '100%' }}
-      />
-    );
+  }, [setQueryString]);
+
+  const renderElement = React.useCallback((element, handleValueChange) => (
+    <QueryMapEdit
+      key={`QueryMapEdit.${element || ''}`}
+      initialMap={element ? JSON.parse(element) : {}}
+      onMapChanged={(obj) => handleValueChange(queryStringify(obj))}
+      style={{ width: '100%' }}
+    />
+  ), [queryStringify]);
+
+  if (mode === 'map') {
+    let queryObject = null;
+    try {
+      queryObject = JSON.parse(queryString);
+    } catch {
+      queryObject = null;
+    }
+    if (queryObject) {
+      if (!Array.isArray(queryObject)) {
+        queryObject = [queryObject];
+      }
+      queryObject = queryObject.map((obj) => queryStringify(obj));
+      widget = (
+        <ListEdit
+          key={`QueryMapEdit.${queryStringify(queryObject)}`}
+          defaultValue={queryObject}
+          onValueChange={handleEditValueChange}
+          renderElement={renderElement}
+        />
+      );
+    } else {
+      widget = (
+        <QueryMapEdit
+          key={`QueryMapEdit.${queryStringify(queryObject)}`}
+          initialMap={queryObject}
+          onMapChanged={handleQueryChangeFromMap}
+          style={{ width: '100%' }}
+        />
+      );
+    }
   }
 
   const handleEditModeChange = (event) => {

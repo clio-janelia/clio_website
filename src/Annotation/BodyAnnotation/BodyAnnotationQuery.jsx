@@ -10,7 +10,7 @@ import WaitIcon from '@material-ui/icons/TimerOutlined';
 import { useStyles } from '../DataTable/DataTableUtils';
 import QueryEdit from './QueryEdit';
 
-const queryStringify = (json) => {
+const stringifyQueryObject = (json) => {
   if (json === null || json === undefined) {
     return '';
   }
@@ -22,6 +22,22 @@ const queryStringify = (json) => {
   const s = Object.keys(json).reduce((result, key) => `${result}\n  "${key}": ${JSON.stringify(json[key])},`, '');
 
   return s ? `{${s.slice(0, -1)}\n}` : '{}';
+};
+
+const queryStringify = (json) => {
+  if (json === null || json === undefined) {
+    return '';
+  }
+
+  if (typeof json === 'string') {
+    return json;
+  }
+
+  if (Array.isArray(json)) {
+    return `[\n${json.filter((item) => item && Object.keys(item).length > 0).map(stringifyQueryObject).join(',')}\n]`;
+  }
+
+  return stringifyQueryObject(json);
 };
 
 function BodyAnnotationQuery({
@@ -42,6 +58,8 @@ function BodyAnnotationQuery({
         setQuery(query);
         addAlert({ severity: 'warning', message: `Invalid query: ${query}` });
       }
+    } else if (Array.isArray(query)) {
+      setQuery([...query]);
     } else {
       setQuery({ ...query });
     }
@@ -124,6 +142,7 @@ function BodyAnnotationQuery({
 BodyAnnotationQuery.propTypes = {
   defaultQuery: PropTypes.oneOfType([
     PropTypes.object,
+    PropTypes.arrayOf(PropTypes.object),
     PropTypes.string,
   ]),
   onQueryChanged: PropTypes.func.isRequired,

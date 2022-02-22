@@ -33,7 +33,7 @@ function FieldEditList({ inputMap, handleFieldChange }) {
 }
 
 function QueryMapEdit({ initialMap, onMapChanged }) {
-  const [inputMap, setInputMap] = useState(initialMap);
+  const [inputMap, setInputMap] = useState(initialMap || {});
   const [activeEntryGen, setActiveEntryGen] = useState(1); // For clearing up the active entry
 
   const handleFieldChange = useCallback((key, field, value) => {
@@ -98,7 +98,7 @@ QueryMapEdit.propTypes = {
 };
 
 QueryMapEdit.defaultProps = {
-  initialMap: null,
+  initialMap: {},
 };
 
 export default QueryMapEdit;

@@ -181,7 +181,7 @@ BodyAnnotation.propTypes = {
   getToken: PropTypes.func.isRequired,
   config: PropTypes.object.isRequired,
   dataset: PropTypes.object.isRequired,
-  query: PropTypes.object,
+  query: PropTypes.oneOfType(PropTypes.object, PropTypes.arrayOf(PropTypes.object)),
   onQueryChanged: PropTypes.func.isRequired,
   actions: PropTypes.object.isRequired,
   mergeManager: PropTypes.object.isRequired,
