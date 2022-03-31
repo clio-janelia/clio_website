@@ -50,7 +50,7 @@ export default function SearchCard({ search, actions, dataset }) {
     const options = {
       method: 'Delete',
       headers: {
-        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        Authorization: `Bearer ${user.token}`,
       },
     };
     return fetch(savedSearchUrl, options);

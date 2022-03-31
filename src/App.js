@@ -12,11 +12,11 @@ import { createMuiTheme } from '@material-ui/core/styles';
 import Navbar from './Navbar';
 import Alerts from './Alerts';
 import UnauthenticatedApp from './UnauthenticatedApp';
-import loadScript from './utils/load-script';
-import removeScript from './utils/remove-script';
+// import loadScript from './utils/load-script';
+// import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
-import { loginGoogleUser } from './actions/user';
-import config from './config';
+// import { loginGoogleUser } from './actions/user';
+// import config from './config';
 import { expandDatasets } from './utils/config';
 
 import './App.css';
@@ -164,7 +164,7 @@ function App() {
     if (user) {
       const options = {
         headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+          Authorization: `Bearer ${user.token}`,
         },
       };
 
@@ -179,7 +179,7 @@ function App() {
     }
   }, [user, dispatch, projectUrl]);
 
-  useEffect(() => {
+  /*  useEffect(() => {
     // Check for logged in user and save them to state.
     function onInit(googleAuth) {
       if (googleAuth.isSignedIn.get()) {
@@ -203,7 +203,7 @@ function App() {
     return () => {
       removeScript(document, 'google-login');
     };
-  }, [dispatch]);
+  }, [dispatch]); */
 
   // if not logged in then show the login page for all routes.
   if (!user) {

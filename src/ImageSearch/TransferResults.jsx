@@ -66,7 +66,7 @@ export default function TransferResults({
 
       const options = {
         headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+          Authorization: `Bearer ${user.token}`,
         },
         method: 'POST',
         body: JSON.stringify({

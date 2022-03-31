@@ -68,7 +68,7 @@ export default function Atlas(props) {
 
       const options = {
         headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+          Authorization: `Bearer ${user.token}`,
         },
       };
 
@@ -223,7 +223,7 @@ export default function Atlas(props) {
     // submit the verified component to the backend
     const options = {
       headers: {
-        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        Authorization: `Bearer ${user.token}`,
       },
       method: 'POST',
       body: JSON.stringify(verified),

@@ -36,7 +36,7 @@ export default function Settings() {
       const options = {
         method: 'post',
         headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+          Authorization: `Bearer ${user.token}`,
         },
       };
 
@@ -51,10 +51,10 @@ export default function Settings() {
       <Typography variant="h5">Settings</Typography>
       {user && (
         <>
-          <p>USER: {user.getBasicProfile().getName()}</p>
+          <p>USER: {user.info.name}</p>
           <p>Google ID Token: </p>
           <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-            {user.getAuthResponse().id_token}
+            {user.token}
           </pre>
           <p>ClioStore/DVID Token: </p>
           <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>

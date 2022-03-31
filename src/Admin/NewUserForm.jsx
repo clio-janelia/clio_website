@@ -39,7 +39,7 @@ export default function NewUserForm({ onUpdate }) {
     const options = {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        Authorization: `Bearer ${user.token}`,
       },
       body: JSON.stringify({
         [userName]: modifiedPermissions,

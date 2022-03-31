@@ -6,7 +6,7 @@ export default function setUserRoles(user) {
     const rolesUrl = `${clioUrl}/roles`;
     const options = {
       headers: {
-        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        Authorization: `Bearer ${user.token}`,
       },
     };
     return fetch(rolesUrl, options)

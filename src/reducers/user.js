@@ -30,7 +30,6 @@ export default function userReducer(state = userState, action) {
       return state.set('googleUser', action.user);
     }
     case C.LOGOUT_GOOGLE_USER: {
-      action.user.signOut();
       return state.set('googleUser', null).set('roles', {});
     }
     default: {

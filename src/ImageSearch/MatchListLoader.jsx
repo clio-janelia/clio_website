@@ -52,7 +52,7 @@ export default function MatchListLoader({
       const mutOptions = {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+          Authorization: `Bearer ${user.token}`,
         },
         body: JSON.stringify(body),
       };
@@ -86,7 +86,7 @@ export default function MatchListLoader({
 
   const options = {
     headers: {
-      Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+      Authorization: `Bearer ${user.token}`,
     },
   };
   const roundedPosition = coords.map((point) => Math.floor(point));
