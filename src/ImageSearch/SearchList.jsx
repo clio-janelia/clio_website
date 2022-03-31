@@ -14,7 +14,7 @@ export default function SearchList({
   const savedSearchesUrl = `${clioUrl}/savedsearches/${dataset.key}`; // dataset
   const options = {
     headers: {
-      Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+      Authorization: `Bearer ${user.token}`,
     },
   };
 

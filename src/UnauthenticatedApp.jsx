@@ -10,8 +10,8 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Navbar from './Navbar';
-import Login from './Login';
 import Home from './Home';
+import GoogleSignIn from './GoogleSignIn';
 
 const useStyles = makeStyles({
   login: {
@@ -36,7 +36,9 @@ export default function UnauthenticatedApp({ history, theme }) {
               <Typography variant="h5">Please login to access the site.</Typography>
             </CardContent>
             <CardActions>
-              <Login fullWidth />
+              <div style={{ margin: 'auto' }}>
+                <GoogleSignIn />
+              </div>
             </CardActions>
           </Card>
           <Home />

@@ -39,7 +39,7 @@ function UserAdmin() {
     if (user && isAdmin && clioUrl) {
       const options = {
         headers: {
-          Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+          Authorization: `Bearer ${user.token}`,
         },
       };
 
@@ -68,7 +68,7 @@ function UserAdmin() {
     const options = {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+        Authorization: `Bearer ${user.token}`,
       },
       body: JSON.stringify([userName]),
     };

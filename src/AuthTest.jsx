@@ -6,13 +6,15 @@ const testUrl = 'https://www.googleapis.com/download/storage/v1/b/smalltest_barr
 
 export default function AuthTest() {
   const [info, setInfo] = useState();
-  const user = useSelector((state) => state.user.get('user'));
+  const user = useSelector((state) => state.user.get('googleUser'));
 
   useEffect(() => {
+    console.log({ user });
     if (user) {
+      console.log('fetching');
       fetch(testUrl, {
         headers: {
-          Authorization: `Bearer ${user.getAuthResponse().access_token}`,
+          Authorization: `Bearer ${user.token}`,
         },
       })
         .then((response) => {

@@ -18,7 +18,7 @@ import { useTheme } from '@material-ui/styles';
 import config from './config';
 
 import DataSetSelection from './Settings/DataSetSelection';
-import Login from './Login';
+import GoogleSignIn from './GoogleSignIn';
 
 import './Navbar.css';
 
@@ -182,7 +182,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
         <Button onClick={handleCollapse} className={classes.navToggle} size="small">
           Hide Header
         </Button>
-        <Login />
+        <GoogleSignIn />
         <IconButton to="/help" component={Link} className={classes.title}>
           <HelpIcon />
         </IconButton>

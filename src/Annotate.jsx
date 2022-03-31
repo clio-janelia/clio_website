@@ -93,14 +93,11 @@ const useStyles = makeStyles((theme) => {
 // eslint-disable-next-line object-curly-newline
 export default function Annotate({ children, actions, datasets, selectedDatasetName }) {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
-  // const dataset = datasets.filter((ds) => ds.name === selectedDatasetName)[0];
   const dataset = datasets.find((ds) => ds.name === selectedDatasetName);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_WIDTH_PX);
   const classes = useStyles({ sidebarWidth });
   const [bodyAnnotatinQuery, setBodyAnnotationQuery] = useState({});
-  // const [neuPrintManager, setNeuPrintManager] = React.useState(null);
-  // const [mergeManager, setMergeManager] = React.useState(null);
 
 
   const roles = useSelector((state) => state.user.get('roles'), shallowEqual);
@@ -157,20 +154,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     }
   }, [actions, dataset, getAnnotationUrl, projectUrl]);
 
-  const getToken = React.useCallback(() => user.getAuthResponse().id_token, [user]);
-  /*
-  const neuPrintManager = React.useRef(
-    new NeuPrintManager(dataset, projectUrl, getToken),
-    [dataset, projectUrl, getToken],
-  );
-  */
-
-  /*
-  useEffect(() => {
-    setNeuPrintManager(new NeuPrintManager(dataset, projectUrl, getToken));
-    // neuPrintManager.current.init(dataset, projectUrl, getToken);
-  }, [dataset, projectUrl, getToken]);
-  */
+  const getToken = React.useCallback(() => user.token, [user]);
 
   const neuPrintManager = React.useMemo(
     () => (dataset ? new NeuPrintManager(dataset, projectUrl, getToken) : null),
@@ -184,17 +168,6 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
     }
     return null;
   }, [dataset, projectUrl, getToken, actions, neuPrintManager]);
-
-
-  // const mergeManager = React.useRef(new MergeManager());
-  /*
-  useEffect(() => {
-    if (dataset && user && neuPrintManager) {
-      const backend = new MergeBackendCloud(dataset, projectUrl, user, actions.addAlert);
-      setMergeManager(new MergeManager(actions, getNeuroglancerColor, backend, neuPrintManager));
-    }
-  }, [actions, dataset, projectUrl, user, neuPrintManager]);
-  */
 
   useEffect(() => {
     if (mergeManager) {
