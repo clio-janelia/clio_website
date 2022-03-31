@@ -20,10 +20,14 @@ In the project directory, you can run:
 ### `npm start`
 
 Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Open [http://localhost:3001](http://localhost:3001) to view it in the browser.
 
 The page will reload if you make edits.<br>
 You will also see any lint errors in the console.
+
+In order to get the authorization system working you must edit your /etc/hosts file *(C:\windows\system32\drivers\etc\hosts on windows)*
+to alias `clio-dev.janelia.org` to `127.0.0.1`. This is to make sure that the redirect urls
+match those expected by the google oauth system.
 
 ### `npm test`
 
