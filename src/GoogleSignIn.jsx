@@ -40,7 +40,7 @@ export default function GoogleSignin() {
         client_id: config.google_auth.client_id,
         callback: handleGoogleSignIn,
       });
-      window.google.accounts.id.prompt();
+      // window.google.accounts.id.prompt();
       window.google.accounts.id.renderButton(
         document.getElementById('loginButton'),
         { theme: 'outline', size: 'medium', shape: 'pill' }, // customization attributes
@@ -83,6 +83,12 @@ export default function GoogleSignin() {
         </Button>
       </Tooltip>
     );
+  }
+
+  // login prompt goes here, so that it isn't displayed if we are
+  // already showing the logged in avatar.
+  if (window.google && window.google.accounts) {
+    window.google.accounts.id.prompt();
   }
 
   return <Button className="g_id_signin" id="loginButton" />;
