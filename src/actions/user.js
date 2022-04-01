@@ -21,6 +21,7 @@ export default function setUserRoles(user) {
 export function loginGoogleUser(user) {
   return (dispatch) => {
     localStorage.setItem('user', JSON.stringify(user));
+    // TODO: get FlyEM token from clio store and save it to localStorage
     dispatch(setUserRoles(user));
     dispatch({
       type: 'LOGIN_GOOGLE_USER',

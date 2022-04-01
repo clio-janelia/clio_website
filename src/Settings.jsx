@@ -52,10 +52,11 @@ export default function Settings() {
       {user && (
         <>
           <p>USER: {user.info.name}</p>
-          <p>Google ID Token: </p>
+          <p>Google ID Token: {(new Date(user.info.exp * 1000) <= new Date()) ? '⚠️  expired' : ' ✅ valid' } </p>
           <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
             {user.token}
           </pre>
+
           <p>ClioStore/DVID Token: </p>
           <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
             {clioToken || 'loading...'}
