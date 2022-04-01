@@ -15,7 +15,7 @@ import UnauthenticatedApp from './UnauthenticatedApp';
 // import loadScript from './utils/load-script';
 // import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
-// import { loginGoogleUser } from './actions/user';
+import { loginGoogleUser } from './actions/user';
 // import config from './config';
 import { expandDatasets } from './utils/config';
 
@@ -178,6 +178,13 @@ function App() {
         .catch((err) => console.log(err));
     }
   }, [user, dispatch, projectUrl]);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      dispatch(loginGoogleUser(JSON.parse(storedUser)));
+    }
+  }, [dispatch]);
 
   /*  useEffect(() => {
     // Check for logged in user and save them to state.

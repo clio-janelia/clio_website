@@ -20,6 +20,7 @@ export default function setUserRoles(user) {
 
 export function loginGoogleUser(user) {
   return (dispatch) => {
+    localStorage.setItem('user', JSON.stringify(user));
     dispatch(setUserRoles(user));
     dispatch({
       type: 'LOGIN_GOOGLE_USER',
