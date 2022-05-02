@@ -98,7 +98,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
     selectedDatasetName: null,
   };
 
-  const workspaceOptions = ['annotate', 'image search', 'atlas'].map((dataset) => ({
+  const workspaceOptions = ['annotate', 'image search', 'atlas', 'focused proofreading'].map((dataset) => ({
     value: `ws/${dataset.replace(/ /, '_')}`,
     label: dataset,
   }));

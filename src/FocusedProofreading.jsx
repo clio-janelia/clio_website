@@ -11,6 +11,7 @@ import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 import Select from '@material-ui/core/Select';
 import { createMuiTheme, withStyles } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
@@ -20,7 +21,6 @@ import { vec2 } from 'gl-matrix';
 
 import activeElementNeedsKeypress from './utils/events';
 import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager';
-import { AuthManager, AuthManagerDialog } from './AuthManager';
 import ClientInfo from './ClientInfo';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
 import './FocusedProofreading.css';
@@ -281,14 +281,15 @@ const cameraProjectionScale = (bodyIds, orientation, taskJson, dvidMngr) => {
   );
 };
 
-const dvidLogKey = (taskJson) => (
-  `${taskJson[TASK_KEYS.BODY_PT1]}+${taskJson[TASK_KEYS.BODY_PT2]}`.replace(/,/g, '_')
+const dvidLogKey = (taskJson, userEmail) => (
+  `${taskJson[TASK_KEYS.BODY_PT1]}+${taskJson[TASK_KEYS.BODY_PT2]}_${userEmail}`.replace(/,/g, '_')
 );
 
 const isDvidSource = (source) => (
   source.toLowerCase().startsWith('dvid')
 );
 
+/* eslint-disable-next-line no-unused-vars */
 const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1) => (
   {
     type: 'annotation',
@@ -316,15 +317,15 @@ const doLiveMerge = (assnMngr) => {
   if (isDvidSource(segSrc)) {
     const key = 'do live merge';
     if (!(key in assnMngr.assignment)) {
-      return true;
+      return false;
     }
     return (assnMngr.assignment[key]);
   }
   return false;
 };
 
-const storeResults = (bodyIds, selection, result, taskJson, taskStartTime, actions,
-  authMngr, dvidMngr, assnMngr) => {
+const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStartTime, actions,
+  dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const time = (new Date()).toISOString();
@@ -333,58 +334,56 @@ const storeResults = (bodyIds, selection, result, taskJson, taskStartTime, actio
   // before this asynchronous code finishes.
   const taskJsonCopy = JSON.parse(JSON.stringify(taskJson));
 
-  authMngr.getUser().then((user) => {
-    const taskEndTime = Date.now();
-    const elapsedMs = taskEndTime - taskStartTime;
-    let dvidLogValue = {
-      'grayscale source': dvidMngr.grayscaleSourceURL(),
-      'segmentation source': dvidMngr.segmentationSourceURL(),
-      'DVID source': dvidMngr.dvidSourceURL(),
-      [TASK_KEYS.BODY_PT1]: taskJsonCopy[TASK_KEYS.BODY_PT1],
-      [TASK_KEYS.BODY_PT2]: taskJsonCopy[TASK_KEYS.BODY_PT2],
-      'body ID 1': bodyIdMergedOnto,
-      'body ID 2': bodyIdOther,
-      'selected body IDs': selection,
-      result,
-      time,
-      user,
-      'time to complete (ms)': elapsedMs,
-      client: CLIENT_INFO.info,
-    };
-    if (assnMngr.assignmentFile) {
-      dvidLogValue = { ...dvidLogValue, assignment: assnMngr.assignmentFile };
-    }
+  const taskEndTime = Date.now();
+  const elapsedMs = taskEndTime - taskStartTime;
+  let dvidLogValue = {
+    'grayscale source': dvidMngr.grayscaleSourceURL(),
+    'segmentation source': dvidMngr.segmentationSourceURL(),
+    'DVID source': dvidMngr.dvidSourceURL(),
+    [TASK_KEYS.BODY_PT1]: taskJsonCopy[TASK_KEYS.BODY_PT1],
+    [TASK_KEYS.BODY_PT2]: taskJsonCopy[TASK_KEYS.BODY_PT2],
+    'body ID 1': bodyIdMergedOnto,
+    'body ID 2': bodyIdOther,
+    'selected body IDs': selection,
+    result,
+    time,
+    user: userEmail,
+    'time to complete (ms)': elapsedMs,
+    client: CLIENT_INFO.info,
+  };
+  if (assnMngr.assignmentFile) {
+    dvidLogValue = { ...dvidLogValue, assignment: assnMngr.assignmentFile };
+  }
 
-    // Make sure any extra keys from the input are carried over to the output.
-    const omit = ['completed'];
-    Object.keys(taskJsonCopy).forEach((key) => {
-      if (!(key in dvidLogValue) && !omit.includes(key)) {
-        dvidLogValue[key] = taskJsonCopy[key];
-      }
-    });
-
-    // TODO: Add live merging for MERGE_EXTRA.
-    if ((result === RESULTS.MERGE_EXTRA) && doLiveMerge(assnMngr)) {
-      const message = 'Live merging for "merge extra" is not yet supported';
-      actions.addAlert({ severity: 'warning', message });
-    }
-
-    if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
-      const onCompletion = (res) => {
-        dvidLogValue['mutation ID'] = res.MutationID;
-        dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy), dvidLogValue);
-        // TODO: Add Kafka logging?
-        console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
-      };
-      const onError = (err) => {
-        // TODO: Add proper error reporting.
-        console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
-      };
-      dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
-    } else {
-      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy), dvidLogValue);
+  // Make sure any extra keys from the input are carried over to the output.
+  const omit = ['completed'];
+  Object.keys(taskJsonCopy).forEach((key) => {
+    if (!(key in dvidLogValue) && !omit.includes(key)) {
+      dvidLogValue[key] = taskJsonCopy[key];
     }
   });
+
+  // TODO: Add live merging for MERGE_EXTRA.
+  if ((result === RESULTS.MERGE_EXTRA) && doLiveMerge(assnMngr)) {
+    const message = 'Live merging for "merge extra" is not yet supported';
+    actions.addAlert({ severity: 'warning', message });
+  }
+
+  if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
+    const onCompletion = (res) => {
+      dvidLogValue['mutation ID'] = res.MutationID;
+      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy, userEmail), dvidLogValue);
+      // TODO: Add Kafka logging?
+      console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
+    };
+    const onError = (err) => {
+      // TODO: Add proper error reporting.
+      console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
+    };
+    dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
+  } else {
+    dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy, userEmail), dvidLogValue);
+  }
 };
 
 // Returns [result, completed]
@@ -403,8 +402,7 @@ const restoreResults = (taskJson) => {
 function FocusedProofreading(props) {
   const { actions, children } = props;
 
-  const [authMngr] = React.useState(() => (new AuthManager()));
-  const [authMngrDialogOpen, setAuthMngrDialogOpen] = React.useState(false);
+  const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   const [dvidMngr] = React.useState(() => (new DvidManager()));
   const [dvidMngrDialogOpen, setDvidMngrDialogOpen] = React.useState(false);
@@ -427,19 +425,12 @@ function FocusedProofreading(props) {
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
   const [todoType, setTodoType] = React.useState(TODO_TYPES[0].value);
   const [completed, setCompleted] = React.useState(false);
-
   const [helpOpen, setHelpOpen] = React.useState(false);
+  const [bodyIdsAreSelected, setBodyIdsAreSelected] = React.useState(true);
 
   // Not state, because changes occur during event processing and should not trigger rendering.
   const selection = React.useRef([]);
-  const [bodyIdsAreSelected, setBodyIdsAreSelected] = React.useState(true);
-
-  React.useEffect(() => {
-    const handleNotLoggedIn = () => { setAuthMngrDialogOpen(true); };
-    authMngr.init(handleNotLoggedIn);
-  }, [authMngr]);
-
-  const handleAuthManagerDialogClose = () => { setAuthMngrDialogOpen(false); };
+  const onVisibleChangedTimeoutPending = React.useRef(false);
 
   const handleTodoTypeChange = React.useCallback((type, json) => {
     setTodoType(type);
@@ -453,7 +444,9 @@ function FocusedProofreading(props) {
     const setViewer = () => {
       actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
       actions.setViewerSegmentationSource(dvidMngr.segmentationSourceURL());
+      /* TODO: DISABLED_TODOS: this action causes an error in Neuroglancer, no "valid user"
       actions.setViewerTodosSource(dvidMngr.todosSourceURL());
+      */
     };
     let resolver;
     if ((TASK_KEYS.GRAYSCALE_SOURCE in json) && (TASK_KEYS.SEGMENTATION_SOURCE in json)
@@ -487,6 +480,7 @@ function FocusedProofreading(props) {
     setTaskStartTime(startTime);
     const json = assnMngr.taskJson();
     const bodyPts = bodyPoints(json);
+    const userEmail = user.getBasicProfile().getEmail();
     if (!bodyPts) {
       return new Promise((resolve) => { resolve(AssignmentManager.TASK_SKIP); });
     }
@@ -496,7 +490,7 @@ function FocusedProofreading(props) {
           getBodyId(bodyPts[1], dvidMngr, json, 2, onError(2)).then((bodyId1) => [bodyId0, bodyId1])
         ))
         .then(([bodyId0, bodyId1]) => (
-          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(json), onError(3))
+          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(json, userEmail), onError(3))
             .then((data) => [bodyId0, bodyId1, data])
         ))
         .then(([bodyId0, bodyId1, prevResult]) => {
@@ -507,12 +501,12 @@ function FocusedProofreading(props) {
             return (AssignmentManager.TASK_RETRY);
           }
           if (!bodyId0 || !bodyId1) {
-            storeResults(segments, [], 'skip (missing body ID)', json, startTime, actions, authMngr, dvidMngr, assnMngr);
+            storeResults(userEmail, segments, [], 'skip (missing body ID)', json, startTime, actions, dvidMngr, assnMngr);
             return (AssignmentManager.TASK_SKIP);
           }
           if (bodyId0 === bodyId1) {
             // Skip a task involving bodies that have been merged already.
-            storeResults(segments, [], 'skip (same body ID)', json, startTime, actions, authMngr, dvidMngr, assnMngr);
+            storeResults(userEmail, segments, [], 'skip (same body ID)', json, startTime, actions, dvidMngr, assnMngr);
             return (AssignmentManager.TASK_SKIP);
           }
           if (prevResult) {
@@ -524,6 +518,7 @@ function FocusedProofreading(props) {
             return (AssignmentManager.TASK_SKIP);
           }
           setExtraBodyIds(getExtraBodyIds(json, segments));
+          setPromptToAddExtra(true);
           const [restoredResult, restoredCompleted] = restoreResults(json);
           const { position, projectionOrientation } = cameraPose(bodyPts);
           cameraProjectionScale(segments, projectionOrientation, json, dvidMngr)
@@ -554,7 +549,7 @@ function FocusedProofreading(props) {
           return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, handleTodoTypeChange, taskJson, selection, authMngr, assnMngr, dvidMngr]);
+  }, [actions, user, handleTodoTypeChange, taskJson, selection, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -630,8 +625,9 @@ function FocusedProofreading(props) {
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
-      storeResults(bodyIds, selection.current, result, taskJson, taskStartTime, actions,
-        authMngr, dvidMngr, assnMngr);
+      const userEmail = user.getBasicProfile().getEmail();
+      storeResults(userEmail, bodyIds, selection.current, result, taskJson, taskStartTime, actions,
+        dvidMngr, assnMngr);
     }
   };
 
@@ -691,9 +687,18 @@ function FocusedProofreading(props) {
       const selectionStrings = segments.toJSON();
       selection.current = selectionStrings.map((s) => parseInt(s, 10));
       setBodyIdsAreSelected(bodyIds.every((id) => selection.current.includes(id)));
-      if ((result === RESULTS.MERGE) || (result === RESULTS.MERGE_EXTRA)) {
-        if (result === RESULTS.MERGE_EXTRA) {
-          actions.setViewerSegmentColors(bodyColors(bodyIds, selection.current, result));
+      if (result === RESULTS.MERGE_EXTRA) {
+        // The newly visible segments may need to be colored as merged.  But Neuroglancer seems
+        // to change the visible segments in several steps, and issuing the action to change
+        // the segment colors can trigger a cascade of further visiblity changes that end up with
+        // the wrong segments visible.  So postpone the color change until control returns to the
+        // event loop, which will be after all of Neuroglaner's changes.
+        if (!onVisibleChangedTimeoutPending.current) {
+          onVisibleChangedTimeoutPending.current = true;
+          setTimeout(() => {
+            actions.setViewerSegmentColors(bodyColors(bodyIds, selection.current, result));
+            onVisibleChangedTimeoutPending.current = false;
+          }, 0);
         }
       }
     }
@@ -718,6 +723,9 @@ function FocusedProofreading(props) {
     tooltip += 'select the task\'s two original bodies';
   }
   tooltip = `To enable "Completed": ${tooltip}`;
+
+  // TODO: DISABLED_TODOS
+  const todoCtrlDisabled = true; // noTask;
 
   return (
     <div
@@ -767,7 +775,7 @@ function FocusedProofreading(props) {
             <Button color="primary" variant="contained" onClick={handleExtraButton} disabled={noTask || noExtra}>
               {promptToAddExtra ? 'Suggest Extra' : 'Unsuggest Extra'}
             </Button>
-            <FormControl variant="outlined" disabled={noTask}>
+            <FormControl variant="outlined" disabled={todoCtrlDisabled}>
               <Select value={todoType} onChange={handleTodoTypeSelect}>
                 {TODO_TYPES.map((x) => (
                   <MenuItem
@@ -792,7 +800,6 @@ function FocusedProofreading(props) {
           <HelpIcon />
         </IconButton>
         <ThemeProvider theme={dialogTheme}>
-          <AuthManagerDialog open={authMngrDialogOpen} onClose={handleAuthManagerDialogClose} />
           <DvidManagerDialog manager={dvidMngr} open={dvidMngrDialogOpen} />
           <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
           <ProtocolHelp
