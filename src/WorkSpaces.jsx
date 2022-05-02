@@ -40,6 +40,7 @@ import './Neuroglancer.css';
 const ImageSearch = lazy(() => import('./ImageSearch'));
 const Annotate = lazy(() => import('./Annotate'));
 const Atlas = lazy(() => import('./Atlas'));
+const FocusedProofreading = lazy(() => import('./FocusedProofreading'));
 
 function WorkSpaces(props) {
   const match = useRouteMatch('/ws/:ws');
@@ -63,6 +64,9 @@ function WorkSpaces(props) {
       break;
     case 'atlas':
       RenderedComponent = Atlas;
+      break;
+    case 'focused_proofreading':
+      RenderedComponent = FocusedProofreading;
       break;
     default:
       RenderedComponent = ImageSearch;
