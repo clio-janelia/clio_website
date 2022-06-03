@@ -3,16 +3,14 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import { getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
+import { getAnnotationLayer, getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
-import MenuItem from '@material-ui/core/MenuItem';
 import PropTypes from 'prop-types';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import Select from '@material-ui/core/Select';
 import { createMuiTheme, withStyles } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -78,6 +76,7 @@ const RESULTS = Object.freeze({
   DONT_MERGE: 'dontMerge',
   MERGE: 'merge',
   MERGE_EXTRA: 'mergeExtra',
+  MERGE_LATER: 'mergeLater',
   DONT_KNOW: 'dontKnow',
 });
 
@@ -85,6 +84,7 @@ const RESULT_LABELS = Object.freeze({
   DONT_MERGE: "Don't Merge",
   MERGE: 'Merge',
   MERGE_EXTRA: 'Merge Extra',
+  MERGE_LATER: 'Merge Later',
   DONT_KNOW: "Don't Know",
 });
 
@@ -94,15 +94,6 @@ const RESULT_CYCLES_NEXT = Object.freeze({
   [RESULTS.MERGE_EXTRA]: RESULTS.DONT_KNOW,
   [RESULTS.DONT_KNOW]: RESULTS.DONT_MERGE,
 });
-
-const TODO_TYPES = Object.freeze([
-  { value: 'False Merge*', label: 'Todo: Blocking False Merge' },
-  { value: 'False Merge', label: 'Todo: False Merge' },
-  { value: 'False Split', label: 'Todo: False Split' },
-  { value: 'orphan', label: 'Todo: Orphan' },
-  { value: 'orphan hotknife', label: 'Todo: Orphan Hotknife' },
-  { value: 'Other', label: 'Todo: Other' },
-]);
 
 // Green
 const COLOR_PRIMARY_BODY = '#348E53';
@@ -289,7 +280,6 @@ const isDvidSource = (source) => (
   source.toLowerCase().startsWith('dvid')
 );
 
-/* eslint-disable-next-line no-unused-vars */
 const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1) => (
   {
     type: 'annotation',
@@ -298,6 +288,26 @@ const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1) => (
       { point: bodyPt0, type: 'point', id: bodyId0.toString() },
       { point: bodyPt1, type: 'point', id: bodyId1.toString() },
     ],
+    source: {
+      url: 'local://annotations',
+      transform: {
+        // TODO: Query the dimensions, to support 4e-9.
+        outputDimensions: {
+          x: [8e-9, 'm'],
+          y: [8e-9, 'm'],
+          z: [8e-9, 'm'],
+        },
+      },
+    },
+  }
+);
+
+const falseMergesLayer = () => (
+  {
+    type: 'annotation',
+    name: 'false merges',
+    tool: 'annotatePoint',
+    annotations: [],
     source: {
       url: 'local://annotations',
       transform: {
@@ -324,6 +334,24 @@ const doLiveMerge = (assnMngr) => {
   return false;
 };
 
+const falseMergePositions = () => {
+  const falseMerges = [];
+  const layer = getAnnotationLayer(null, 'false merges');
+  if (layer) {
+    const { localAnnotations } = layer;
+    if (localAnnotations) {
+      const { annotationMap } = localAnnotations;
+      if (annotationMap) {
+        annotationMap.forEach((annotation) => {
+          const { point } = annotation;
+          falseMerges.push([point[0], point[1], point[2]]);
+        });
+      }
+    }
+  }
+  return falseMerges;
+};
+
 const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStartTime, actions,
   dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
@@ -345,6 +373,7 @@ const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStart
     'body ID 1': bodyIdMergedOnto,
     'body ID 2': bodyIdOther,
     'selected body IDs': selection,
+    'false merges': falseMergePositions(),
     result,
     time,
     user: userEmail,
@@ -423,7 +452,6 @@ function FocusedProofreading(props) {
   const [usingBirdsEye, setUsingBirdsEye] = React.useState(false);
   const [usedBirdsEye, setUsedBirdsEye] = React.useState(false);
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
-  const [todoType, setTodoType] = React.useState(TODO_TYPES[0].value);
   const [completed, setCompleted] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [bodyIdsAreSelected, setBodyIdsAreSelected] = React.useState(true);
@@ -431,13 +459,6 @@ function FocusedProofreading(props) {
   // Not state, because changes occur during event processing and should not trigger rendering.
   const selection = React.useRef([]);
   const onVisibleChangedTimeoutPending = React.useRef(false);
-
-  const handleTodoTypeChange = React.useCallback((type, json) => {
-    setTodoType(type);
-    actions.setViewerTodosType(type.replace('*', ''));
-    const hint = `focused task [${json[TASK_KEYS.BODY_PT1]}] [${json[TASK_KEYS.BODY_PT2]}]`;
-    actions.setViewerTodosHint((type === TODO_TYPES[0].value) ? hint : '');
-  }, [setTodoType, actions]);
 
   const setupAssn = React.useCallback(() => {
     const json = assnMngr.assignment;
@@ -535,12 +556,12 @@ function FocusedProofreading(props) {
               setCompleted(restoredCompleted);
 
               selection.current = segments;
-              handleTodoTypeChange(TODO_TYPES[0].value, json);
 
               actions.setViewerSegments(segments);
               actions.setViewerSegmentColors(bodyColors(segments, selection.current,
                 restoredResult));
               actions.addViewerLayer(bodyPointsLayer(bodyPts[0], bodyPts[1], bodyId0, bodyId1));
+              actions.addViewerLayer(falseMergesLayer());
               actions.setViewerCrossSectionScale(0.4);
               actions.setViewerCameraPosition(position);
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
@@ -549,7 +570,7 @@ function FocusedProofreading(props) {
           return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, user, handleTodoTypeChange, taskJson, selection, assnMngr, dvidMngr]);
+  }, [actions, user, taskJson, selection, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -589,11 +610,6 @@ function FocusedProofreading(props) {
 
   const handleResultChange = (newResult) => {
     actions.setViewerSegmentColors(bodyColors(bodyIds, selection.current, newResult));
-
-    // The special blocking TODO_TYPE is avilable only for the DONT_MERGE result.
-    if (newResult !== RESULTS.DONT_MERGE && todoType === TODO_TYPES[0].value) {
-      handleTodoTypeChange(TODO_TYPES[1].value, taskJson);
-    }
   };
 
   const handleResultRadio = (event) => {
@@ -617,11 +633,14 @@ function FocusedProofreading(props) {
     actions.setViewerSegments(selection.current);
   };
 
-  const handleTodoTypeSelect = (event) => {
-    handleTodoTypeChange(event.target.value, taskJson);
-  };
-
   const handleTaskCompleted = (isCompleted) => {
+    const falseMerges = falseMergePositions();
+    if ((result === RESULTS.MERGE_LATER) && (falseMerges.length === 0)) {
+      const message = 'The "merge later" result is not valid without at least one "false merges" annotation.';
+      actions.addAlert({ severity: 'error', message });
+      return;
+    }
+
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
@@ -724,9 +743,6 @@ function FocusedProofreading(props) {
   }
   tooltip = `To enable "Completed": ${tooltip}`;
 
-  // TODO: DISABLED_TODOS
-  const todoCtrlDisabled = true; // noTask;
-
   return (
     <div
       className="focused-proofreading-container"
@@ -768,6 +784,11 @@ function FocusedProofreading(props) {
               value={RESULTS.MERGE_EXTRA}
             />
             <FormControlLabel
+              label={RESULT_LABELS.MERGE_LATER}
+              control={<Radio />}
+              value={RESULTS.MERGE_LATER}
+            />
+            <FormControlLabel
               label={RESULT_LABELS.DONT_KNOW}
               control={<Radio />}
               value={RESULTS.DONT_KNOW}
@@ -775,19 +796,6 @@ function FocusedProofreading(props) {
             <Button color="primary" variant="contained" onClick={handleExtraButton} disabled={noTask || noExtra}>
               {promptToAddExtra ? 'Suggest Extra' : 'Unsuggest Extra'}
             </Button>
-            <FormControl variant="outlined" disabled={todoCtrlDisabled}>
-              <Select value={todoType} onChange={handleTodoTypeSelect}>
-                {TODO_TYPES.map((x) => (
-                  <MenuItem
-                    key={x.value}
-                    value={x.value}
-                    disabled={x.value === TODO_TYPES[0].value && result !== RESULTS.DONT_MERGE}
-                  >
-                    {x.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
             <Tooltip title={(noTask || enableCompleted) ? '' : tooltip}>
               <FormControlLabel
                 label="Completed"
@@ -810,7 +818,10 @@ function FocusedProofreading(props) {
           />
         </ThemeProvider>
       </div>
-      <div className="ng-container">
+      <div
+        className="ng-container"
+        onContextMenu={(event) => { event.preventDefault(); }}
+      >
         {childrenWithMoreProps}
       </div>
     </div>
