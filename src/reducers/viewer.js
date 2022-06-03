@@ -29,20 +29,6 @@ const viewerState = Immutable.Map({
         source: '',
         segmentColors: {},
       },
-      {
-        name: 'todos',
-        type: 'annotation',
-        source: '',
-        tool: 'annotatePoint',
-        defaultAnnotationProperties: {
-          point: {
-            type: 'False Merge',
-            hint: '',
-          },
-        },
-        // Limiting to "recent" prevents a slowdown as the assignment proceeds.
-        tableFilterByTime: 'recent',
-      },
     ],
     projectionScale: 2600,
     showSlices: false,
