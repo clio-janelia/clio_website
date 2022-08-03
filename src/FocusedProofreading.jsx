@@ -544,7 +544,6 @@ function FocusedProofreading(props) {
           const { position, projectionOrientation } = cameraPose(bodyPts);
           cameraProjectionScale(segments, projectionOrientation, json, dvidMngr)
             .then(([scale, scaleBirdsEye]) => {
-              setTaskJson(json);
               setBodyIds(segments);
               setBodyIdsAreSelected(true);
               setNormalScale(scale);
@@ -566,6 +565,8 @@ function FocusedProofreading(props) {
               actions.setViewerCameraPosition(position);
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
               actions.setViewerCameraProjectionScale(scale);
+
+              setTaskJson(json);
             });
           return (AssignmentManager.TASK_OK);
         })
@@ -712,7 +713,7 @@ function FocusedProofreading(props) {
         // the segment colors can trigger a cascade of further visiblity changes that end up with
         // the wrong segments visible.  So postpone the color change until control returns to the
         // event loop, which will be after all of Neuroglaner's changes.
-        if (!onVisibleChangedTimeoutPending.current) {
+        if (!onVisibleChangedTimeoutPending.current && taskJson) {
           onVisibleChangedTimeoutPending.current = true;
           setTimeout(() => {
             actions.setViewerSegmentColors(bodyColors(bodyIds, selection.current, result));
