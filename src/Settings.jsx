@@ -15,6 +15,23 @@ export default function Settings() {
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   useEffect(() => {
+    async function fetchToken(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json();
+
+      if (response.ok) {
+        setClioToken(data);
+      } else {
+        console.log(response, data);
+        const message = `Server responded with ${response.status} : ${data.detail}`;
+        dispatch(addAlert({
+          severity: 'error',
+          message: `Failed to set Top level Url: ${message}`,
+        }));
+        dispatch(resetTopLevelUrl());
+      }
+    }
+
     if (user && clioUrl) {
       const options = {
         method: 'post',
@@ -25,23 +42,7 @@ export default function Settings() {
 
       const tokenUrl = `${clioUrl}/server/token`;
 
-      fetch(tokenUrl, options)
-        .then((res) => {
-          console.log(res);
-          if (!res.ok) {
-            throw new Error(`Token URL returned a ${res.status} error`);
-          }
-          return res.json();
-        })
-        .then((res) => setClioToken(res))
-        .catch((e) => {
-          dispatch(addAlert({
-            severity: 'error',
-            message: `Failed to set Top level Url: ${e.message}`,
-          }));
-          dispatch(resetTopLevelUrl());
-          console.log(e);
-        });
+      fetchToken(tokenUrl, options);
     }
   }, [clioUrl, user, dispatch]);
 
