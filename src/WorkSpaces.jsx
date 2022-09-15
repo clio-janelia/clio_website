@@ -41,6 +41,7 @@ const ImageSearch = lazy(() => import('./ImageSearch'));
 const Annotate = lazy(() => import('./Annotate'));
 const Atlas = lazy(() => import('./Atlas'));
 const FocusedProofreading = lazy(() => import('./FocusedProofreading'));
+const OrphanLink = lazy(() => import('./OrphanLink'));
 
 function WorkSpaces(props) {
   const match = useRouteMatch('/ws/:ws');
@@ -67,6 +68,9 @@ function WorkSpaces(props) {
       break;
     case 'focused_proofreading':
       RenderedComponent = FocusedProofreading;
+      break;
+    case 'orphan_link':
+      RenderedComponent = OrphanLink;
       break;
     default:
       RenderedComponent = ImageSearch;

@@ -15,6 +15,8 @@ const KEY_FOCUSED_PROOFREADING_ASSIGNMENT_TASK_LIST = 'task list';
 export class AssignmentManager {
   onLoadInteractionDone = undefined;
 
+  onJsonLoaded = undefined;
+
   onAssignmentLoaded = undefined;
 
   onTaskLoaded = undefined;
@@ -46,7 +48,8 @@ export class AssignmentManager {
   // TASK_SKIP: the task should be skipped for protocol-specific reasons
   // TASK_RETRY: an error occurred so the task has not been loaded but it
   // should be retried the next time the protocol asks for a task
-  init = (onAssignmentLoaded, onTaskLoaded, addAlert) => {
+  init = (onJsonLoaded, onAssignmentLoaded, onTaskLoaded, addAlert) => {
+    this.onJsonLoaded = onJsonLoaded;
     this.onAssignmentLoaded = onAssignmentLoaded;
     this.onTaskLoaded = onTaskLoaded;
     this.addAlert = addAlert;
@@ -98,6 +101,9 @@ export class AssignmentManager {
       if (!reader.error) {
         try {
           this.assignment = JSON.parse(event.target.result);
+          if (this.onJsonLoaded) {
+            this.assignment = this.onJsonLoaded(this.assignment);
+          }
           this.initTaskList();
           this.taskIndex = -1;
           this.onAssignmentLoaded().then(() => { this.next(); });

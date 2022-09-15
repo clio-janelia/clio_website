@@ -371,7 +371,7 @@ function MitoCount(props) {
   const nextDisabled = noTask || assnMngr.nextButtonDisabled();
 
   React.useEffect(() => {
-    assnMngr.init(setupAssn, setupTask, actions.addAlert);
+    assnMngr.init(undefined, setupAssn, setupTask, actions.addAlert);
   }, [assnMngr, setupAssn, setupTask, actions]);
 
   const handleLoadButton = () => {
