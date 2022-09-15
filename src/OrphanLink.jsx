@@ -536,11 +536,11 @@ function OrphanLink(props) {
 
   return (
     <div
-      className="focused-proofreading-container"
+      className="orphan-link-container"
       tabIndex={0}
       onKeyPress={handleKeyPress}
     >
-      <div className="focused-proofreading-control-row">
+      <div className="orphan-link-control-row">
         <ButtonGroup variant="contained" color="primary" size="small">
           <Button color="primary" variant="contained" onClick={handleLoadButton}>
             Load

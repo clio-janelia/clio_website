@@ -1,10 +1,10 @@
-.focused-proofreading-container {
+.orphan-link-container {
     display: flex;
     flex-flow: column;
     height: 100%;
   }
   
-  .focused-proofreading-control-row {
+  .orphan-link-control-row {
     display: flex;
     flex-flow: row;
     background-color: #B0D4AB;
