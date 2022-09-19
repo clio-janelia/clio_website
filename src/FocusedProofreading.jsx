@@ -64,6 +64,9 @@ const TASK_KEYS = Object.freeze({
   DVID_SOURCE: 'DVID source',
   BODY_PT1: 'body point 1',
   BODY_PT2: 'body point 2',
+  // Alternative keys, used in the latest Neu3 version of the protocol.
+  SUPERVOXEL_PT1: 'supervoxel point 1',
+  SUPERVOXEL_PT2: 'supervoxel point 2',
   // Optional keys, needed if the segmentation source does not support DVID commands.
   BODY_ID1: 'default body ID 1',
   BODY_ID2: 'default body ID 2',
@@ -108,6 +111,10 @@ const CLIENT_INFO = new ClientInfo();
 const bodyPoints = (taskJson) => {
   if ((TASK_KEYS.BODY_PT1 in taskJson) && (TASK_KEYS.BODY_PT2 in taskJson)) {
     return ([taskJson[TASK_KEYS.BODY_PT1], taskJson[TASK_KEYS.BODY_PT2]]);
+  }
+  // Try to parse the assignments used in Neu3.
+  if ((TASK_KEYS.SUPERVOXEL_PT1 in taskJson) && (TASK_KEYS.SUPERVOXEL_PT2 in taskJson)) {
+    return ([taskJson[TASK_KEYS.SUPERVOXEL_PT1], taskJson[TASK_KEYS.SUPERVOXEL_PT2]]);
   }
   return (undefined);
 };
@@ -464,7 +471,15 @@ function FocusedProofreading(props) {
     const json = assnMngr.assignment;
     const setViewer = () => {
       actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
-      actions.setViewerSegmentationSource(dvidMngr.segmentationSourceURL());
+      const segmentationSource = {
+        url: dvidMngr.segmentationSourceURL(),
+        subsources: {
+          default: true,
+          meshes: true,
+        },
+        enableDefaultSubsources: false,
+      };
+      actions.setViewerSegmentationSource(segmentationSource);
       /* TODO: DISABLED_TODOS: this action causes an error in Neuroglancer, no "valid user"
       actions.setViewerTodosSource(dvidMngr.todosSourceURL());
       */
