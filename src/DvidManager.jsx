@@ -237,7 +237,9 @@ export class DvidManager {
     const parts = x.split('/');
     const server = `${parts[0]}//${parts[2]}`;
     const node = `${parts[3]}`;
-    const instance = (parts[4]) ? `${parts[4]}` : 'segmentation';
+    let instance = (parts[4]) ? `${parts[4]}` : 'segmentation';
+    const i = instance.indexOf('?');
+    instance = (i !== -1) ? instance.slice(0, i) : instance;
     return ([server, node, instance]);
   }
 
