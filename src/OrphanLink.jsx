@@ -284,12 +284,16 @@ function OrphanLink(props) {
       'file version': 1,
       'grayscale source': grayscaleSourceURL,
       'segmentation source': segmentationSourceURL,
-      'task list': oldJson.data.map((oldTask) => (
-        {
+      'task list': oldJson.data.map((oldTask) => {
+        const newTask = {
           'task type': 'orphan link',
-          'body point': oldTask.location,
+          [TASK_KEYS.BODY_PT]: oldTask.location,
+        };
+        if (oldTask[TASK_KEYS.EXTRA_BODY_IDS]) {
+          newTask[TASK_KEYS.EXTRA_BODY_IDS] = oldTask[TASK_KEYS.EXTRA_BODY_IDS];
         }
-      )),
+        return (newTask);
+      }),
     };
     return newJson;
   };
