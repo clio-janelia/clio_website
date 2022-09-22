@@ -172,6 +172,9 @@ export default function viewerReducer(state = viewerState, action) {
     case C.SET_VIEWER_SEGMENTATION_LAYER_NAME: {
       return setInLayerArray(syncedState(state), 'segmentation', ['name'], action.payload);
     }
+    case C.SET_VIEWER_SEGMENT_QUERY: {
+      return setInLayerArray(syncedState(state), 'segmentation', ['segmentQuery'], action.payload);
+    }
     case C.SET_VIEWER_TODOS_SOURCE: {
       return setInLayerArray(syncedState(state), 'todos', ['source'], action.payload);
     }

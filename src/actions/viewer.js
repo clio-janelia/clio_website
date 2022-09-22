@@ -43,6 +43,13 @@ export function setViewerSegmentationLayerName(payload) {
   };
 }
 
+export function setViewerSegmentQuery(payload) {
+  return {
+    type: C.SET_VIEWER_SEGMENT_QUERY,
+    payload,
+  };
+}
+
 export function setViewerTodosSource(payload) {
   return {
     type: C.SET_VIEWER_TODOS_SOURCE,

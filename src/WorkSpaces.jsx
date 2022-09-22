@@ -29,6 +29,7 @@ import {
   setViewerSegments,
   setViewerSegmentColors,
   setViewerSegmentEquivalences,
+  setViewerSegmentQuery,
   addViewerLayer,
   selectViewerLayer,
 } from './actions/viewer';
@@ -162,6 +163,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     setViewerSegmentEquivalences: (newState) => {
       dispatch(setViewerSegmentEquivalences(newState));
+    },
+    setViewerSegmentQuery: (newState) => {
+      dispatch(setViewerSegmentQuery(newState));
     },
     setViewerCameraPosition: (newState) => {
       dispatch(setViewerCameraPosition(newState));
