@@ -647,6 +647,8 @@ function FocusedProofreading(props) {
     }
     setPromptToAddExtra(!promptToAddExtra);
     actions.setViewerSegments(selection.current);
+    const segmentQuery = selection.current.reduce((a, v) => (a ? `${a}, ${v}` : v), null);
+    actions.setViewerSegmentQuery(segmentQuery);
   };
 
   const handleTaskCompleted = (isCompleted) => {
