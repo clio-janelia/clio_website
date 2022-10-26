@@ -3,6 +3,7 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
+import { getAnnotationLayer } from '@janelia-flyem/react-neuroglancer';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
@@ -192,6 +193,44 @@ const isDvidSource = (source) => (
   source.toLowerCase().startsWith('dvid')
 );
 
+const falseMergesLayer = () => (
+  {
+    type: 'annotation',
+    name: 'false merges',
+    tool: 'annotatePoint',
+    annotations: [],
+    source: {
+      url: 'local://annotations',
+      transform: {
+        // TODO: Query the dimensions, to support 4e-9.
+        outputDimensions: {
+          x: [8e-9, 'm'],
+          y: [8e-9, 'm'],
+          z: [8e-9, 'm'],
+        },
+      },
+    },
+  }
+);
+
+const falseMergePositions = () => {
+  const falseMerges = [];
+  const layer = getAnnotationLayer(null, 'false merges');
+  if (layer) {
+    const { localAnnotations } = layer;
+    if (localAnnotations) {
+      const { annotationMap } = localAnnotations;
+      if (annotationMap) {
+        annotationMap.forEach((annotation) => {
+          const { point } = annotation;
+          falseMerges.push([point[0], point[1], point[2]]);
+        });
+      }
+    }
+  }
+  return falseMerges;
+};
+
 const storeResults = (userEmail, selection, taskJson, result, taskStartTime,
   dvidMngr, assnMngr) => {
   const time = (new Date()).toISOString();
@@ -208,6 +247,7 @@ const storeResults = (userEmail, selection, taskJson, result, taskStartTime,
     'DVID source': dvidMngr.dvidSourceURL(),
     [TASK_KEYS.BODY_ID]: taskJsonCopy[TASK_KEYS.BODY_ID],
     'selected body IDs': selection,
+    'false merges': falseMergePositions(),
     result,
     time,
     user: userEmail,
@@ -390,6 +430,7 @@ function OrphanLink(props) {
 
               actions.setViewerSegments([bodyIdFromPt]);
               actions.setViewerSegmentColors(bodyColors([bodyIdFromPt], colorAsMerged));
+              actions.addViewerLayer(falseMergesLayer());
               actions.setViewerCrossSectionScale(0.4);
               actions.setViewerCameraPosition(position);
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
