@@ -319,6 +319,7 @@ function OrphanLink(props) {
     }
     const grayscaleSourceURL = oldJson['grayscale source'];
     const segmentationSourceURL = oldJson['segmentation source'];
+    const dvidSourceURL = oldJson['DVID source'];
     const newJson = {
       'file type': 'Neu3 task list',
       'file version': 1,
@@ -335,6 +336,9 @@ function OrphanLink(props) {
         return (newTask);
       }),
     };
+    if (dvidSourceURL) {
+      newJson['DVID source'] = dvidSourceURL;
+    }
     return newJson;
   };
 
