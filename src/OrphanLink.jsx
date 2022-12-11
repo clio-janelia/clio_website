@@ -19,6 +19,10 @@ import ClientInfo from './ClientInfo';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
 import './OrphanLink.css';
 import ProtocolHelp from './ProtocolHelp';
+import {
+  getMergeableLayerFromDataset, getMainImageLayer, getLayerSourceUrl,
+  makeLayersFromDataset, makeViewOptionsFromDataset,
+} from './utils/neuroglancer';
 
 const styles = {
   window: {
@@ -56,6 +60,7 @@ const TASK_KEYS = Object.freeze({
   GRAYSCALE_SOURCE: 'grayscale source',
   SEGMENTATION_SOURCE: 'segmentation source',
   DVID_SOURCE: 'DVID source',
+  DATASET_NAME: 'dataset',
   BODY_PT: 'body point',
   // Optional keys, needed if the segmentation source does not support DVID commands.
   BBOX: 'default bounding box',
@@ -284,8 +289,7 @@ const restoreResults = (taskJson) => {
 // Redux, accessed with the functions in the `actions` prop.
 
 function OrphanLink(props) {
-  const { actions, children } = props;
-
+  const { actions, children, datasets } = props;
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   const [dvidMngr] = React.useState(() => (new DvidManager()));
@@ -294,6 +298,7 @@ function OrphanLink(props) {
   const [assnMngr] = React.useState(() => (new AssignmentManager()));
   const [assnMngrLoading, setAssnMngrLoading] = React.useState(false);
 
+  const [segmentationLayerName, setSegmentationLayerName] = React.useState('');
   const [taskJson, setTaskJson] = React.useState(undefined);
   const [taskStartTime, setTaskStartTime] = React.useState(0);
   const [bodyId, setBodyId] = React.useState(undefined);
@@ -320,6 +325,7 @@ function OrphanLink(props) {
     const grayscaleSourceURL = oldJson['grayscale source'];
     const segmentationSourceURL = oldJson['segmentation source'];
     const dvidSourceURL = oldJson['DVID source'];
+    const { dataset } = oldJson;
     const newJson = {
       'file type': 'Neu3 task list',
       'file version': 1,
@@ -339,28 +345,55 @@ function OrphanLink(props) {
     if (dvidSourceURL) {
       newJson['DVID source'] = dvidSourceURL;
     }
+    if (dataset) {
+      newJson.dataset = dataset;
+    }
     return newJson;
   };
 
   const setupAssn = React.useCallback(() => {
     const json = assnMngr.assignment;
+    const datasetName = json[TASK_KEYS.DATASET_NAME];
+    const dataset = datasets.find((ds) => ds.name.startsWith(datasetName));
+
     const setViewer = () => {
-      actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
-      const segmentationSource = {
-        url: dvidMngr.segmentationSourceURL(),
-        subsources: {
-          default: true,
-          meshes: true,
-        },
-        enableDefaultSubsources: false,
-      };
-      actions.setViewerSegmentationSource(segmentationSource);
+      if (dataset) {
+        const layers = makeLayersFromDataset(dataset, false);
+        const custom = { layers };
+        const viewerOptions = makeViewOptionsFromDataset(dataset, custom);
+        actions.initViewer(viewerOptions);
+      } else {
+        actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
+        const segmentationSource = {
+          url: dvidMngr.segmentationSourceURL(),
+          subsources: {
+            default: true,
+            meshes: true,
+          },
+          enableDefaultSubsources: false,
+        };
+        actions.setViewerSegmentationSource(segmentationSource);
+        setSegmentationLayerName('segmentation');
+      }
     };
+
     let resolver;
-    if ((TASK_KEYS.GRAYSCALE_SOURCE in json) && (TASK_KEYS.SEGMENTATION_SOURCE in json)
-        && ((TASK_KEYS.DVID_SOURCE in json) || isDvidSource(json[TASK_KEYS.SEGMENTATION_SOURCE]))) {
-      const dvid = json[TASK_KEYS.DVID_SOURCE] || '';
-      dvidMngr.init(json[TASK_KEYS.GRAYSCALE_SOURCE], json[TASK_KEYS.SEGMENTATION_SOURCE], dvid);
+    let grayscaleSource = json[TASK_KEYS.GRAYSCALE_SOURCE];
+    let segmentationSource = json[TASK_KEYS.SEGMENTATION_SOURCE];
+
+    if (dataset) {
+      const grayscaleLayer = getMainImageLayer(dataset);
+      grayscaleSource = grayscaleLayer && getLayerSourceUrl(grayscaleLayer);
+      const segmentationLayer = getMergeableLayerFromDataset(dataset);
+      if (segmentationLayer) {
+        setSegmentationLayerName(segmentationLayer.name);
+        segmentationSource = getLayerSourceUrl(segmentationLayer);
+      }
+    }
+    if (grayscaleSource && segmentationSource
+        && ((TASK_KEYS.DVID_SOURCE in json) || isDvidSource(segmentationSource))) {
+      const dvidSource = json[TASK_KEYS.DVID_SOURCE] || '';
+      dvidMngr.init(grayscaleSource, segmentationSource, dvidSource);
       setViewer();
       // This promise immediately calls the `.then(...)` code, as there is no dialog to wait for.
       return new Promise((resolve) => { resolve(); });
@@ -370,12 +403,12 @@ function OrphanLink(props) {
       setViewer();
       resolver();
     };
-    dvidMngr.initForDialog(onDvidInitialized, 'Segmentation', json[TASK_KEYS.GRAYSCALE_SOURCE], json[TASK_KEYS.SEGMENTATION_SOURCE]);
+    dvidMngr.initForDialog(onDvidInitialized, 'Segmentation', grayscaleSource, segmentationSource);
     setDvidMngrDialogOpen(true);
     // This promise saves the `.then(...)` code so it can be can be called at the end of
     // `onDvidInitialized()`, above, when the sources dialog has been closed.
     return new Promise((resolve) => { resolver = resolve; });
-  }, [actions, assnMngr, dvidMngr]);
+  }, [actions, assnMngr, dvidMngr, datasets]);
 
   const setupTask = React.useCallback(() => {
     // Clearing the task JSON prevents rapid UI activity from starting another task before
@@ -550,7 +583,7 @@ function OrphanLink(props) {
 
   // Neuroglancer's notion of "visible" corresponds to other applications' notion of "selected".
   const onVisibleChanged = (segments, layer) => {
-    if (layer.name === 'segmentation') {
+    if (layer.name === segmentationLayerName) {
       const selectionStrings = segments.toJSON();
       selection.current = selectionStrings.map((s) => parseInt(s, 10));
       setBodyIdIsSelected(selection.current.includes(bodyId));
@@ -562,7 +595,12 @@ function OrphanLink(props) {
       if (!onVisibleChangedTimeoutPending.current && taskJson) {
         onVisibleChangedTimeoutPending.current = true;
         setTimeout(() => {
-          actions.setViewerSegmentColors(bodyColors(selection.current, colorAsMerged));
+          const payload = {
+            layerName: layer.name,
+            segmentColors: bodyColors(selection.current, colorAsMerged),
+          };
+          actions.setViewerSegmentColors(payload);
+          actions.setViewerSegmentColors(payload);
           onVisibleChangedTimeoutPending.current = false;
         }, 0);
       }
@@ -666,6 +704,8 @@ function OrphanLink(props) {
 OrphanLink.propTypes = {
   actions: PropTypes.object.isRequired,
   children: PropTypes.object.isRequired,
+  /* eslint-disable-next-line react/forbid-prop-types */
+  datasets: PropTypes.array.isRequired,
 };
 
 export default withStyles(styles)(OrphanLink);
