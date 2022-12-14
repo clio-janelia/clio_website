@@ -9,7 +9,7 @@ function inferredLayerType(layer) {
   return undefined;
 }
 
-function getLayersFromDataset(dataset) {
+export function getLayersFromDataset(dataset) {
   let layers = [];
   if (dataset) {
     if (dataset.layers) {
@@ -46,7 +46,7 @@ export function getLayerSourceUrl(layer) {
   return sourceUrl || '';
 }
 
-function getMainImageLayer(dataset) {
+export function getMainImageLayer(dataset) {
   let newLayer = null;
   if (dataset) {
     const layers = getLayersFromDataset(dataset);
@@ -58,6 +58,7 @@ function getMainImageLayer(dataset) {
     }
 
     if (!newLayer) {
+      // TODO: Is the following a bug?  Doesn't `getLayerSourceUrl` take a layer as an argument?
       const mainImageUrl = getLayerSourceUrl(dataset);
       if (mainImageUrl) {
         const layer = layers.find((_layer) => getLayerSourceUrl(_layer) === mainImageUrl);
