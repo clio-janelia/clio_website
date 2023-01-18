@@ -79,7 +79,6 @@ export function getMainImageLayer(dataset) {
   return newLayer;
 }
 
-/* eslint-disable-next-line  import/prefer-default-export */
 export function getDatasetLocationWithoutProtocol(dataset) {
   let location = '';
   if (dataset) {

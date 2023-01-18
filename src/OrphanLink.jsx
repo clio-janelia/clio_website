@@ -3,7 +3,7 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-import { getAnnotationLayer } from '@janelia-flyem/react-neuroglancer';
+import { getAnnotationLayer, getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
@@ -325,7 +325,7 @@ function OrphanLink(props) {
     const grayscaleSourceURL = oldJson['grayscale source'];
     const segmentationSourceURL = oldJson['segmentation source'];
     const dvidSourceURL = oldJson['DVID source'];
-    const { dataset } = oldJson;
+    const { dataset, layers } = oldJson;
     const newJson = {
       'file type': 'Neu3 task list',
       'file version': 1,
@@ -347,6 +347,9 @@ function OrphanLink(props) {
     }
     if (dataset) {
       newJson.dataset = dataset;
+    }
+    if (layers) {
+      newJson.layers = layers;
     }
     return newJson;
   };
@@ -374,6 +377,26 @@ function OrphanLink(props) {
         };
         actions.setViewerSegmentationSource(segmentationSource);
         setSegmentationLayerName('segmentation');
+      }
+
+      // If the assignment contains custom layers, add them or replace normal layers
+      // with matching names.
+      if ('layers' in json) {
+        const state = getNeuroglancerViewerState();
+        if ('layers' in state) {
+          const matches = (l1, l2) => {
+            const re = new RegExp(l1.name);
+            return re.test(l2.name);
+          };
+          json.layers.forEach((newLayer) => {
+            const oldLayer = state.layers.find((layer) => matches(newLayer, layer));
+            if (oldLayer) {
+              /* eslint-disable-next-line no-param-reassign */
+              newLayer.name = oldLayer.name;
+            }
+            actions.addViewerLayer(newLayer);
+          });
+        }
       }
     };
 
