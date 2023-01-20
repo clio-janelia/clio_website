@@ -413,7 +413,11 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
       </div>
     );
   }
-  return <div />;
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <h3>Please select a dataset from the menu above.</h3>
+    </div>
+  );
 }
 
 Annotate.propTypes = {
