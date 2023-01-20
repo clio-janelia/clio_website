@@ -186,32 +186,6 @@ function App() {
     }
   }, [dispatch]);
 
-  /*  useEffect(() => {
-    // Check for logged in user and save them to state.
-    function onInit(googleAuth) {
-      if (googleAuth.isSignedIn.get()) {
-        // Save the current user in the global space so that it can be used by
-        // neuroglancer.
-        window.neurohub = {};
-        window.neurohub.clio = {};
-        window.neurohub.clio.auth = googleAuth.currentUser.get();
-        dispatch(loginGoogleUser(googleAuth.currentUser.get()));
-      }
-    }
-
-    const jsSrc = 'https://apis.google.com/js/platform.js';
-    loadScript(document, 'script', 'google-login', jsSrc, () => {
-      const g = window.gapi;
-      g.load('auth2', () => {
-        g.auth2.init(config.google_auth).then(onInit);
-      });
-    });
-
-    return () => {
-      removeScript(document, 'google-login');
-    };
-  }, [dispatch]); */
-
   // if not logged in then show the login page for all routes.
   if (!user) {
     return <UnauthenticatedApp history={history} theme={theme} />;
