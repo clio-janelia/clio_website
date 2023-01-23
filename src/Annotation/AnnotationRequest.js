@@ -131,7 +131,7 @@ export async function updateBodyAnnotation(
     };
 
     const data = await getBodyAnnotation(projectUrl, token, dataset, annotation.bodyid);
-    let newAnnotation = { ...annotation, last_modified_by: user };
+    let newAnnotation = { ...annotation };
 
     if (data && data.bodyid) {
       newAnnotation = { ...data, ...newAnnotation };
