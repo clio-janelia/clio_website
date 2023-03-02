@@ -79,7 +79,8 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "lint": "eslint src --ext .js --ext .jsx",
-    "deploy": "node scripts/build.js && gsutil rsync -dr build/ gs://clio.janelia.org && gsutil setmeta -h \"Cache-Control:no-cache, max-age=0\" gs://clio.janelia.org/index.html"
+    "deploy": "node scripts/build.js && gsutil rsync -dr build/ gs://clio.janelia.org && gsutil setmeta -h \"Cache-Control:no-cache, max-age=0\" gs://clio.janelia.org/index.html",
+    "deploy:dev": "node scripts/build.js && gsutil rsync -dr build/ gs://clio-dev.janelia.org && gsutil setmeta -h \"Cache-Control:no-cache, max-age=0\" gs://clio-dev.janelia.org/index.html"
   },
   "eslintConfig": {
     "extends": "react-app"
