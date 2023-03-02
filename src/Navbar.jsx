@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useSelector, shallowEqual } from 'react-redux';
 import Select from 'react-select';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -14,9 +15,14 @@ import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import Tooltip from '@material-ui/core/Tooltip';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTheme } from '@material-ui/styles';
+import config from './config';
 
 import DataSetSelection from './Settings/DataSetSelection';
 import Login from './Login';
+
+import './Navbar.css';
+
+const productionUrl = `${config.projectBaseUrlDefault}/${config.top_level_function}`;
 
 const useStyles = makeStyles((theme) => ({
   search: {
@@ -45,6 +51,12 @@ const useStyles = makeStyles((theme) => ({
     marginRight: '25px',
     color: 'white',
   },
+  root: {
+    color: 'white',
+    backgroundImage: 'linear-gradient(45deg, #8f871d 25%, #9c381f 25%, #9c381f 50%, #8f871d 50%, #8f871d 75%, #9c381f 75%, #9c381f 100%)',
+    backgroundSize: '98.99px 98.99px',
+    animation: 'animatedBackground 1000s linear infinite',
+  },
 }));
 
 // eslint-disable-next-line object-curly-newline
@@ -54,8 +66,11 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
   const [isCollapsed, setCollapsed] = useState(false);
   const [selectedWorkspace, setWorkspace] = useState(null);
   const [showDataset, setShowDataset] = useState(false);
+  const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
 
   const location = useLocation();
+
+  const isTesting = clioUrl !== productionUrl;
 
   useEffect(() => {
     if (!location.pathname.match(/^\/ws\//)) {
@@ -98,7 +113,13 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
     selectedDatasetName: null,
   };
 
-  const workspaceOptions = ['annotate', 'image search', 'atlas', 'focused proofreading', 'orphan link'].map((dataset) => ({
+  const workspaceOptions = [
+    'annotate',
+    'image search',
+    'atlas',
+    'focused proofreading',
+    'orphan link',
+  ].map((dataset) => ({
     value: `ws/${dataset.replace(/ /, '_')}`,
     label: dataset,
   }));
@@ -127,10 +148,15 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
 
   return (
     <AppBar position="static">
-      <Toolbar>
+      <Toolbar classes={isTesting ? { root: classes.root } : {}}>
         <Link to="/" className={classes.title}>
           <Typography variant="h6" color="inherit">
             Clio
+          </Typography>
+        </Link>
+        <Link to="/settings" className={classes.title}>
+          <Typography variant="h6" color="inherit">
+            {isTesting ? 'Testing' : ''}
           </Typography>
         </Link>
         <div className={classes.searchContainer}>

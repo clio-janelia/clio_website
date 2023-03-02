@@ -1,0 +1,12 @@
+@keyframes animatedBackground {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 100% 0;
+  }
+}
+
+.makeStyles-root-7 {
+  animation: animatedBackground 1000s linear infinite ;
+}
