@@ -118,7 +118,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
   useEffect(() => {
     if (dataset) {
-      let viewerOptions = retrieveViewerState(dataset.name);
+      let viewerOptions = retrieveViewerState(`${projectUrl}${dataset.name}`);
       if (viewerOptions === null) {
         const layers = [
           ...makeLayersFromDataset(dataset, false),
@@ -155,7 +155,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
       actions.initViewer(viewerOptions);
     }
-  }, [actions, dataset, getAnnotationUrl]);
+  }, [actions, dataset, getAnnotationUrl, projectUrl]);
 
   const getToken = React.useCallback(() => user.getAuthResponse().id_token, [user]);
   /*
@@ -231,7 +231,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   };
   const onViewerStateChanged = React.useCallback(debounce((state) => {
     if (state.title) {
-      saveViewerState(state.title, state);
+      saveViewerState(`${projectUrl}${state.title}`, state);
     }
   }, 250, false), []);
 
