@@ -118,7 +118,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
   useEffect(() => {
     if (dataset) {
-      let viewerOptions = retrieveViewerState(`${projectUrl}${dataset.name}`);
+      let viewerOptions = retrieveViewerState(`annotation_${projectUrl}${dataset.name}`);
       if (viewerOptions === null) {
         const layers = [
           ...makeLayersFromDataset(dataset, false),
@@ -231,7 +231,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
   };
   const onViewerStateChanged = React.useCallback(debounce((state) => {
     if (state.title) {
-      saveViewerState(`${projectUrl}${state.title}`, state);
+      saveViewerState(`annotation_${projectUrl}${state.title}`, state);
     }
   }, 250, false), []);
 

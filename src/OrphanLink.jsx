@@ -3,7 +3,7 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-import { getAnnotationLayer, getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
+import NeuroGlancer, { getAnnotationLayer, getNeuroglancerViewerState } from '@janelia-flyem/react-neuroglancer';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
@@ -289,7 +289,7 @@ const restoreResults = (taskJson) => {
 // Redux, accessed with the functions in the `actions` prop.
 
 function OrphanLink(props) {
-  const { actions, children, datasets } = props;
+  const { actions, datasets } = props;
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   const [dvidMngr] = React.useState(() => (new DvidManager()));
@@ -632,10 +632,6 @@ function OrphanLink(props) {
 
   const eventBindingsToUpdate = Object.entries(keyBindings).map((e) => [`key${e[1].key}`, `control+key${e[1].key}`]);
 
-  // Add `onVisibleChanged` to the props of the child, which is a react-neuroglancer viewer.
-  const childrenWithMoreProps = React.Children.map(children, (child) => (
-    React.cloneElement(child, { eventBindingsToUpdate, onVisibleChanged }, null)
-  ));
 
   const noExtra = (extraBodyIds.length === 0);
 
@@ -718,7 +714,7 @@ function OrphanLink(props) {
         className="ng-container"
         onContextMenu={(event) => { event.preventDefault(); }}
       >
-        {childrenWithMoreProps}
+        <NeuroGlancer viewerState={{}} brainMapsClientId="NOT_A_VALID_ID" ngServer=" https://clio-ng.janelia.org" eventBindingsToUpdate={eventBindingsToUpdate} onVisibleChanged={onVisibleChanged} />
       </div>
     </div>
   );
@@ -726,7 +722,6 @@ function OrphanLink(props) {
 
 OrphanLink.propTypes = {
   actions: PropTypes.object.isRequired,
-  children: PropTypes.object.isRequired,
   /* eslint-disable-next-line react/forbid-prop-types */
   datasets: PropTypes.array.isRequired,
 };
