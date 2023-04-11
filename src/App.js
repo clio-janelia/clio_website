@@ -129,6 +129,37 @@ function App() {
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const [datasets, setDatasets] = useState([]);
 
+  // This effect will fire off a request to the production clio store to let us know when
+  // a client is using a non standard production or test url. This should be a very rare
+  // case, but we want to know when it happens to check and see what the url was.
+  useEffect(() => {
+    if (process.env.REACT_APP_REPORTS) {
+      const defaultProd = `${config.projectBaseUrlDefault}/${config.top_level_function}`;
+      const defaultTest = `${config.projectBaseUrlTest}/${config.top_level_function}`;
+      if (!(defaultProd === projectUrl || defaultTest === projectUrl)) {
+        if (user) {
+          const data = {
+            projectUrl,
+            defaultProd,
+            defaultTest,
+            user: user.getBasicProfile().getEmail(),
+          };
+          const options = {
+            method: 'POST',
+            keepalive: 'true',
+            headers: {
+              Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          };
+
+          fetch(`${defaultProd}/site-reports`, options).then((res) => res.json()).then((res) => console.log(res));
+        }
+      }
+    }
+  }, [projectUrl, user]);
+
   useEffect(() => {
     if (user) {
       const options = {
