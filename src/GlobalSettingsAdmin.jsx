@@ -11,7 +11,7 @@ import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 
 import { addAlert } from './actions/alerts';
-import setTopLevelFunction from './actions/clio';
+import { setToplevelUrl } from './actions/clio';
 import config from './config';
 
 const productionUrl = `${config.projectBaseUrlDefault}/${config.top_level_function}`;
@@ -26,12 +26,12 @@ export default function GlobalSettingsAdmin({ isAdmin }) {
   };
 
   const persistData = () => {
-    dispatch(setTopLevelFunction(toplevelUrl));
+    dispatch(setToplevelUrl(toplevelUrl));
   };
 
   const handleTopLevelSwitch = (event) => {
     setTopLevel(event.target.value);
-    dispatch(setTopLevelFunction(event.target.value));
+    dispatch(setToplevelUrl(event.target.value));
     dispatch(addAlert({
       severity: 'success',
       message: 'Clio store url changed and saved',
@@ -40,7 +40,8 @@ export default function GlobalSettingsAdmin({ isAdmin }) {
 
   return (
     <div>
-      <p>Global Settings</p>
+      <h3>Global Settings</h3>
+      <p><b>ClioStore url:</b> {toplevelUrl}</p>
       <FormControl component="fieldset">
         <FormLabel component="legend">Clio Store</FormLabel>
         <RadioGroup
