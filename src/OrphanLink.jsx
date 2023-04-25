@@ -9,11 +9,13 @@ import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import { createMuiTheme, withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, useTheme } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
+import Select from 'react-select';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import activeElementNeedsKeypress from './utils/events';
+import { queryBodyAnnotations, updateBodyAnnotation } from './Annotation/AnnotationRequest';
 import { AssignmentManager, AssignmentManagerDialog } from './AssignmentManager';
 import ClientInfo from './ClientInfo';
 import { DvidManager, DvidManagerDialog } from './DvidManager';
@@ -23,20 +25,6 @@ import {
   getMergeableLayerFromDataset, getMainImageLayer, getLayerSourceUrl,
   makeLayersFromDataset, makeViewOptionsFromDataset,
 } from './utils/neuroglancer';
-
-const styles = {
-  window: {
-    width: '90%',
-    margin: 'auto',
-    height: '500px',
-  },
-  textField: {
-    width: '50%',
-  },
-  inputForm: {
-    margin: '1em',
-  },
-};
 
 // Use a default theme for dialogs, so their text is the normal size.
 const dialogTheme = createMuiTheme({
@@ -236,6 +224,42 @@ const falseMergePositions = () => {
   return falseMerges;
 };
 
+const annotationQueryBodyStatus = (response) => {
+  if (response) {
+    if (response.length > 0) {
+      const { status } = response[0];
+      return status;
+    }
+  }
+  return 'unspecified';
+};
+
+const setupBodyStatusChoices = (dvidManager, setBodyStatusChoices) => {
+  dvidManager.getAnnotationSchema().then(
+    (schema) => {
+      const { properties } = schema;
+      const { status } = properties;
+      const e = status.enum;
+      setBodyStatusChoices(e);
+    },
+  );
+};
+
+const setupBodyStatus = (actions, bodyId, datasetName, datasets, getToken,
+  projectUrl, setBodyStatus) => {
+  const dataset = datasets.find((ds) => ds.name.startsWith(datasetName));
+  const query = { bodyid: [bodyId] };
+  queryBodyAnnotations(projectUrl, getToken(), dataset, query).then(
+    (response) => {
+      const status = annotationQueryBodyStatus(response);
+      setBodyStatus(status);
+    },
+  ).catch((error) => {
+    const message = `Failed to query bodies: ${error.message}.`;
+    actions.addAlert({ severity: 'warning', message });
+  });
+};
+
 const storeResults = (userEmail, selection, taskJson, result, taskStartTime,
   dvidMngr, assnMngr) => {
   const time = (new Date()).toISOString();
@@ -291,6 +315,8 @@ const restoreResults = (taskJson) => {
 function OrphanLink(props) {
   const { actions, children, datasets } = props;
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
+  const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
+  const getToken = React.useCallback(() => user.getAuthResponse().id_token, [user]);
 
   const [dvidMngr] = React.useState(() => (new DvidManager()));
   const [dvidMngrDialogOpen, setDvidMngrDialogOpen] = React.useState(false);
@@ -313,9 +339,37 @@ function OrphanLink(props) {
   const [bodyIdIsSelected, setBodyIdIsSelected] = React.useState(true);
   const [colorAsMerged, setColorAsMerged] = React.useState(true);
 
+  const [datasetName, setDatasetName] = React.useState(undefined);
+  const [bodyStatusChoices, setBodyStatusChoices] = React.useState([]);
+  const [bodyStatus, setBodyStatus] = React.useState(annotationQueryBodyStatus());
+
   // Not state, because changes occur during event processing and should not trigger rendering.
   const selection = React.useRef([]);
   const onVisibleChangedTimeoutPending = React.useRef(false);
+
+  const theme = useTheme();
+  const selectStyles = {
+    control: (provided) => ({
+      ...provided,
+      background: theme.palette.primary.main,
+      fontFamily: theme.typography.fontFamily,
+      fontSize: 'small',
+      border: '0px',
+    }),
+    placeholder: () => ({
+      color: '#000',
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: '#000',
+    }),
+    menu: (provided) => ({
+      ...provided,
+      fontFamily: theme.typography.fontFamily,
+      fontSize: 'small',
+      color: '#000',
+    }),
+  };
 
   // Translate the old, NeuTu style of protocol.
   const translateJson = (oldJson) => {
@@ -356,8 +410,9 @@ function OrphanLink(props) {
 
   const setupAssn = React.useCallback(() => {
     const json = assnMngr.assignment;
-    const datasetName = json[TASK_KEYS.DATASET_NAME];
-    const dataset = datasets.find((ds) => ds.name.startsWith(datasetName));
+    const name = json[TASK_KEYS.DATASET_NAME];
+    setDatasetName(name);
+    const dataset = datasets.find((ds) => ds.name.startsWith(name));
 
     const setViewer = () => {
       if (dataset) {
@@ -418,6 +473,11 @@ function OrphanLink(props) {
       const dvidSource = json[TASK_KEYS.DVID_SOURCE] || '';
       dvidMngr.init(grayscaleSource, segmentationSource, dvidSource);
       setViewer();
+
+      if (dataset) {
+        setupBodyStatusChoices(dvidMngr, setBodyStatusChoices);
+      }
+
       // This promise immediately calls the `.then(...)` code, as there is no dialog to wait for.
       return new Promise((resolve) => { resolve(); });
     }
@@ -431,7 +491,7 @@ function OrphanLink(props) {
     // This promise saves the `.then(...)` code so it can be can be called at the end of
     // `onDvidInitialized()`, above, when the sources dialog has been closed.
     return new Promise((resolve) => { resolver = resolve; });
-  }, [actions, assnMngr, dvidMngr, datasets]);
+  }, [actions, assnMngr, dvidMngr, datasets, setBodyStatusChoices]);
 
   const setupTask = React.useCallback(() => {
     // Clearing the task JSON prevents rapid UI activity from starting another task before
@@ -497,11 +557,16 @@ function OrphanLink(props) {
               actions.setViewerCameraProjectionScale(scale);
 
               setTaskJson(json);
+              if (datasetName) {
+                setupBodyStatus(actions, bodyIdFromPt, datasetName, datasets, getToken,
+                  projectUrl, setBodyStatus);
+              }
             });
           return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, user, taskJson, selection, colorAsMerged, assnMngr, dvidMngr]);
+  }, [actions, user, taskJson, selection, colorAsMerged, assnMngr, dvidMngr,
+    datasets, datasetName, getToken, projectUrl, setBodyStatus]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -630,6 +695,14 @@ function OrphanLink(props) {
     }
   };
 
+  const handleBodyStatusChange = (event) => {
+    const { value } = event;
+    const newAnnotation = { bodyid: bodyId, status: value };
+    const dataset = datasets.find((ds) => ds.name.startsWith(datasetName));
+    updateBodyAnnotation(projectUrl, getToken(), user, dataset, newAnnotation);
+    setBodyStatus(value);
+  };
+
   const eventBindingsToUpdate = Object.entries(keyBindings).map((e) => [`key${e[1].key}`, `control+key${e[1].key}`]);
 
   // Add `onVisibleChanged` to the props of the child, which is a react-neuroglancer viewer.
@@ -645,6 +718,8 @@ function OrphanLink(props) {
     tooltip += 'select the task\'s original body';
   }
   tooltip = `To enable "Completed": ${tooltip}`;
+
+  const bodyStatusOptions = bodyStatusChoices.map((c) => ({ value: c, label: c }));
 
   return (
     <div
@@ -700,6 +775,16 @@ function OrphanLink(props) {
             />
           </Tooltip>
         </FormGroup>
+
+        <Select
+          className="orphan-link-select"
+          styles={selectStyles}
+          onChange={handleBodyStatusChange}
+          value={bodyStatus}
+          placeholder={`Body status: ${bodyStatus}`}
+          options={bodyStatusOptions}
+        />
+
         <IconButton onClick={handleHelpOpen}>
           <HelpIcon />
         </IconButton>
@@ -707,7 +792,7 @@ function OrphanLink(props) {
           <DvidManagerDialog manager={dvidMngr} open={dvidMngrDialogOpen} />
           <AssignmentManagerDialog manager={assnMngr} open={assnMngrLoading} />
           <ProtocolHelp
-            title="Focused Proofreading Help"
+            title="Orphan Link Help"
             keyBindings={keyBindings}
             open={helpOpen}
             onClose={handleHelpClose}
@@ -731,4 +816,4 @@ OrphanLink.propTypes = {
   datasets: PropTypes.array.isRequired,
 };
 
-export default withStyles(styles)(OrphanLink);
+export default OrphanLink;
