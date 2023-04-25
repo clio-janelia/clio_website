@@ -187,6 +187,27 @@ export class DvidManager {
       }));
   }
 
+  getAnnotationSchema = (onError = this.defaultOnError) => {
+    const url = `${this.dvidApiURL('segmentation_annotations', ':master')}/json_schema`;
+    return (fetch(url)
+      .then((response) => {
+        if (response.ok) {
+          return (response.json());
+        }
+        if (response.status === 404) {
+          // The key is not found, which is not really an error.
+          return (undefined);
+        }
+        const error = `Error status ${response.status} '${response.statusText}' ${url}`;
+        onError(error);
+        return ({});
+      })
+      .catch((error) => {
+        onError(error.message);
+        return ((noInternet(error)) ? DvidManager.NO_INTERNET : undefined);
+      }));
+  }
+
   //
 
   onDialogClosed = () => {
@@ -250,9 +271,10 @@ export class DvidManager {
     return (undefined);
   }
 
-  dvidApiURL = (instance) => {
+  dvidApiURL = (instance, dvidNode) => {
     if (this.dvidServer) {
-      return (`${this.dvidServer}/api/node/${this.dvidNode}/${instance}`);
+      const node = dvidNode || this.dvidNode;
+      return (`${this.dvidServer}/api/node/${node}/${instance}`);
     }
     return (undefined);
   }

@@ -13,3 +13,8 @@
     min-height: 0px;
   }
   
+  .orphan-link-select {
+    width: 17em;
+    /* The z-index must be increased so the drop-down menu appears on top of Neuroglancer. */
+    z-index: 5000;
+  }
