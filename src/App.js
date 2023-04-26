@@ -16,7 +16,7 @@ import UnauthenticatedApp from './UnauthenticatedApp';
 // import removeScript from './utils/remove-script';
 import { useLocalStorage } from './utils/hooks';
 import { loginGoogleUser } from './actions/user';
-// import config from './config';
+import config from './config';
 import { expandDatasets } from './utils/config';
 
 import './App.css';
