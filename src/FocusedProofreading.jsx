@@ -408,21 +408,22 @@ const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStart
   }
 
   const dvidKey = dvidLogKey(taskJsonCopy, userEmail);
+  const onError = (error) => {
+    const message = `Cannot store results: ${error}`;
+    actions.addAlert({ severity: 'error', message });
+  };
+  const noop = () => {};
 
   if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
     const onCompletion = (res) => {
       dvidLogValue['mutation ID'] = res.MutationID;
-      dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue);
+      dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue, noop, onError);
       // TODO: Add Kafka logging?
       console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
     };
-    const onError = (err) => {
-      // TODO: Add proper error reporting.
-      console.error(`Failed to merge ${bodyIdOther} onto ${bodyIdMergedOnto}: `, err);
-    };
     dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
   } else {
-    dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue);
+    dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue, noop, onError);
   }
 };
 
