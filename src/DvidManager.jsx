@@ -161,7 +161,16 @@ export class DvidManager {
       },
       body: JSON.stringify(value),
     };
-    fetch(url, options).then((response) => response).then((data) => onCompletion(data))
+    fetch(url, options)
+      .then((response) => {
+        if (response.ok) {
+          return response;
+        }
+        const error = `Error status ${response.status} '${response.statusText}'`;
+        onError(error);
+        return (undefined);
+      })
+      .then((data) => onCompletion(data))
       .catch((error) => onError(error.message));
   }
 
