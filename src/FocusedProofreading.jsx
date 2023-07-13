@@ -109,14 +109,9 @@ const CLIENT_INFO = new ClientInfo();
 // Functions that can be factored out of the React component (because they don't use hooks)
 
 const bodyPoints = (taskJson) => {
-  if ((TASK_KEYS.BODY_PT1 in taskJson) && (TASK_KEYS.BODY_PT2 in taskJson)) {
-    return ([taskJson[TASK_KEYS.BODY_PT1], taskJson[TASK_KEYS.BODY_PT2]]);
-  }
-  // Try to parse the assignments used in Neu3.
-  if ((TASK_KEYS.SUPERVOXEL_PT1 in taskJson) && (TASK_KEYS.SUPERVOXEL_PT2 in taskJson)) {
-    return ([taskJson[TASK_KEYS.SUPERVOXEL_PT1], taskJson[TASK_KEYS.SUPERVOXEL_PT2]]);
-  }
-  return (undefined);
+  const key1 = (TASK_KEYS.BODY_PT1 in taskJson) ? TASK_KEYS.BODY_PT1 : TASK_KEYS.SUPERVOXEL_PT1;
+  const key2 = (TASK_KEYS.BODY_PT2 in taskJson) ? TASK_KEYS.BODY_PT2 : TASK_KEYS.SUPERVOXEL_PT2;
+  return [taskJson[key1], taskJson[key2]];
 };
 
 const getBodyId = (bodyPt, dvidMngr, taskJson, which, onError) => {
@@ -181,9 +176,14 @@ const taskDocString = (taskJson, assnMngr) => {
   return ('');
 };
 
-const taskDocTooltip = (taskJson, assnMngr) => (
-  taskJson ? `${assnMngr.assignmentFile} [${taskJson[TASK_KEYS.BODY_PT1]}] + [${taskJson[TASK_KEYS.BODY_PT2]}]` : ''
-);
+const taskDocTooltip = (taskJson, assnMngr) => {
+  if (taskJson) {
+    const key1 = (TASK_KEYS.BODY_PT1 in taskJson) ? TASK_KEYS.BODY_PT1 : TASK_KEYS.SUPERVOXEL_PT1;
+    const key2 = (TASK_KEYS.BODY_PT2 in taskJson) ? TASK_KEYS.BODY_PT2 : TASK_KEYS.SUPERVOXEL_PT2;
+    return `${assnMngr.assignmentFile} [${taskJson[key1]}] + [${taskJson[key2]}]`;
+  }
+  return '';
+};
 
 const bodyColors = (bodyIds, selection, result) => {
   if (result === RESULTS.MERGE) {
@@ -279,9 +279,11 @@ const cameraProjectionScale = (bodyIds, orientation, taskJson, dvidMngr) => {
   );
 };
 
-const dvidLogKey = (taskJson, userEmail) => (
-  `${taskJson[TASK_KEYS.BODY_PT1]}+${taskJson[TASK_KEYS.BODY_PT2]}_${userEmail}`.replace(/,/g, '_')
-);
+const dvidLogKey = (taskJson, userEmail) => {
+  const key1 = (TASK_KEYS.BODY_PT1 in taskJson) ? TASK_KEYS.BODY_PT1 : TASK_KEYS.SUPERVOXEL_PT1;
+  const key2 = (TASK_KEYS.BODY_PT2 in taskJson) ? TASK_KEYS.BODY_PT2 : TASK_KEYS.SUPERVOXEL_PT2;
+  return `${taskJson[key1]}+${taskJson[key2]}_${userEmail}`.replace(/,/g, '_');
+};
 
 const isDvidSource = (source) => (
   source.toLowerCase().startsWith('dvid')
@@ -405,10 +407,12 @@ const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStart
     actions.addAlert({ severity: 'warning', message });
   }
 
+  const dvidKey = dvidLogKey(taskJsonCopy, userEmail);
+
   if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
     const onCompletion = (res) => {
       dvidLogValue['mutation ID'] = res.MutationID;
-      dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy, userEmail), dvidLogValue);
+      dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue);
       // TODO: Add Kafka logging?
       console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
     };
@@ -418,7 +422,7 @@ const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStart
     };
     dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
   } else {
-    dvidMngr.postKeyValue('segmentation_focused', dvidLogKey(taskJsonCopy, userEmail), dvidLogValue);
+    dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue);
   }
 };
 
