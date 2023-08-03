@@ -142,7 +142,7 @@ function App() {
             projectUrl,
             defaultProd,
             defaultTest,
-            user: user.getBasicProfile().getEmail(),
+            user: user.info.email,
           };
           const options = {
             method: 'POST',

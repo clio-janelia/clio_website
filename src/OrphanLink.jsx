@@ -504,7 +504,7 @@ function OrphanLink(props) {
     setTaskStartTime(startTime);
     const json = assnMngr.taskJson();
     const bodyPt = bodyPoint(json);
-    const userEmail = user.getBasicProfile().getEmail();
+    const userEmail = user.info.email;
     if (!bodyPt) {
       return new Promise((resolve) => { resolve(AssignmentManager.TASK_SKIP); });
     }
@@ -624,7 +624,7 @@ function OrphanLink(props) {
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
-      const userEmail = user.getBasicProfile().getEmail();
+      const userEmail = user.info.email;
       storeResults(userEmail, selection.current, taskJson, 'merge', taskStartTime,
         dvidMngr, assnMngr);
     }

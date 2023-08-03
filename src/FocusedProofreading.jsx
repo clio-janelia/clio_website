@@ -521,7 +521,7 @@ function FocusedProofreading(props) {
     setTaskStartTime(startTime);
     const json = assnMngr.taskJson();
     const bodyPts = bodyPoints(json);
-    const userEmail = user.getBasicProfile().getEmail();
+    const userEmail = user.info.email;
     if (!bodyPts) {
       return new Promise((resolve) => { resolve(AssignmentManager.TASK_SKIP); });
     }
@@ -667,7 +667,7 @@ function FocusedProofreading(props) {
     setCompleted(isCompleted);
     taskJson.completed = isCompleted;
     if (isCompleted) {
-      const userEmail = user.getBasicProfile().getEmail();
+      const userEmail = user.info.email;
       storeResults(userEmail, bodyIds, selection.current, result, taskJson, taskStartTime, actions,
         dvidMngr, assnMngr);
     }
