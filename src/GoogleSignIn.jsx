@@ -41,10 +41,12 @@ export default function GoogleSignin() {
         callback: handleGoogleSignIn,
       });
       // window.google.accounts.id.prompt();
-      window.google.accounts.id.renderButton(
-        document.getElementById('loginButton'),
-        { theme: 'outline', size: 'medium', shape: 'pill' }, // customization attributes
-      );
+      if (document.getElementById('loginButton')) {
+        window.google.accounts.id.renderButton(
+          document.getElementById('loginButton'),
+          { theme: 'outline', size: 'medium', shape: 'pill' }, // customization attributes
+        );
+      }
     };
 
     const script = document.createElement('script');
