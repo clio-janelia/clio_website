@@ -1,0 +1,20 @@
+.body-review-container {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+  }
+  
+  .body-review-control-row {
+    display: flex;
+    flex-flow: row;
+    background-color: #B0D4AB;
+    align-items: center;
+    justify-content: center;
+    min-height: 0px;
+  }
+  
+  .body-review-select {
+    width: 17em;
+    /* The z-index must be increased so the drop-down menu appears on top of Neuroglancer. */
+    z-index: 5000;
+  }

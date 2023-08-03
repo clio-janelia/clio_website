@@ -119,6 +119,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
     'atlas',
     'focused proofreading',
     'orphan link',
+    'body review',
   ].map((dataset) => ({
     value: `ws/${dataset.replace(/ /, '_')}`,
     label: dataset,
