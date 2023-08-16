@@ -123,7 +123,7 @@ export async function updateBodyAnnotation(
       });
 
       return fetchJson(
-        getBodyAnnotationUrl(projectUrl, dataset, undefined, { replace: 'true' }),
+        getBodyAnnotationUrl(projectUrl, dataset, undefined, { replace: 'false' }),
         token,
         'POST',
         JSON.stringify(processed),
