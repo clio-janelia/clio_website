@@ -1,4 +1,6 @@
 # Clio Website
+[https://clio.janelia.org](https://clio.janelia.org)
+
 
 ## Development
 * Clone the repository
@@ -7,6 +9,12 @@
 #### `npm install`
 * start the development server
 #### `npm start`
+
+## Deployment
+* install gsutil
+#### https://cloud.google.com/storage/docs/gsutil
+* run the deployment command
+#### npm run deploy
 
 
 ------
