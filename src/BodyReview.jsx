@@ -58,10 +58,10 @@ const TASK_KEYS = Object.freeze({
 const BODY_COLORS = Object.freeze([
   // orange #a53600
   ['#531b00', '#632000', '#732600', '#842b00', '#953100', '#a53600', '#ae4a1a', '#b75e33', '#c0724d', '#c98666'],
-  // blue #0072b2
-  ['#003959', '#00446b', '#00507d', '#005b8e', '#0067a0', '#0072b2', '#1a80ba', '#338ec1', '#4d9cc9', '#66aad1'],
   // green #348e53
   ['#1a472a', '#1f5532', '#24633a', '#2a7242', '#2f804b', '#348e53', '#489964', '#5da575', '#71b087', '#85bb98'],
+  // blue #0072b2
+  ['#003959', '#00446b', '#00507d', '#005b8e', '#0067a0', '#0072b2', '#1a80ba', '#338ec1', '#4d9cc9', '#66aad1'],
   // pink #b32db5
   ['#5a175b', '#6b1b6d', '#7d1f7f', '#8f2491', '#a129a3', '#b32db5', '#bb42bc', '#c257c4', '#ca6ccb', '#d181d3'],
   // yellow #908827
@@ -287,13 +287,26 @@ const storeResults = (userEmail, taskJson, taskStartTime, matches, dvidMngr, ass
   // before this asynchronous code finishes.
   const taskJsonCopy = JSON.parse(JSON.stringify(taskJson));
 
+  // Remember the form: matches[matchesIndex][layerName] = [segment0, segment1, ...]
+
+  const ngState = getNeuroglancerViewerState();
+  const visible = ngState.layers.reduce((a, l) => (
+    (!('visible' in l) || l.visible) ? [...a, l.name] : [...a]
+  ), []);
+  // Remove layers that the user made not visible.
+  const matches2 = matches.map((m) => (
+    Object.fromEntries(
+      Object.entries(m).filter((e) => visible.includes(e[0])),
+    )
+  ));
+
   // Remove matches entries with no IDs selected on any layer.
-  const matchesFiltered = matches.filter((m) => Object.keys(m).every((k) => m[k].length > 0));
+  const matches3 = matches2.filter((m) => Object.keys(m).every((k) => m[k].length > 0));
 
   const taskEndTime = Date.now();
   const elapsedMs = taskEndTime - taskStartTime;
   let dvidLogValue = {
-    matches: matchesFiltered,
+    matches: matches3,
     'false merges': falseMergePositions(),
     time,
     user: userEmail,
