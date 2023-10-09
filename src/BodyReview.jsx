@@ -568,6 +568,10 @@ function BodyReview(props) {
   };
 
   const handleCompletedCheckbox = (event) => {
+    // Synchronizing the Redux state and the Neuroglancer view state is necessary to prevent
+    // Neuroglancer from resetting the visible segments.
+    actions.syncViewer();
+
     handleTaskCompleted(event.target.checked);
   };
 
