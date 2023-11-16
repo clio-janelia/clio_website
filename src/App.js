@@ -182,6 +182,19 @@ function App() {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
+      // this global key is used to store the auth token in a place where
+      // the neuroglancer code can get access to it. DO NOT DELETE this without
+      // first changing the way the clio plugin in neuroglancer authenticates
+      // against the clio store.
+      window.neurohub = {
+        clio: {
+          auth: {
+            getAuthResponse: () => ({ id_token: JSON.parse(storedUser).token }),
+          },
+        },
+      };
+      // This stores the logged in users details in the redux state, so that it can
+      // be used elsewhere in the app.
       dispatch(loginGoogleUser(JSON.parse(storedUser)));
     }
   }, [dispatch]);
