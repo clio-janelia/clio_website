@@ -19,7 +19,7 @@ function makeDataset(baseDataset, version) {
     const newDataset = {
       ...baseDataset,
       ...version,
-      title: `${baseDataset.title}-${version.title}`,
+      title: version.title ? `${baseDataset.title}:${version.title}` : baseDataset.title,
       name: `${baseDataset.key}-${version.version || version.tag || version.title || ''}`,
     };
 

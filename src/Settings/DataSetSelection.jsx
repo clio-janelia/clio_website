@@ -47,7 +47,7 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
   }
 
   if (forNav) {
-    const altOptions = datasets.map((dataset) => ({
+    const altOptions = datasets.filter((dataset) => !dataset.navHide).map((dataset) => ({
       value: dataset.name,
       label: `${dataset.title} - ${dataset.description}`,
     }));
@@ -69,7 +69,8 @@ export default function DataSetSelection({ datasets, onChange, selected, forNav 
   }
 
   /* eslint-disable react/jsx-one-expression-per-line */
-  const options = datasets.map((dataset) => (
+
+  const options = datasets.filter((dataset) => !dataset.navHide).map((dataset) => (
     <MenuItem key={dataset.name} value={dataset.name}>
       {dataset.title} - {dataset.description}
     </MenuItem>
