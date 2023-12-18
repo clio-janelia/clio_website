@@ -27,7 +27,7 @@ async function fetchJson(url, token, method, body) {
     return res.json();
   }
 
-  throw new Error(`${options.method} ${url} failed: ${res.statusText}`);
+  throw new Error(`${options.method} ${url} failed: ${res.statusText || res.detail || 'error message not available.'}`);
 }
 
 function getBodyAnnotationUrl(projectUrl, dataset, cmd, searchParams) {
