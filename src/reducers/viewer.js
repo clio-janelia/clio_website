@@ -52,7 +52,9 @@ const syncedState = (state) => {
     // This is caused by layer update, which resets the global coordinate space
     // temporarily when clearing up the layers in an intermediate step.
     if (ngState.dimensions === undefined) {
-      ngState.dimensions = JSON.parse(JSON.stringify(state.getIn(['ngState', 'dimensions'])));
+      if (state.getIn(['ngState', 'dimensions'])) {
+        ngState.dimensions = JSON.parse(JSON.stringify(state.getIn(['ngState', 'dimensions'])));
+      }
       // When `dimensions` is missing, then `crossSectionScale` seems to have a
       // bogus value.
       // 'projectionScale' has the same issue.
