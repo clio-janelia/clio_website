@@ -115,7 +115,7 @@ export default function Annotate({ children, actions, datasets, selectedDatasetN
 
   useEffect(() => {
     if (dataset) {
-      let viewerOptions = retrieveViewerState(`${projectUrl}${dataset.name}`);
+      let viewerOptions = retrieveViewerState(`${projectUrl}${dataset.key}`);
       if (viewerOptions === null) {
         const layers = [
           ...makeLayersFromDataset(dataset, false),

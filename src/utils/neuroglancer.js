@@ -119,7 +119,7 @@ export function makeViewOptionsFromDataset(dataset, customOptions) {
   delete predefined.selectedLayer;
 
   return {
-    title: dataset.name,
+    title: dataset.key,
     showSlices: true, // Show slices in the 3D view by default
     ...predefined,
     dimensions,
