@@ -79,7 +79,7 @@ function fixDataset(dataset) {
     newDataset.layers = fixLayers(newDataset.layers);
   }
   if (newDataset.neuroglancer) {
-    newDataset.neuroglancer.title = newDataset.key;
+    newDataset.neuroglancer.title = newDataset.name;
     if (newDataset.neuroglancer.layers) {
       newDataset.neuroglancer.layers = fixLayers(newDataset.neuroglancer.layers);
     }
