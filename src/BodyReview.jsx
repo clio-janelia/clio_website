@@ -55,7 +55,7 @@ const TASK_KEYS = Object.freeze({
 
 // https://maketintsandshades.com
 // From 50% below to 40% above.
-const BODY_COLORS = Object.freeze([
+const SHADED_BODY_COLORS = Object.freeze([
   // orange #a53600
   ['#531b00', '#632000', '#732600', '#842b00', '#953100', '#a53600', '#ae4a1a', '#b75e33', '#c0724d', '#c98666'],
   // green #348e53
@@ -70,7 +70,7 @@ const BODY_COLORS = Object.freeze([
   ['#031e80', '#032499', '#042ab3', '#0430cc', '#0536e6', '#053cff', '#1e50ff', '#3763ff', '#5077ff', '#698aff'],
 ]);
 
-const BODY_COLOR_INDICES = Object.freeze([
+const SHADED_BODY_COLOR_INDICES = Object.freeze([
   [5],
   [3, 7],
   [2, 5, 8],
@@ -83,6 +83,33 @@ const BODY_COLOR_INDICES = Object.freeze([
   // 10 or more: just cycle through all indices
 ]);
 
+const BODY_COLORS = Object.freeze([
+  [
+    '#f58231', // orange
+    '#e6194b', // red
+    '#ffe119', // yellow
+    '#fabed4', // pink
+    '#ffd8b1', // apricot
+    '#9a6324', // brown
+  ],
+  [
+    '#3cb44b', // green
+    '#bfef45', // lime
+    '#aaffc3', // mint
+    '#808000', // olive
+    '#469990', // teal
+    '#42d4f4', // cyan
+  ],
+  [
+    '#4363d8', // blue
+    '#000075', // navy
+    '#911eb4', // purple
+    '#f032e6', // magenta
+    '#dcbeff', // lavender
+    '#800000', // maroon
+    '#fffac8', // beige
+  ],
+]);
 
 const RESULTS_INSTANCE = 'body_review_results';
 
@@ -230,14 +257,22 @@ const getTaskGroupBodyIds = (taskJson, name = undefined) => {
   return result;
 };
 
-const makeSegmentColors = (segments, color) => {
+const makeSegmentColorsShaded = (iGroup, segments) => {
   const result = {};
+  const color = SHADED_BODY_COLORS[iGroup % SHADED_BODY_COLORS.length];
   if (segments.length < color.length) {
-    const indices = BODY_COLOR_INDICES[segments.length];
+    const indices = SHADED_BODY_COLOR_INDICES[segments.length];
     segments.forEach((s, i) => { result[s] = color[indices[i]]; });
   } else {
     segments.forEach((s, i) => { result[s] = color[i % color.length]; });
   }
+  return result;
+};
+
+const makeSegmentColors = (iGroup, segments) => {
+  const result = {};
+  const color = BODY_COLORS[iGroup % SHADED_BODY_COLORS.length];
+  segments.forEach((s, i) => { result[s] = color[i % color.length]; });
   return result;
 };
 
@@ -369,6 +404,9 @@ function BodyReview(props) {
   // then add UI to change this index, and add new elements to the matches array.
   const [matchesIndex, setMatchesIndex] = React.useState(0);
 
+  /* eslint-disable-next-line no-unused-vars */
+  const [useShadedColors, setUseShadedColors] = React.useState(false);
+
   const [completed, setCompleted] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
 
@@ -486,11 +524,10 @@ function BodyReview(props) {
             actions.setViewerSegments({ layerName: group, segments: ids });
             const idsJoined = ids.join(', ');
             actions.setViewerSegmentQuery({ layerName: group, segments: idsJoined });
-            const color = BODY_COLORS[i % BODY_COLORS.length];
-            actions.setViewerSegmentColors({
-              layerName: group, segmentColors: makeSegmentColors(ids, color),
-            });
+            const c = useShadedColors ? makeSegmentColorsShaded(i, ids) : makeSegmentColors(i, ids);
+            actions.setViewerSegmentColors({ layerName: group, segmentColors: c });
           });
+
           actions.addViewerLayer(falseMergesLayer());
           actions.setViewerCrossSectionScale(0.4);
           actions.setViewerCameraPosition(position);
@@ -501,7 +538,7 @@ function BodyReview(props) {
           return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, user, taskJson, assnMngr, dvidMngr, dvidSegmentationLayerName]);
+  }, [actions, user, taskJson, assnMngr, dvidMngr, dvidSegmentationLayerName, useShadedColors]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
