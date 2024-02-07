@@ -9,8 +9,9 @@ import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createMuiTheme, useTheme } from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
+import Select from 'react-select';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import activeElementNeedsKeypress from './utils/events';
@@ -110,6 +111,8 @@ const BODY_COLORS = Object.freeze([
     '#fffac8', // beige
   ],
 ]);
+
+const COMPLETION_CHOICES = Object.freeze(['Complete', 'Partial', 'Skip']);
 
 const RESULTS_INSTANCE = 'body_review_results';
 
@@ -315,7 +318,8 @@ const falseMergePositions = () => {
   return falseMerges;
 };
 
-const storeResults = (userEmail, taskJson, taskStartTime, matches, dvidMngr, assnMngr) => {
+const storeResults = (userEmail, taskJson, taskStartTime, matches, completionStatus,
+  dvidMngr, assnMngr) => {
   const time = (new Date()).toISOString();
 
   // Copy the task JSON for the (unlikely) possibility that the next task starts
@@ -341,6 +345,7 @@ const storeResults = (userEmail, taskJson, taskStartTime, matches, dvidMngr, ass
   const taskEndTime = Date.now();
   const elapsedMs = taskEndTime - taskStartTime;
   let dvidLogValue = {
+    completionStatus,
     matches: matches3,
     'false merges': falseMergePositions(),
     time,
@@ -404,11 +409,37 @@ function BodyReview(props) {
   // then add UI to change this index, and add new elements to the matches array.
   const [matchesIndex, setMatchesIndex] = React.useState(0);
 
+  const [completionStatus, setCompletionStatus] = React.useState(COMPLETION_CHOICES[0]);
+
   /* eslint-disable-next-line no-unused-vars */
   const [useShadedColors, setUseShadedColors] = React.useState(false);
 
   const [completed, setCompleted] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
+
+  const theme = useTheme();
+  const selectStyles = {
+    control: (provided) => ({
+      ...provided,
+      background: theme.palette.primary.main,
+      fontFamily: theme.typography.fontFamily,
+      fontSize: 'small',
+      border: '0px',
+    }),
+    placeholder: () => ({
+      color: '#000',
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: '#000',
+    }),
+    menu: (provided) => ({
+      ...provided,
+      fontFamily: theme.typography.fontFamily,
+      fontSize: 'small',
+      color: '#000',
+    }),
+  };
 
   const makeViewOptions = (layers) => {
     const dimensions = {
@@ -493,7 +524,8 @@ function BodyReview(props) {
             return (AssignmentManager.TASK_RETRY);
           }
           if (!bbox) {
-            storeResults(userEmail, {}, json, startTime, 'skip (cannot compute bounding box)', dvidMngr, assnMngr);
+            const completionStatusSkip = COMPLETION_CHOICES[2];
+            storeResults(userEmail, {}, json, startTime, 'skip (cannot compute bounding box)', completionStatusSkip, dvidMngr, assnMngr);
             return (AssignmentManager.TASK_SKIP);
           }
           if (prevResult) {
@@ -556,6 +588,7 @@ function BodyReview(props) {
 
   const resetForNewTask = () => {
     actions.setViewerCameraProjectionScale(normalScale);
+    setCompletionStatus(COMPLETION_CHOICES[0]);
   };
 
   const handleNextButton = () => {
@@ -579,7 +612,8 @@ function BodyReview(props) {
     taskJson.completed = isCompleted;
     if (isCompleted) {
       const userEmail = user.info.email;
-      storeResults(userEmail, taskJson, taskStartTime, matches, dvidMngr, assnMngr);
+      storeResults(userEmail, taskJson, taskStartTime, matches, completionStatus,
+        dvidMngr, assnMngr);
     }
   };
 
@@ -656,6 +690,11 @@ function BodyReview(props) {
     }
   };
 
+  const handleCompletionStatusChange = (event) => {
+    const { value } = event;
+    setCompletionStatus(value);
+  };
+
   const eventBindingsToUpdate = Object.entries(keyBindings).map((e) => [`key${e[1].key}`, `control+key${e[1].key}`]);
 
   // Add `onVisibleChanged` to the props of the child, which is a react-neuroglancer viewer.
@@ -665,6 +704,8 @@ function BodyReview(props) {
 
   const tooltip = '';
   const enableCompleted = true;
+
+  const completionStatusOptions = COMPLETION_CHOICES.map((c) => ({ value: c, label: c }));
 
   return (
     <div
@@ -690,10 +731,22 @@ function BodyReview(props) {
           </Typography>
         </Tooltip>
         &nbsp; &nbsp;
+
         <FormGroup row disabled={noTask}>
           <Button color="primary" variant="contained" onClick={handleResetLayer} disabled={noTask}>
             Reset layer
           </Button>
+
+          &nbsp;
+
+          <Select
+            className="body-review-select"
+            styles={selectStyles}
+            onChange={handleCompletionStatusChange}
+            value={completionStatus}
+            placeholder={`Completion status: ${completionStatus}`}
+            options={completionStatusOptions}
+          />
 
           <Tooltip title={(noTask || enableCompleted) ? '' : tooltip}>
             <FormControlLabel

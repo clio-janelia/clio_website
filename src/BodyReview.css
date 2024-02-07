@@ -14,7 +14,7 @@
   }
   
   .body-review-select {
-    width: 17em;
+    width: 15em;
     /* The z-index must be increased so the drop-down menu appears on top of Neuroglancer. */
     z-index: 5000;
   }
