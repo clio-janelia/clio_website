@@ -58,7 +58,10 @@ export default class NeuPrintManager {
 
     let dataset = `${this.dataset.key}`;
     if (this.dataset.tag) {
-      dataset = `${dataset}:${this.dataset.tag}`;
+      // make sure the dataset key doesn't already have the tag at the end
+      if (!this.dataset.key.endsWith(`:${this.dataset.tag}`)) {
+        dataset = `${dataset}:${this.dataset.tag}`;
+      }
     }
 
     const body = JSON.stringify({ cypher, dataset });
