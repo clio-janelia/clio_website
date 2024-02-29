@@ -14,7 +14,7 @@ export default function GoogleSignin() {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
 
   const handleGoogleSignIn = (res) => {
-    if (!res.clientId || !res.credential) {
+    if (!res.credential) {
       return;
     }
 
@@ -36,16 +36,18 @@ export default function GoogleSignin() {
       if (!window.google || gsiScriptLoaded) return;
 
       setGsiScriptLoaded(true);
+
       window.google.accounts.id.initialize({
         client_id: config.google_auth.client_id,
         callback: handleGoogleSignIn,
+        use_fedcm_for_prompt: true,
       });
-      // window.google.accounts.id.prompt();
       if (document.getElementById('loginButton')) {
         window.google.accounts.id.renderButton(
           document.getElementById('loginButton'),
           { theme: 'outline', size: 'medium', shape: 'pill' }, // customization attributes
         );
+        window.google.accounts.id.prompt();
       }
     };
 
@@ -60,7 +62,6 @@ export default function GoogleSignin() {
     return () => {
       // Cleanup function that runs when component unmounts
       if (window.google && window.google.accounts) {
-        window.google.accounts.id.cancel();
         document.getElementById('google-client-script').remove();
       }
     };
@@ -75,6 +76,7 @@ export default function GoogleSignin() {
   }
 
   if (user) {
+    console.log(user.info.picture);
     return (
       <Tooltip title="logout">
         <Button color="inherit" onClick={() => handleLogout()}>
@@ -87,11 +89,6 @@ export default function GoogleSignin() {
     );
   }
 
-  // login prompt goes here, so that it isn't displayed if we are
-  // already showing the logged in avatar.
-  if (window.google && window.google.accounts) {
-    window.google.accounts.id.prompt();
-  }
 
   return <Button className="g_id_signin" id="loginButton" />;
 }
