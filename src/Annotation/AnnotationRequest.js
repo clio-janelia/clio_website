@@ -137,10 +137,6 @@ export async function updateBodyAnnotation(
       newAnnotation = { ...data, ...newAnnotation };
     }
 
-    if (!newAnnotation.user) {
-      newAnnotation.user = user;
-    }
-
     if (validateUpdate) {
       newAnnotation = validateUpdate(newAnnotation);
     }
