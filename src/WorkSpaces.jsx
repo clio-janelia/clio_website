@@ -13,6 +13,7 @@ import { addAlert } from './actions/alerts';
 import {
   initViewer,
   syncViewer,
+  removeViewerDimensions,
   setViewerLayerSource,
   setViewerGrayscaleSource,
   setViewerSegmentationSource,
@@ -128,6 +129,9 @@ const WorkSpacesActions = (dispatch) => ({
     },
     syncViewer: () => {
       dispatch(syncViewer());
+    },
+    removeViewerDimensions: () => {
+      dispatch(removeViewerDimensions());
     },
     setViewerLayerSource: (newState) => {
       dispatch(setViewerLayerSource(newState));

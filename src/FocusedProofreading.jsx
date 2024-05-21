@@ -75,20 +75,25 @@ const TASK_KEYS = Object.freeze({
   EXTRA_BODY_IDS: 'extra body IDs',
 });
 
-const RESULTS = Object.freeze({
-  DONT_MERGE: 'dontMerge',
-  MERGE: 'merge',
-  MERGE_EXTRA: 'mergeExtra',
-  MERGE_LATER: 'mergeLater',
-  DONT_KNOW: 'dontKnow',
-});
-
 const RESULT_LABELS = Object.freeze({
   DONT_MERGE: "Don't Merge",
   MERGE: 'Merge',
   MERGE_EXTRA: 'Merge Extra',
   MERGE_LATER: 'Merge Later',
   DONT_KNOW: "Don't Know",
+});
+
+const labelToValue = (label) => {
+  const label2 = label.charAt(0).toLowerCase() + label.slice(1);
+  return label2.replace(' ', '').replace("'", '');
+};
+
+const RESULTS = Object.freeze({
+  DONT_MERGE: labelToValue(RESULT_LABELS.DONT_MERGE),
+  MERGE: labelToValue(RESULT_LABELS.MERGE),
+  MERGE_EXTRA: labelToValue(RESULT_LABELS.MERGE_EXTRA),
+  MERGE_LATER: labelToValue(RESULT_LABELS.MERGE_LATER),
+  DONT_KNOW: labelToValue(RESULT_LABELS.DONT_KNOW),
 });
 
 const RESULT_CYCLES_NEXT = Object.freeze({
@@ -286,10 +291,10 @@ const dvidLogKey = (taskJson, userEmail) => {
 };
 
 const isDvidSource = (source) => (
-  source.toLowerCase().startsWith('dvid')
+  source.isString() && source.toLowerCase().startsWith('dvid')
 );
 
-const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1) => (
+const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1, dimensions) => (
   {
     type: 'annotation',
     name: 'body points',
@@ -300,18 +305,13 @@ const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1) => (
     source: {
       url: 'local://annotations',
       transform: {
-        // TODO: Query the dimensions, to support 4e-9.
-        outputDimensions: {
-          x: [8e-9, 'm'],
-          y: [8e-9, 'm'],
-          z: [8e-9, 'm'],
-        },
+        outputDimensions: dimensions,
       },
     },
   }
 );
 
-const falseMergesLayer = () => (
+const falseMergesLayer = (dimensions) => (
   {
     type: 'annotation',
     name: 'false merges',
@@ -320,12 +320,7 @@ const falseMergesLayer = () => (
     source: {
       url: 'local://annotations',
       transform: {
-        // TODO: Query the dimensions, to support 4e-9.
-        outputDimensions: {
-          x: [8e-9, 'm'],
-          y: [8e-9, 'm'],
-          z: [8e-9, 'm'],
-        },
+        outputDimensions: dimensions,
       },
     },
   }
@@ -428,9 +423,9 @@ const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStart
 };
 
 // Returns [result, completed]
-const restoreResults = (taskJson) => {
+const restoreResults = (taskJson, defaultResult = RESULTS.DONT_MERGE) => {
   const completed = !!taskJson.completed;
-  const result = [RESULTS.DONT_MERGE, completed];
+  const result = [defaultResult, completed];
   return (result);
 };
 
@@ -463,6 +458,7 @@ function FocusedProofreading(props) {
   const [birdsEyeScale, setBirdsEyeScale] = React.useState(100);
   const [usingBirdsEye, setUsingBirdsEye] = React.useState(false);
   const [usedBirdsEye, setUsedBirdsEye] = React.useState(false);
+  const [resultLabels, setResultLabels] = React.useState(RESULT_LABELS);
   const [result, setResult] = React.useState(RESULTS.DONT_MERGE);
   const [completed, setCompleted] = React.useState(false);
   const [helpOpen, setHelpOpen] = React.useState(false);
@@ -474,20 +470,34 @@ function FocusedProofreading(props) {
 
   const setupAssn = React.useCallback(() => {
     const json = assnMngr.assignment;
+
+    if ('result labels' in json) {
+      setResultLabels(json['result labels']);
+    }
+
     const setViewer = () => {
       actions.setViewerGrayscaleSource(dvidMngr.grayscaleSourceURL());
-      const segmentationSource = {
-        url: dvidMngr.segmentationSourceURL(),
-        subsources: {
-          default: true,
-          meshes: true,
-        },
-        enableDefaultSubsources: false,
-      };
+      let segmentationSource;
+      if (typeof dvidMngr.segmentationSourceURL() === 'string') {
+        segmentationSource = {
+          url: dvidMngr.segmentationSourceURL(),
+          subsources: {
+            default: true,
+            meshes: true,
+          },
+          enableDefaultSubsources: false,
+        };
+      } else {
+        segmentationSource = dvidMngr.segmentationSourceURL();
+      }
       actions.setViewerSegmentationSource(segmentationSource);
       /* TODO: DISABLED_TODOS: this action causes an error in Neuroglancer, no "valid user"
       actions.setViewerTodosSource(dvidMngr.todosSourceURL());
       */
+
+      // Remove the prespecified voxel dimensions so the proper dimensions can be recovered
+      // from the data set.
+      actions.removeViewerDimensions();
     };
     let resolver;
     if ((TASK_KEYS.GRAYSCALE_SOURCE in json) && (TASK_KEYS.SEGMENTATION_SOURCE in json)
@@ -560,7 +570,9 @@ function FocusedProofreading(props) {
           }
           setExtraBodyIds(getExtraBodyIds(json, segments));
           setPromptToAddExtra(true);
-          const [restoredResult, restoredCompleted] = restoreResults(json);
+          const defaultLabel = Object.values(resultLabels)[0];
+          const defaultResult = labelToValue(defaultLabel);
+          const [restoredResult, restoredCompleted] = restoreResults(json, defaultResult);
           const { position, projectionOrientation } = cameraPose(bodyPts);
           cameraProjectionScale(segments, projectionOrientation, json, dvidMngr)
             .then(([scale, scaleBirdsEye]) => {
@@ -576,22 +588,34 @@ function FocusedProofreading(props) {
 
               selection.current = segments;
 
-              actions.setViewerSegments(segments);
-              actions.setViewerSegmentColors(bodyColors(segments, selection.current,
-                restoredResult));
-              actions.addViewerLayer(bodyPointsLayer(bodyPts[0], bodyPts[1], bodyId0, bodyId1));
-              actions.addViewerLayer(falseMergesLayer());
-              actions.setViewerCrossSectionScale(0.4);
-              actions.setViewerCameraPosition(position);
-              actions.setViewerCameraProjectionOrientation(projectionOrientation);
-              actions.setViewerCameraProjectionScale(scale);
+              // For some reason, setting the following viewer properties now interferes with the
+              // recovering of the dimensions from the data set.  What seems to be effective as a
+              // work-around is to wait for control to return to the event loop, by doing a timeout
+              // of duration zero.
+              setTimeout(() => {
+                const ngState = getNeuroglancerViewerState();
+                let d;
+                if ('dimensions' in ngState && ngState.dimensions) {
+                  d = ngState.dimensions;
+                }
+                actions.setViewerSegments(segments);
+                actions.setViewerSegmentColors(bodyColors(segments, selection.current,
+                  restoredResult));
+                const [bp0, bp1] = bodyPts;
+                actions.addViewerLayer(bodyPointsLayer(bp0, bp1, bodyId0, bodyId1, d));
+                actions.addViewerLayer(falseMergesLayer(d));
+                actions.setViewerCrossSectionScale(0.4);
+                actions.setViewerCameraPosition(position);
+                actions.setViewerCameraProjectionOrientation(projectionOrientation);
+                actions.setViewerCameraProjectionScale(scale);
+              }, 0);
 
               setTaskJson(json);
             });
           return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, user, taskJson, selection, assnMngr, dvidMngr]);
+  }, [actions, user, taskJson, selection, resultLabels, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -704,7 +728,14 @@ function FocusedProofreading(props) {
           }
         }
       } else if (event.key === keyBindings.focusedProofreadingCycleResults.key) {
-        const newResult = RESULT_CYCLES_NEXT[result];
+        let newResult;
+        if (Object.prototype.hasOwnProperty.call(RESULT_CYCLES_NEXT, result)) {
+          newResult = RESULT_CYCLES_NEXT[result];
+        } else {
+          const values = Object.values(resultLabels);
+          const i = values.findIndex((e) => labelToValue(e) === result);
+          newResult = labelToValue(values[(i + 1) % values.length]);
+        }
         setResult(newResult);
         handleResultChange(newResult);
       } else if (event.key === keyBindings.focusedProofreadingToggleBirdsEyeView.key) {
@@ -791,31 +822,14 @@ function FocusedProofreading(props) {
         </Tooltip>
         <FormControl component="fieldset" disabled={noTask}>
           <RadioGroup row name="proofReadingResults" value={result} onChange={handleResultRadio}>
-            <FormControlLabel
-              label={RESULT_LABELS.DONT_MERGE}
-              control={<Radio />}
-              value={RESULTS.DONT_MERGE}
-            />
-            <FormControlLabel
-              label={RESULT_LABELS.MERGE}
-              control={<Radio />}
-              value={RESULTS.MERGE}
-            />
-            <FormControlLabel
-              label={RESULT_LABELS.MERGE_EXTRA}
-              control={<Radio />}
-              value={RESULTS.MERGE_EXTRA}
-            />
-            <FormControlLabel
-              label={RESULT_LABELS.MERGE_LATER}
-              control={<Radio />}
-              value={RESULTS.MERGE_LATER}
-            />
-            <FormControlLabel
-              label={RESULT_LABELS.DONT_KNOW}
-              control={<Radio />}
-              value={RESULTS.DONT_KNOW}
-            />
+            {Object.values(resultLabels).map((label) => (
+              <FormControlLabel
+                label={label}
+                key={label}
+                control={<Radio />}
+                value={labelToValue(label)}
+              />
+            ))}
             <Button color="primary" variant="contained" onClick={handleExtraButton} disabled={noTask || noExtra}>
               {promptToAddExtra ? 'Suggest Extra' : 'Unsuggest Extra'}
             </Button>

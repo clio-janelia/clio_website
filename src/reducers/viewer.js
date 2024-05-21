@@ -153,6 +153,9 @@ export default function viewerReducer(state = viewerState, action) {
     case C.SYNC_VIEWER: {
       return syncedState(state);
     }
+    case C.REMOVE_VIEWER_DIMENSIONS: {
+      return syncedState(state).remove('dimensions');
+    }
     case C.SET_VIEWER_GRAYSCALE_SOURCE: {
       return setInLayerArray(syncedState(state), 'grayscale', ['source'], action.payload);
     }

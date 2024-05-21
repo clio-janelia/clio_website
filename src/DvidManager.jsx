@@ -250,12 +250,15 @@ export class DvidManager {
     [this.dvidServer, this.dvidNode] = [ds, dn];
     const [ss, sn, si] = DvidManager.serverNodeInstance(this.segmentationURL);
     [this.segmentationServer, this.segmentationNode, this.segmentationInstance] = [ss, sn, si];
-    if (!this.segmentationURL.startsWith('dvid://')) {
+    if ((typeof this.segmentationURL === 'string') && !this.segmentationURL.startsWith('dvid://')) {
       [this.segmentationServer, this.segmentationNode] = [this.dvidServer, this.dvidNode];
     }
   }
 
   static serverNodeInstance = (url) => {
+    if (typeof url !== 'string') {
+      return '';
+    }
     let x = url;
     if (x.startsWith('dvid://')) {
       x = url.substring(7);
