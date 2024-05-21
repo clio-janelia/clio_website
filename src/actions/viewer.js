@@ -15,6 +15,12 @@ export function syncViewer() {
   };
 }
 
+export function removeViewerDimensions() {
+  return {
+    type: C.REMOVE_VIEWER_DIMENSIONS,
+  };
+}
+
 export function setViewerLayerSource(payload) {
   return {
     type: C.SET_VIEWER_LAYER_SOURCE,
