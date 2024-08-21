@@ -27,7 +27,18 @@ async function fetchJson(url, token, method, body) {
     return res.json();
   }
 
-  throw new Error(`${options.method} ${url} failed: ${res.statusText || res.detail || 'error message not available.'}`);
+  if (res.status === 401) {
+    throw new Error(`${options.method} ${url} failed: Current user account is not authorized`);
+  }
+
+  let responseBody = {};
+
+  try {
+    responseBody = await res.json();
+  } catch (error) {
+    throw new Error(`${options.method} ${url} failed: ${error}`);
+  }
+  throw new Error(`${options.method} ${url} failed: ${responseBody.detail || res.statusText || 'error message not available'}`);
 }
 
 function getBodyAnnotationUrl(projectUrl, dataset, cmd, searchParams) {
