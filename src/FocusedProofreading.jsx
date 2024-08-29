@@ -356,8 +356,8 @@ const falseMergePositions = () => {
   return falseMerges;
 };
 
-const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStartTime, actions,
-  dvidMngr, assnMngr) => {
+const storeResults = (userEmail, bodyIds, selection, result, resultsInstance, taskJson,
+  taskStartTime, actions, dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
   const bodyIdOther = bodyIds[1];
   const time = (new Date()).toISOString();
@@ -412,13 +412,13 @@ const storeResults = (userEmail, bodyIds, selection, result, taskJson, taskStart
   if ((result === RESULTS.MERGE) && doLiveMerge(assnMngr)) {
     const onCompletion = (res) => {
       dvidLogValue['mutation ID'] = res.MutationID;
-      dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue, noop, onError);
+      dvidMngr.postKeyValue(resultsInstance, dvidKey, dvidLogValue, noop, onError);
       // TODO: Add Kafka logging?
       console.log(`Successful merge of ${bodyIdOther} onto ${bodyIdMergedOnto}, mutation ID ${res.MutationID}`);
     };
     dvidMngr.postMerge(bodyIdMergedOnto, bodyIdOther, onCompletion, onError);
   } else {
-    dvidMngr.postKeyValue('segmentation_focused', dvidKey, dvidLogValue, noop, onError);
+    dvidMngr.postKeyValue(resultsInstance, dvidKey, dvidLogValue, noop, onError);
   }
 };
 
@@ -445,6 +445,7 @@ function FocusedProofreading(props) {
 
   const [assnMngr] = React.useState(() => (new AssignmentManager()));
   const [assnMngrLoading, setAssnMngrLoading] = React.useState(false);
+  const [resultsInstance, setResultsInstance] = React.useState('segmentation_focused');
 
   const [taskJson, setTaskJson] = React.useState(undefined);
   const [taskStartTime, setTaskStartTime] = React.useState(0);
@@ -473,6 +474,9 @@ function FocusedProofreading(props) {
 
     if ('result labels' in json) {
       setResultLabels(json['result labels']);
+    }
+    if ('results instance' in json) {
+      setResultsInstance(json['results instance']);
     }
 
     const setViewer = () => {
@@ -541,7 +545,7 @@ function FocusedProofreading(props) {
           getBodyId(bodyPts[1], dvidMngr, json, 2, onError(2)).then((bodyId1) => [bodyId0, bodyId1])
         ))
         .then(([bodyId0, bodyId1]) => (
-          dvidMngr.getKeyValue('segmentation_focused', dvidLogKey(json, userEmail), onError(3))
+          dvidMngr.getKeyValue(resultsInstance, dvidLogKey(json, userEmail), onError(3))
             .then((data) => [bodyId0, bodyId1, data])
         ))
         .then(([bodyId0, bodyId1, prevResult]) => {
@@ -552,12 +556,12 @@ function FocusedProofreading(props) {
             return (AssignmentManager.TASK_RETRY);
           }
           if (!bodyId0 || !bodyId1) {
-            storeResults(userEmail, segments, [], 'skip (missing body ID)', json, startTime, actions, dvidMngr, assnMngr);
+            storeResults(userEmail, segments, [], 'skip (missing body ID)', resultsInstance, json, startTime, actions, dvidMngr, assnMngr);
             return (AssignmentManager.TASK_SKIP);
           }
           if (bodyId0 === bodyId1) {
             // Skip a task involving bodies that have been merged already.
-            storeResults(userEmail, segments, [], 'skip (same body ID)', json, startTime, actions, dvidMngr, assnMngr);
+            storeResults(userEmail, segments, [], 'skip (same body ID)', resultsInstance, json, startTime, actions, dvidMngr, assnMngr);
             return (AssignmentManager.TASK_SKIP);
           }
           if (prevResult) {
@@ -615,7 +619,7 @@ function FocusedProofreading(props) {
           return (AssignmentManager.TASK_OK);
         })
     );
-  }, [actions, user, taskJson, selection, resultLabels, assnMngr, dvidMngr]);
+  }, [actions, user, taskJson, selection, resultLabels, resultsInstance, assnMngr, dvidMngr]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -692,8 +696,8 @@ function FocusedProofreading(props) {
     taskJson.completed = isCompleted;
     if (isCompleted) {
       const userEmail = user.info.email;
-      storeResults(userEmail, bodyIds, selection.current, result, taskJson, taskStartTime, actions,
-        dvidMngr, assnMngr);
+      storeResults(userEmail, bodyIds, selection.current, result, resultsInstance, taskJson,
+        taskStartTime, actions, dvidMngr, assnMngr);
     }
   };
 
