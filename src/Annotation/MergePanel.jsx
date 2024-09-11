@@ -57,7 +57,9 @@ function MergePanel(props) {
   const updateTable = React.useCallback(() => {
     const newData = [];
     Object.entries(mergeManager.mainToOthers).map(([m, o]) => (
-      newData.push({
+      // The `unshift` operation adds at the start of the array, giving the user interface a
+      // reverse chronological ordering of merges.
+      newData.unshift({
         main: m,
         others: o.join(', '),
         id: m,
