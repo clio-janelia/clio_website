@@ -72,9 +72,10 @@ export default class MergeManager {
 
     this.mainToOthers = {};
     this.otherToMain = {};
+    this.mainOrdered = [];
 
     this.actions.setViewerSegmentEquivalences({ layerName: this.layerName, equivalences: [] });
-    this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors: [] });
+    this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors: {} });
 
     this.store();
 
@@ -133,6 +134,8 @@ export default class MergeManager {
 
   otherToMain = {};
 
+  mainOrdered = [];
+
   selection = [];
 
   idToType = {};
@@ -143,6 +146,14 @@ export default class MergeManager {
     const main = this.getUltimateMain(mainChosen);
     if (!(main in this.mainToOthers)) {
       this.mainToOthers = { ...this.mainToOthers, [main]: [] };
+      this.mainOrdered.unshift(mainChosen);
+    } else {
+      const i = this.mainOrdered.indexOf(main);
+      if (i > -1) {
+        // Remove the old occurence before reinserting at the start.
+        this.mainOrdered.splice(i, 1);
+      }
+      this.mainOrdered.unshift(mainChosen);
     }
 
     others.forEach((other) => {
@@ -223,6 +234,12 @@ export default class MergeManager {
       if (others) {
         if (alsoUpdateMaps) {
           others.forEach((other) => { delete this.otherToMain[other]; });
+
+          const i = this.mainOrdered.indexOf(main);
+          if (i > -1) {
+            this.mainOrdered.splice(i, 1);
+          }
+
           delete this.mainToOthers[main];
         }
 
@@ -263,7 +280,11 @@ export default class MergeManager {
   }
 
   store = () => {
-    this.backend.store(this.mainToOthers, this.otherToMain);
+    try {
+      this.backend.store(this.mainToOthers, this.otherToMain, this.mainOrdered);
+    } catch (exc) {
+      this.actions.addAlert({ severity: 'error', message: `Storing merges failed: '${exc}'` });
+    }
   };
 
   restore = () => {
@@ -271,38 +292,43 @@ export default class MergeManager {
       return;
     }
 
-    this.backend.restore()
-      .then(([mainToOthers, otherToMain]) => {
-        this.mainToOthers = mainToOthers;
-        this.otherToMain = otherToMain;
+    try {
+      this.backend.restore()
+        .then(([mainToOthers, otherToMain, mainOrdered]) => {
+          this.mainToOthers = mainToOthers;
+          this.otherToMain = otherToMain;
+          this.mainOrdered = mainOrdered;
 
-        const equivalences = this.mergeEquivalances();
-        this.actions.setViewerSegmentEquivalences({ layerName: this.layerName, equivalences });
+          const equivalences = this.mergeEquivalances();
+          this.actions.setViewerSegmentEquivalences({ layerName: this.layerName, equivalences });
 
-        const segmentColors = this.mergeColors();
-        this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors });
+          const segmentColors = this.mergeColors();
+          this.actions.setViewerSegmentColors({ layerName: this.layerName, segmentColors });
 
-        if (this.onMergeChanged) {
-          this.onMergeChanged();
-        }
+          if (this.onMergeChanged) {
+            this.onMergeChanged();
+          }
 
-        if (this.neuPrintManager) {
-          let ids = Object.keys(this.mainToOthers);
-          Object.values(this.mainToOthers).forEach((others) => {
-            ids = ids.concat(others);
-          });
-          this.neuPrintManager.getTypes(ids)
-            .then((types) => {
-              types.forEach((item) => { this.idToType[item.id] = item.type; });
-              this.updateMainToTypeMerged();
-              // TODO: If any ID from `this.mainToOthers` keys or values is missing from `types`
-              // then the official data has changed in conflict with a local merge.
-              // So add a warning color and tooltip to the `MergePanel` table.
-            }).catch((err) => {
-              this.actions.addAlert({ severity: 'error', message: err.message });
+          if (this.neuPrintManager) {
+            let ids = Object.keys(this.mainToOthers);
+            Object.values(this.mainToOthers).forEach((others) => {
+              ids = ids.concat(others);
             });
-        }
-      });
+            this.neuPrintManager.getTypes(ids)
+              .then((types) => {
+                types.forEach((item) => { this.idToType[item.id] = item.type; });
+                this.updateMainToTypeMerged();
+                // TODO: If any ID from `this.mainToOthers` keys or values is missing from `types`
+                // then the official data has changed in conflict with a local merge.
+                // So add a warning color and tooltip to the `MergePanel` table.
+              }).catch((err) => {
+                this.actions.addAlert({ severity: 'error', message: err.message });
+              });
+          }
+        });
+    } catch (exc) {
+      this.actions.addAlert({ severity: 'error', message: `Restoring merges failed: '${exc}'` });
+    }
   };
 
   pullRequest = () => (
