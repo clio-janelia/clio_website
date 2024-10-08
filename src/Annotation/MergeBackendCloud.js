@@ -8,7 +8,7 @@ export default class MergeBackendCloud {
 
   // getToken = () => this.user.getAuthResponse().id_token;
 
-  store = (mainToOthers, otherToMain) => {
+  store = (mainToOthers, otherToMain, mainOrdered) => {
     const options = {
       method: 'POST',
       headers: {
@@ -23,17 +23,32 @@ export default class MergeBackendCloud {
         if (res1.ok) {
           options.body = JSON.stringify(otherToMain);
           url = this.urlOtherToMain();
-          return (fetch(url, options)
+          fetch(url, options)
             .then((res2) => {
               if (res2.ok) {
-                return (res2.json());
+                // If cloud backend `kv` supports POST bodies that are ordinary arrays:
+                // options.body = JSON.stringify(mainOrdered);
+
+                const mainOrderedObj = { array: mainOrdered };
+                options.body = JSON.stringify(mainOrderedObj);
+
+                url = this.urlMainOrdered();
+                fetch(url, options)
+                  .then((res3) => {
+                    if (!res3.ok) {
+                      const err3 = `Posting to ${url} failed: ${res3.statusText}`;
+                      throw new Error(err3);
+                    }
+                  });
+              } else {
+                const err2 = `Posting to ${url} failed: ${res2.statusText}`;
+                throw new Error(err2);
               }
-              const err2 = `Posting to ${url} failed: ${res2.statusText}`;
-              throw new Error(err2);
-            }));
+            });
+        } else {
+          const err1 = `Posting to ${url} failed: ${res1.statusText}`;
+          throw new Error(err1);
         }
-        const err1 = `Posting to ${url} failed: ${res1.statusText}`;
-        throw new Error(err1);
       })
       .catch((exc) => {
         this.addAlert({ severity: 'error', message: exc.message });
@@ -43,6 +58,7 @@ export default class MergeBackendCloud {
   restore = () => {
     let mainToOthers = {};
     let otherToMain = {};
+    let mainOrdered = [];
 
     const options = {
       headers: {
@@ -78,12 +94,33 @@ export default class MergeBackendCloud {
           })
           .then((res2Json) => {
             otherToMain = res2Json || {};
-            return new Promise((resolve) => { resolve([mainToOthers, otherToMain]); });
+            url = this.urlMainOrdered();
+            return (fetch(url, options)
+              .then((res3) => {
+                if (res3.ok) {
+                  return (res3.json());
+                }
+                if (res3.status === 404) {
+                  return ([]);
+                }
+                const err3 = `Getting from ${url} failed: ${res3.statusText}`;
+                throw new Error(err3);
+              })
+              .then((res3Json) => {
+                // If cloud backend `kv` supports POST bodies that are ordinary arrays:
+                // mainOrdered = res3Json.array || [];
+
+                mainOrdered = res3Json.array || [];
+
+                return new Promise((resolve) => {
+                  resolve([mainToOthers, otherToMain, mainOrdered]);
+                });
+              }));
           }));
       })
       .catch((exc) => {
         this.addAlert({ severity: 'error', message: exc.message });
-        return new Promise((resolve) => { resolve([{}, {}]); });
+        return new Promise((resolve) => { resolve([{}, {}, []]); });
       }));
   }
 
@@ -128,6 +165,8 @@ export default class MergeBackendCloud {
   urlMainToOthers = () => `${this.urlBase()}/mainToOthers`;
 
   urlOtherToMain = () => `${this.urlBase()}/otherToMain`;
+
+  urlMainOrdered = () => `${this.urlBase()}/mainOrdered`;
 
   urlPullRequest = () => `${this.projectUrl}/pull-request`;
 

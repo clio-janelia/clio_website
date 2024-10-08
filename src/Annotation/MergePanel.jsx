@@ -46,6 +46,7 @@ const DATA_TABLE_CONFIG = {
       filterEnabled: true,
     },
   ],
+  sorted: false,
 };
 
 function MergePanel(props) {
@@ -55,11 +56,21 @@ function MergePanel(props) {
   const [data, setData] = React.useState({ rows: [] });
 
   const updateTable = React.useCallback(() => {
-    const newData = [];
-    Object.entries(mergeManager.mainToOthers).map(([m, o]) => (
-      // The `unshift` operation adds at the start of the array, giving the user interface a
-      // reverse chronological ordering of merges.
-      newData.unshift({
+    // Just in case, handle `mergeManager.mainOrdered` being incomplete.
+    const mainOrdered = [...mergeManager.mainOrdered];
+    const mains = Object.keys(mergeManager.mainToOthers);
+    if (mainOrdered.length !== mains.length) {
+      mains.forEach((mainStr) => {
+        const main = parseInt(mainStr, 10);
+        if (!(main in mainOrdered)) {
+          mainOrdered.push(main);
+        }
+      });
+    }
+
+    const newData = mainOrdered.map((m) => {
+      const o = mergeManager.mainToOthers[m];
+      return ({
         main: m,
         others: o.join(', '),
         id: m,
@@ -68,13 +79,14 @@ function MergePanel(props) {
           mergeManager.actions.setViewerSegments([parseInt(m, 10)]);
         },
         locateStyle: mergeManager.otherToMain[m] ? { color: 'GoldenRod' } : null,
-        locateTooltip: mergeManager.otherToMain[m] ? `Selects ${mergeManager.getUltimateMain(m)}` : '',
+        locateTooltip: mergeManager.otherToMain[m]
+          ? `Selects ${mergeManager.getUltimateMain(m)}` : '',
         deleteAction: () => {
           mergeManager.select([parseInt(m, 10)]);
           mergeManager.unmerge();
         },
-      })
-    ));
+      });
+    });
     setData({ rows: newData });
   }, [mergeManager]);
 
@@ -129,6 +141,7 @@ function MergePanel(props) {
         data={data}
         config={DATA_TABLE_CONFIG}
         getId={React.useCallback((row) => row.id, [])}
+        sorted={false}
       />
 
       <Dialog open={clearConfirmationOpen} disableEnforceFocus>

@@ -12,7 +12,7 @@ import {
 } from './DataTableUtils';
 
 export default function DataTableHead({
-  columns, makeRow, handleFilterChange, order, orderBy, onRequestSort,
+  columns, makeRow, handleFilterChange, order, orderBy, onRequestSort, sorted,
 }) {
   const classes = useStyles();
   const createSortHandler = (field) => (event) => {
@@ -41,13 +41,15 @@ export default function DataTableHead({
             style: { width: `${(column.textLengthHint || column.title.length) * 7}px` },
           }}
         />
-        <TableSortLabel
-          active={orderBy === column.field}
-          direction={(orderBy === column.field) ? order : 'asc'}
-          onClick={createSortHandler(column.field)}
-        >
-          <font style={{ color: 'lightgray' }}>●</font>
-        </TableSortLabel>
+        {sorted ? (
+          <TableSortLabel
+            active={orderBy === column.field}
+            direction={(orderBy === column.field) ? order : 'asc'}
+            onClick={createSortHandler(column.field)}
+          >
+            <font style={{ color: 'lightgray' }}>●</font>
+          </TableSortLabel>
+        ) : null}
       </div>
     </TableCell>
   ));
@@ -88,10 +90,12 @@ DataTableHead.propTypes = {
   order: PropTypes.string,
   orderBy: PropTypes.string,
   onRequestSort: PropTypes.func.isRequired,
+  sorted: PropTypes.bool,
 };
 
 DataTableHead.defaultProps = {
   makeRow: null,
   order: false,
   orderBy: null,
+  sorted: true,
 };

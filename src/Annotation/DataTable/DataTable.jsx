@@ -88,6 +88,7 @@ export default function DataTable({
   makeHeaderRow,
   makeTableControl,
   makeCheckedSetControl,
+  sorted,
 }) {
   const classes = useStyles();
   const rowsPerPageOptions = [5, 10, 20];
@@ -163,9 +164,11 @@ export default function DataTable({
         ),
       );
     }
-    newRows = stableSort(newRows, getComparator(order, orderBy));
+    if (sorted) {
+      newRows = stableSort(newRows, getComparator(order, orderBy));
+    }
     setFilteredRows(newRows);
-  }, [filter, data.rows, order, orderBy]);
+  }, [filter, data.rows, order, orderBy, sorted]);
 
   const handleFilterChange = (column, columnFilter) => {
     setFilter((prevFilter) => {
@@ -249,6 +252,7 @@ export default function DataTable({
             order={order}
             orderBy={orderBy}
             onRequestSort={handleRequestSort}
+            sorted={sorted}
           />
           <TableBody>
             {(rowsPerPage > 0 ? filteredRows.slice(
@@ -291,6 +295,7 @@ DataTable.propTypes = {
   makeHeaderRow: PropTypes.func,
   makeTableControl: PropTypes.func,
   makeCheckedSetControl: PropTypes.func,
+  sorted: PropTypes.bool,
 };
 
 DataTable.defaultProps = {
@@ -300,4 +305,5 @@ DataTable.defaultProps = {
   makeHeaderRow: null,
   makeTableControl: null,
   makeCheckedSetControl: null,
+  sorted: true,
 };
