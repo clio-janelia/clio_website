@@ -775,8 +775,10 @@ function OrphanLink(props) {
             />
           </Tooltip>
         </FormGroup>
-
+        {/* TODO: Enable this when we figure out exactly how the updateBodyAnnotation
+          function works when replace=false/true. */}
         <Select
+          isDisabled
           className="orphan-link-select"
           styles={selectStyles}
           onChange={handleBodyStatusChange}

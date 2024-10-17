@@ -123,6 +123,7 @@ export async function updateBodyAnnotation(
   annotation,
   processNewAnnotation,
   validateUpdate,
+  replace = false,
 ) {
   if (annotation && annotation.bodyid) {
     const upload = (a) => {
@@ -134,7 +135,7 @@ export async function updateBodyAnnotation(
       });
 
       return fetchJson(
-        getBodyAnnotationUrl(projectUrl, dataset, undefined, { replace: 'true' }),
+        getBodyAnnotationUrl(projectUrl, dataset, undefined, { replace }),
         token,
         'POST',
         JSON.stringify(processed),
