@@ -80,13 +80,6 @@ export default function DataEdit(props) {
 
   const isFieldValid = React.useCallback((field, value) => {
     let column = null;
-    /*
-    if (config.validitingColumns) {
-      column = config.validitingColumns[field];
-    } else {
-      column = config.columns.find((c) => (c.field === field));
-    }
-    */
     column = config.columns.find((c) => (c.field === field));
     if (column) {
       if (column.validate) {
@@ -102,18 +95,21 @@ export default function DataEdit(props) {
     Object.keys(dataChange).every((field) => isFieldValid(field, dataChange[field]))
   ), [dataChange, isFieldValid]);
 
-  const hasChanged = React.useCallback(() => {
-    console.debug(dataChange);
-    return Object.keys(dataChange).length > 0;
-  }, [dataChange]);
+  const hasChanged = React.useCallback(() => Object.keys(dataChange).length > 0, [dataChange]);
 
   const handleValueChange = React.useCallback((field, value) => {
+    // if the value is undefined, set it to null.
+    // We have to do this, because the backend is expecting a null value
+    // for items that have been deleted. If we send undefined, the backend
+    // will ignore the key and the item will not be deleted.
+    const fieldValue = value === undefined ? null : value;
+
     setDataChange((prevDataChange) => {
       const column = config.columns.find((c) => c.field === field);
-      const newDataChange = { ...prevDataChange, [field]: value };
+      const newDataChange = { ...prevDataChange, [field]: fieldValue };
       if (sameValue(
         defaultData[field],
-        value,
+        fieldValue,
         getDefaultValue(column, defaultData),
       )) {
         delete newDataChange[field];

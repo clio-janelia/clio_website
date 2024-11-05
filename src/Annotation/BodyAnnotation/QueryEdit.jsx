@@ -28,7 +28,7 @@ function QueryEdit({
       }}
       rowsMin={3}
       spellCheck="false"
-      placeholder="Enter JSON query here"
+      placeholder='Enter JSON query here. eg. {"status": ["Anchor", "Prelim Roughly traced", "Roughly traced"]}'
       style={{ width: '100%' }}
     />
   );
