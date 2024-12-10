@@ -50,9 +50,11 @@ const TASK_KEYS = Object.freeze({
   DVID_SOURCE: 'DVID source',
   DATASET_NAME: 'dataset',
   BODY_PT: 'body point',
-  // Optional keys, needed if the segmentation source does not support DVID commands.
+  // Optional key, needed if the segmentation source does not support DVID commands.
   BBOX: 'default bounding box',
   EXTRA_BODY_IDS: 'extra body IDs',
+  // A value of true shows the "extra body IDs" by default.
+  SUGGEST_EXTRA: 'suggest extra',
 });
 
 // CSS "medium purple"
@@ -393,6 +395,9 @@ function OrphanLink(props) {
         if (oldTask[TASK_KEYS.EXTRA_BODY_IDS]) {
           newTask[TASK_KEYS.EXTRA_BODY_IDS] = oldTask[TASK_KEYS.EXTRA_BODY_IDS];
         }
+        if (oldTask[TASK_KEYS.SUGGEST_EXTRA]) {
+          newTask[TASK_KEYS.SUGGEST_EXTRA] = oldTask[TASK_KEYS.SUGGEST_EXTRA];
+        }
         return (newTask);
       }),
     };
@@ -493,6 +498,29 @@ function OrphanLink(props) {
     return new Promise((resolve) => { resolver = resolve; });
   }, [actions, assnMngr, dvidMngr, datasets, setBodyStatusChoices]);
 
+  // Called with arguments when setting up a task, and without arguments by the button handler.
+  const handleExtra = React.useCallback((sel, ex, pr) => {
+    let selected = sel || selection.current;
+    const prompt = pr || promptToAddExtra;
+    const extra = ex || extraBodyIds;
+    if (prompt) {
+      selected = selected.concat(extra);
+    } else {
+      const difference = [];
+      selected.forEach((id) => {
+        if (!extraBodyIds.includes(id)) {
+          difference.push(id);
+        }
+      });
+      selected = difference;
+    }
+    setPromptToAddExtra(!prompt);
+    selection.current = selected;
+    actions.setViewerSegments(selected);
+    const segmentQuery = selected.join();
+    actions.setViewerSegmentQuery(segmentQuery);
+  }, [actions, extraBodyIds, promptToAddExtra]);
+
   const setupTask = React.useCallback(() => {
     // Clearing the task JSON prevents rapid UI activity from starting another task before
     // this one is done being set up.
@@ -532,8 +560,11 @@ function OrphanLink(props) {
             // Skip a task that has a stored result already.
             return (AssignmentManager.TASK_SKIP);
           }
-          setExtraBodyIds(getExtraBodyIds(json, bodyIdFromPt));
+
+          const extraIds = getExtraBodyIds(json, bodyIdFromPt);
+          setExtraBodyIds(extraIds);
           setPromptToAddExtra(true);
+
           const restoredCompleted = restoreResults(json);
           const { position, projectionOrientation } = cameraPose(bodyPt);
           cameraProjectionScale(bodyIdFromPt, projectionOrientation, json, dvidMngr)
@@ -546,15 +577,21 @@ function OrphanLink(props) {
               setInitialScale(scale);
               setCompleted(restoredCompleted);
 
-              selection.current = [bodyIdFromPt];
+              const selected = [bodyIdFromPt];
+              selection.current = selected;
+              actions.setViewerSegmentQuery(selected.join());
 
-              actions.setViewerSegments([bodyIdFromPt]);
-              actions.setViewerSegmentColors(bodyColors([bodyIdFromPt], colorAsMerged));
+              actions.setViewerSegments(selected);
+              actions.setViewerSegmentColors(bodyColors(selected, colorAsMerged));
               actions.addViewerLayer(falseMergesLayer());
               actions.setViewerCrossSectionScale(0.4);
               actions.setViewerCameraPosition(position);
               actions.setViewerCameraProjectionOrientation(projectionOrientation);
               actions.setViewerCameraProjectionScale(scale);
+
+              if (TASK_KEYS.SUGGEST_EXTRA in json) {
+                handleExtra(selected, extraIds, true);
+              }
 
               setTaskJson(json);
               if (datasetName) {
@@ -566,7 +603,7 @@ function OrphanLink(props) {
         })
     );
   }, [actions, user, taskJson, selection, colorAsMerged, assnMngr, dvidMngr,
-    datasets, datasetName, getToken, projectUrl, setBodyStatus]);
+    datasets, datasetName, getToken, projectUrl, setBodyStatus, handleExtra]);
 
   const noTask = (taskJson === undefined);
   const prevDisabled = noTask || assnMngr.prevButtonDisabled();
@@ -603,21 +640,7 @@ function OrphanLink(props) {
   };
 
   const handleExtraButton = () => {
-    if (promptToAddExtra) {
-      selection.current = selection.current.concat(extraBodyIds);
-    } else {
-      const difference = [];
-      selection.current.forEach((id) => {
-        if (!extraBodyIds.includes(id)) {
-          difference.push(id);
-        }
-      });
-      selection.current = difference;
-    }
-    setPromptToAddExtra(!promptToAddExtra);
-    actions.setViewerSegments(selection.current);
-    const segmentQuery = selection.current.reduce((a, v) => (a ? `${a}, ${v}` : v), null);
-    actions.setViewerSegmentQuery(segmentQuery);
+    handleExtra();
   };
 
   const handleTaskCompleted = (isCompleted) => {
