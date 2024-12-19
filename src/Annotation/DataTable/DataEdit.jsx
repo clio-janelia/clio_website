@@ -97,6 +97,10 @@ export default function DataEdit(props) {
 
   const hasChanged = React.useCallback(() => Object.keys(dataChange).length > 0, [dataChange]);
 
+  const handleConfirmChange = (changes) => {
+    onConfirmChange(changes);
+  };
+
   const handleValueChange = React.useCallback((field, value) => {
     // if the value is undefined, set it to null.
     // We have to do this, because the backend is expecting a null value
@@ -107,11 +111,19 @@ export default function DataEdit(props) {
     setDataChange((prevDataChange) => {
       const column = config.columns.find((c) => c.field === field);
       const newDataChange = { ...prevDataChange, [field]: fieldValue };
+      // if the value is the same as the default value, remove it from the change list
       if (sameValue(
         defaultData[field],
         fieldValue,
         getDefaultValue(column, defaultData),
       )) {
+        delete newDataChange[field];
+      }
+      // if the new values is null and the old value was undefined,
+      // remove it from the change list. If we don't do this, the backend
+      // will update user and timestamp for the item, even though the value
+      // has not changed.
+      if (fieldValue === null && defaultData[field] === undefined) {
         delete newDataChange[field];
       }
       return newDataChange;
@@ -130,7 +142,7 @@ export default function DataEdit(props) {
           key="DataEdit.Done"
           aria-label="ok"
           disabled={!isDataValid() || !hasChanged()}
-          onClick={() => onConfirmChange(dataChange)}
+          onClick={() => handleConfirmChange(dataChange)}
         >
           <DoneIcon />
         </IconButton>,
