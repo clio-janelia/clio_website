@@ -47,7 +47,11 @@ function BodyAnnotation({
   let locateServiceUrl = null;
   if (mergeableLayer) {
     const url = mergeableLayer.location || mergeableLayer.source.url || mergeableLayer.source;
-    locateServiceUrl = getLocateServiceUrl(url, config.user);
+    if (url) {
+      locateServiceUrl = getLocateServiceUrl(url, config.user);
+    } else {
+      console.warn('No location found for mergeable layer', mergeableLayer);
+    }
   }
 
   const updateAnnotations = (oldAnnotations, newAnnotation) => {
