@@ -291,7 +291,7 @@ const dvidLogKey = (taskJson, userEmail) => {
 };
 
 const isDvidSource = (source) => (
-  source.isString() && source.toLowerCase().startsWith('dvid')
+  (typeof source === 'string') && source.toLowerCase().startsWith('dvid')
 );
 
 const bodyPointsLayer = (bodyPt0, bodyPt1, bodyId0, bodyId1, dimensions) => (
