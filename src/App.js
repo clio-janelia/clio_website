@@ -18,6 +18,7 @@ import { useLocalStorage } from './utils/hooks';
 import { loginGoogleUser } from './actions/user';
 import config from './config';
 import { expandDatasets } from './utils/config';
+import { addAlert } from './actions/alerts';
 
 import './App.css';
 
@@ -154,7 +155,9 @@ function App() {
             body: JSON.stringify(data),
           };
 
-          fetch(`${defaultProd}/site-reports`, options).then((res) => res.json()).then((res) => console.log(res));
+          fetch(`${defaultProd}/site-reports`, options)
+            .then((res) => res.json())
+            .then((res) => console.log(res));
         }
       }
     }
@@ -170,12 +173,30 @@ function App() {
 
       const datasetUrl = `${projectUrl}/datasets`;
       fetch(datasetUrl, options)
-        .then((result) => result.json())
+        .then((result) => {
+          if (!result.ok) {
+            // Create a custom error with response info
+            return result.text().then((text) => {
+              const error = new Error(`Request failed with status ${result.status}`);
+              error.status = result.status;
+              error.statusText = result.statusText;
+              error.body = text;
+              throw error;
+            });
+          }
+          return result.json();
+        })
         .then((res) => {
           const datasetsArray = expandDatasets(res);
           setDatasets(datasetsArray);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          console.error('Error fetching datasets:', err);
+          dispatch(addAlert({
+            severity: 'error',
+            message: 'Failed to load datasets from the server. Please logout and log back in. If the error persists, please contact support.',
+          }));
+        });
     }
   }, [user, dispatch, projectUrl]);
 
