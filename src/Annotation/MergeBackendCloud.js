@@ -72,9 +72,6 @@ export default class MergeBackendCloud {
         if (res1.ok) {
           return (res1.json());
         }
-        if (res1.status === 404) {
-          return ({});
-        }
         const err1 = `Getting from ${url} failed: ${res1.statusText}`;
         throw new Error(err1);
       })
@@ -86,9 +83,6 @@ export default class MergeBackendCloud {
             if (res2.ok) {
               return (res2.json());
             }
-            if (res2.status === 404) {
-              return ({});
-            }
             const err2 = `Getting from ${url} failed: ${res2.statusText}`;
             throw new Error(err2);
           })
@@ -99,9 +93,6 @@ export default class MergeBackendCloud {
               .then((res3) => {
                 if (res3.ok) {
                   return (res3.json());
-                }
-                if (res3.status === 404) {
-                  return ([]);
                 }
                 const err3 = `Getting from ${url} failed: ${res3.statusText}`;
                 throw new Error(err3);
