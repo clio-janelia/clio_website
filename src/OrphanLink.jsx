@@ -185,7 +185,7 @@ const dvidLogKey = (taskJson, userEmail) => (
 );
 
 const isDvidSource = (source) => (
-  source.toLowerCase().startsWith('dvid')
+  (typeof source === 'string') && source.toLowerCase().startsWith('dvid')
 );
 
 const falseMergesLayer = () => (
@@ -251,15 +251,20 @@ const setupBodyStatus = (actions, bodyId, datasetName, datasets, getToken,
   projectUrl, setBodyStatus) => {
   const dataset = datasets.find((ds) => ds.name.startsWith(datasetName));
   const query = { bodyid: [bodyId] };
-  queryBodyAnnotations(projectUrl, getToken(), dataset, query).then(
-    (response) => {
-      const status = annotationQueryBodyStatus(response);
-      setBodyStatus(status);
-    },
-  ).catch((error) => {
-    const message = `Failed to query bodies: ${error.message}.`;
-    actions.addAlert({ severity: 'warning', message });
-  });
+  const token = getToken();
+  if (token) {
+    queryBodyAnnotations(projectUrl, token, dataset, query).then(
+      (response) => {
+        const status = annotationQueryBodyStatus(response);
+        setBodyStatus(status);
+      },
+    ).catch((error) => {
+      const message = `Failed to query bodies: ${error.message}.`;
+      actions.addAlert({ severity: 'warning', message });
+    });
+  } else {
+    setBodyStatus('unavailable');
+  }
 };
 
 const storeResults = (userEmail, selection, taskJson, result, taskStartTime,
@@ -318,7 +323,12 @@ function OrphanLink(props) {
   const { actions, children, datasets } = props;
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const getToken = React.useCallback(() => user.getAuthResponse().id_token, [user]);
+  const getToken = React.useCallback(() => {
+    if (user.getAuthResponse) {
+      return user.getAuthResponse().id_token;
+    }
+    return null;
+  }, [user]);
 
   const [dvidMngr] = React.useState(() => (new DvidManager()));
   const [dvidMngrDialogOpen, setDvidMngrDialogOpen] = React.useState(false);
