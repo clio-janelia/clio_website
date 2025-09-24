@@ -239,10 +239,28 @@ const annotationQueryBodyStatus = (response) => {
 const setupBodyStatusChoices = (dvidManager, setBodyStatusChoices) => {
   dvidManager.getAnnotationSchema().then(
     (schema) => {
-      const { properties } = schema;
-      const { status } = properties;
-      const e = status.enum;
-      setBodyStatusChoices(e);
+      if (schema && 'properties' in schema) {
+        const { properties } = schema;
+        if ('status' in properties) {
+          const { status } = properties;
+          if ('enum' in status) {
+            // Old format
+            const e = status.enum;
+            setBodyStatusChoices(e);
+          } else if ('oneOf' in status) {
+            // New format, allows null
+            const { oneOf } = status;
+            if (Array.isArray(oneOf)) {
+              oneOf.forEach((item) => {
+                if ('enum' in item) {
+                  const e = item.enum;
+                  setBodyStatusChoices(e);
+                }
+              });
+            }
+          }
+        }
+      }
     },
   );
 };
@@ -252,7 +270,7 @@ const setupBodyStatus = (actions, bodyId, datasetName, datasets, getToken,
   const dataset = datasets.find((ds) => ds.name.startsWith(datasetName));
   const query = { bodyid: [bodyId] };
   const token = getToken();
-  if (token) {
+  if (dataset && token) {
     queryBodyAnnotations(projectUrl, token, dataset, query).then(
       (response) => {
         const status = annotationQueryBodyStatus(response);
@@ -323,12 +341,7 @@ function OrphanLink(props) {
   const { actions, children, datasets } = props;
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const getToken = React.useCallback(() => {
-    if (user.getAuthResponse) {
-      return user.getAuthResponse().id_token;
-    }
-    return null;
-  }, [user]);
+  const getToken = React.useCallback(() => user.token, [user]);
 
   const [dvidMngr] = React.useState(() => (new DvidManager()));
   const [dvidMngrDialogOpen, setDvidMngrDialogOpen] = React.useState(false);
