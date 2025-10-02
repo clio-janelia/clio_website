@@ -10,7 +10,10 @@ import ListEdit from '../../components/ListEdit';
 import QueryMapEdit from './QueryMapEdit';
 
 function QueryEdit({
-  defaultQueryString, onQueryStringChanged, initialMode, queryStringify,
+  defaultQueryString,
+  onQueryStringChanged,
+  initialMode,
+  queryStringify,
 }) {
   const [queryString, setQueryString] = useState(defaultQueryString);
   const [mode, setMode] = useState(initialMode);
@@ -33,27 +36,38 @@ function QueryEdit({
     />
   );
 
-  const handleQueryChangeFromMap = useCallback((query) => {
-    if (query) {
-      setQueryString(queryStringify(query));
-    }
-  }, [setQueryString, queryStringify]);
+  const handleQueryChangeFromMap = useCallback(
+    (query) => {
+      if (query) {
+        setQueryString(queryStringify(query));
+      }
+    },
+    [setQueryString, queryStringify],
+  );
 
-  const handleEditValueChange = useCallback((value) => {
-    if (value) {
-      setQueryString(value.length > 1 ? `[\n${value.map((item) => (item || '{}')).join(',\n')}\n]` : value[0]);
-      // setQueryString(queryStringify(value));
-    }
-  }, [setQueryString]);
+  const handleEditValueChange = useCallback(
+    (value) => {
+      if (value) {
+        setQueryString(
+          value.length > 1 ? `[\n${value.map((item) => item || '{}').join(',\n')}\n]` : value[0],
+        );
+        // setQueryString(queryStringify(value));
+      }
+    },
+    [setQueryString],
+  );
 
-  const renderElement = React.useCallback((element, handleValueChange) => (
-    <QueryMapEdit
-      key={`QueryMapEdit.${element || ''}`}
-      initialMap={element ? JSON.parse(element) : {}}
-      onMapChanged={(obj) => handleValueChange(queryStringify(obj))}
-      style={{ width: '100%' }}
-    />
-  ), [queryStringify]);
+  const renderElement = React.useCallback(
+    (element, handleValueChange) => (
+      <QueryMapEdit
+        key={`QueryMapEdit.${element || ''}`}
+        initialMap={element ? JSON.parse(element) : {}}
+        onMapChanged={(obj) => handleValueChange(queryStringify(obj))}
+        style={{ width: '100%' }}
+      />
+    ),
+    [queryStringify],
+  );
 
   if (mode === 'map') {
     let queryObject = null;
@@ -95,8 +109,12 @@ function QueryEdit({
     <FormControl component="fieldset">
       <FormGroup row>
         <RadioGroup row value={mode} onChange={handleEditModeChange}>
-          <FormControlLabel value="text" control={<Radio color="primary" />} label="🔍plain" />
-          <FormControlLabel value="map" control={<Radio color="primary" />} label="🔍structured" />
+          <FormControlLabel value="text" control={<Radio color="primary" />} label="🔍 plain" />
+          <FormControlLabel
+            value="map"
+            control={<Radio color="primary" />}
+            label="🔍 structured"
+          />
         </RadioGroup>
       </FormGroup>
     </FormControl>
