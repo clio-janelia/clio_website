@@ -102,7 +102,7 @@ function BodyAnnotationQuery({
             onClick={submitQuery}
             disabled={loading}
           >
-            {loading ? <WaitIcon /> : <SubmitIcon />}
+            {loading ? <WaitIcon fontSize="large" /> : <SubmitIcon fontSize="large" />}
           </IconButton>
         </span>
       </Tooltip>
@@ -113,7 +113,7 @@ function BodyAnnotationQuery({
             onClick={querySelectedSelements}
             disabled={loading}
           >
-            <SelectedSegmentsIcon />
+            <SelectedSegmentsIcon fontSize="large" />
           </IconButton>
         </span>
       </Tooltip>
