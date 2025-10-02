@@ -17,6 +17,9 @@ const useStyles = makeStyles({
 
 export default function Help() {
   const classes = useStyles();
+  const version = process.env.REACT_APP_VERSION;
+  const isDev = process.env.NODE_ENV === 'development';
+
   return (
     <div className={classes.root}>
       <Grid container spacing={3} justify="center">
@@ -25,7 +28,16 @@ export default function Help() {
         </Grid>
         <Grid item sm={4}>
           <Typography variant="h6">
-            v{process.env.REACT_APP_VERSION} - {process.env.NODE_ENV}
+            {isDev ? (
+              <>
+                v{version} -
+                <a href="https://github.com/clio-janelia/clio_website" target="_blank" rel="noopener noreferrer">
+                  development
+                </a>
+              </>
+            ) : (
+              <>v{version} - {process.env.NODE_ENV}</>
+            )}
           </Typography>
         </Grid>
         <Grid item md={10}>

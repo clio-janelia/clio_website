@@ -1,12 +1,21 @@
 import React, {
-  useState, useCallback, useMemo, useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
 } from 'react';
 import PropTypes from 'prop-types';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+import Button from '@material-ui/core/Button';
 import SelectedSegmentsIcon from '@material-ui/icons/TouchAppOutlined';
 import SubmitIcon from '@material-ui/icons/FindInPageOutlined';
 import WaitIcon from '@material-ui/icons/TimerOutlined';
+import HelpOutlineIcon from '@material-ui/icons/HelpOutline';
 import { useStyles } from '../DataTable/DataTableUtils';
 import QueryEdit from './QueryEdit';
 
@@ -19,7 +28,10 @@ const stringifyQueryObject = (json) => {
     return json;
   }
 
-  const s = Object.keys(json).reduce((result, key) => `${result}\n  "${key}": ${JSON.stringify(json[key])},`, '');
+  const s = Object.keys(json).reduce(
+    (result, key) => `${result}\n  "${key}": ${JSON.stringify(json[key])},`,
+    '',
+  );
 
   return s ? `{${s.slice(0, -1)}\n}` : '{}';
 };
@@ -34,7 +46,10 @@ const queryStringify = (json) => {
   }
 
   if (Array.isArray(json)) {
-    return `[\n${json.filter((item) => item && Object.keys(item).length > 0).map(stringifyQueryObject).join(',')}\n]`;
+    return `[\n${json
+      .filter((item) => item && Object.keys(item).length > 0)
+      .map(stringifyQueryObject)
+      .join(',')}\n]`;
   }
 
   return stringifyQueryObject(json);
@@ -49,6 +64,7 @@ function BodyAnnotationQuery({
 }) {
   const classes = useStyles();
   const [query, setQuery] = useState(defaultQuery);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const submitQuery = () => {
     if (typeof query === 'string') {
@@ -71,9 +87,12 @@ function BodyAnnotationQuery({
     }
   }, [query, onQueryChanged]);
 
-  const handleQueryStringChange = useCallback((s) => {
-    setQuery(s);
-  }, [setQuery]);
+  const handleQueryStringChange = useCallback(
+    (s) => {
+      setQuery(s);
+    },
+    [setQuery],
+  );
 
   const queryString = useMemo(() => queryStringify(query), [query]);
   const querySelectedSelements = () => {
@@ -86,56 +105,149 @@ function BodyAnnotationQuery({
   };
 
   return (
-    <div className={classes.controlRow}>
-      <QueryEdit
-        defaultQueryString={queryString}
-        onQueryStringChanged={handleQueryStringChange}
-        queryStringify={queryStringify}
-      />
-      <Tooltip
-        title={loading ? 'Loading' : 'Submit Query'}
-        arrow
-      >
-        <span>
+    <>
+      <div style={{ position: 'relative' }}>
+        <Tooltip title="Help" arrow>
           <IconButton
+            size="small"
+            onClick={() => setHelpOpen(true)}
             color="primary"
-            onClick={submitQuery}
-            disabled={loading}
+            style={{ position: 'absolute', top: 0, right: 0 }}
           >
-            {loading ? <WaitIcon /> : <SubmitIcon />}
+            <HelpOutlineIcon />
           </IconButton>
-        </span>
-      </Tooltip>
-      <Tooltip title={loading ? 'Loading' : 'Query Selected Segments'} arrow>
-        <span>
-          <IconButton
+        </Tooltip>
+        <div className={classes.controlRow}>
+          <QueryEdit
+            defaultQueryString={queryString}
+            onQueryStringChanged={handleQueryStringChange}
+            queryStringify={queryStringify}
+          />
+          <Tooltip title={loading ? 'Loading' : 'Submit Query'} arrow>
+            <span>
+              <IconButton color="primary" onClick={submitQuery} disabled={loading}>
+                {loading ? <WaitIcon fontSize="large" /> : <SubmitIcon fontSize="large" />}
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title={loading ? 'Loading' : 'Query Selected Segments'} arrow>
+            <span>
+              <IconButton color="primary" onClick={querySelectedSelements} disabled={loading}>
+                <SelectedSegmentsIcon fontSize="large" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          {/* <Button
             color="primary"
-            onClick={querySelectedSelements}
+            variant="contained"
             disabled={loading}
-          >
-            <SelectedSegmentsIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
-      {/* <Button
-        color="primary"
-        variant="contained"
-        disabled={loading}
-        style={{ height: 'fit-content' }}
-        onClick={
-          () => {
-            const segments = getSelectedSegments();
-            const bodyQuery = { bodyid: segments };
-            setQuery(bodyQuery);
-            if (segments.length > 0) {
-              onQueryChanged(bodyQuery);
+            style={{ height: 'fit-content' }}
+            onClick={
+              () => {
+                const segments = getSelectedSegments();
+                const bodyQuery = { bodyid: segments };
+                setQuery(bodyQuery);
+                if (segments.length > 0) {
+                  onQueryChanged(bodyQuery);
+                }
+              }
             }
-          }
-        }
-      >
-        Selected Segments
-      </Button> */}
-    </div>
+          >
+            Selected Segments
+          </Button> */}
+        </div>
+      </div>
+      <Dialog open={helpOpen} onClose={() => setHelpOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Query JSON Format Help</DialogTitle>
+        <DialogContent>
+          <p>
+            Use JSON format to query body annotations. The query can be a single object or an array
+            of objects.
+          </p>
+
+          <h4>Single Object Query:</h4>
+          <pre style={{ backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
+            {`{
+  "status": ["Anchor", "Roughly traced"],
+  "bodyid": [123456, 789012]
+}`}
+          </pre>
+
+          <h4>Array Query (OR logic):</h4>
+          <pre style={{ backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
+            {`[
+  { "status": "Anchor" },
+  { "bodyid": 123456 }
+]`}
+          </pre>
+
+          <h4>Common Fields:</h4>
+          <ul>
+            <li>
+              <strong>bodyid:</strong> Body ID(s) to query (number or array of numbers)
+            </li>
+            <li>
+              <strong>status:</strong> Status value(s) (string or array of strings)
+            </li>
+            <li>
+              <strong>user:</strong> User name(s) (string or array of strings)
+            </li>
+            <li>Other custom annotation fields as defined in your dataset</li>
+          </ul>
+
+          <h4>Examples:</h4>
+          <pre style={{ backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
+            {`// Query by status
+{ "status": "Anchor" }
+
+// Query by multiple statuses
+{ "status": ["Anchor", "Roughly traced"] }
+
+// Query by body IDs
+{ "bodyid": [123456, 789012, 345678] }
+
+// Query by user
+{ "user": "john.doe" }
+
+// Combine multiple fields (AND logic)
+{
+  "status": "Anchor",
+  "user": "john.doe"
+}`}
+          </pre>
+
+          <h4>Query fields can include two special types of values:</h4>
+          <ul>
+            <li>
+              Regular expressions: a string value that starts with &quot;re/&quot; is treated as a
+              regex with the remainder of the string being the regex. The regex is anchored to the
+              beginning.
+            </li>
+            <li>
+              Field existence: a string value that starts with &quot;exists/&quot; checks if a field
+              exists. If &quot;exists/0&quot; is specified, the field must not exist or be set to
+              null. If &quot;exists/1&quot;
+            </li>
+            is specified, the field must exist.
+          </ul>
+          <h4>Examples:</h4>
+
+          <pre style={{ backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
+            {`// Returns annotations where "type" field does exist
+{"type": "exists/1"}
+
+// Returns annotations where "type" field begins with "L"
+{"type": "re/^L.*"}
+`}
+          </pre>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setHelpOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
