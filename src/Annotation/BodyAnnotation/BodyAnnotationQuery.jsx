@@ -1,5 +1,8 @@
 import React, {
-  useState, useCallback, useMemo, useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
 } from 'react';
 import PropTypes from 'prop-types';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -25,7 +28,10 @@ const stringifyQueryObject = (json) => {
     return json;
   }
 
-  const s = Object.keys(json).reduce((result, key) => `${result}\n  "${key}": ${JSON.stringify(json[key])},`, '');
+  const s = Object.keys(json).reduce(
+    (result, key) => `${result}\n  "${key}": ${JSON.stringify(json[key])},`,
+    '',
+  );
 
   return s ? `{${s.slice(0, -1)}\n}` : '{}';
 };
@@ -40,7 +46,10 @@ const queryStringify = (json) => {
   }
 
   if (Array.isArray(json)) {
-    return `[\n${json.filter((item) => item && Object.keys(item).length > 0).map(stringifyQueryObject).join(',')}\n]`;
+    return `[\n${json
+      .filter((item) => item && Object.keys(item).length > 0)
+      .map(stringifyQueryObject)
+      .join(',')}\n]`;
   }
 
   return stringifyQueryObject(json);
@@ -78,9 +87,12 @@ function BodyAnnotationQuery({
     }
   }, [query, onQueryChanged]);
 
-  const handleQueryStringChange = useCallback((s) => {
-    setQuery(s);
-  }, [setQuery]);
+  const handleQueryStringChange = useCallback(
+    (s) => {
+      setQuery(s);
+    },
+    [setQuery],
+  );
 
   const queryString = useMemo(() => queryStringify(query), [query]);
   const querySelectedSelements = () => {
@@ -111,27 +123,16 @@ function BodyAnnotationQuery({
             onQueryStringChanged={handleQueryStringChange}
             queryStringify={queryStringify}
           />
-          <Tooltip
-            title={loading ? 'Loading' : 'Submit Query'}
-            arrow
-          >
+          <Tooltip title={loading ? 'Loading' : 'Submit Query'} arrow>
             <span>
-              <IconButton
-                color="primary"
-                onClick={submitQuery}
-                disabled={loading}
-              >
+              <IconButton color="primary" onClick={submitQuery} disabled={loading}>
                 {loading ? <WaitIcon fontSize="large" /> : <SubmitIcon fontSize="large" />}
               </IconButton>
             </span>
           </Tooltip>
           <Tooltip title={loading ? 'Loading' : 'Query Selected Segments'} arrow>
             <span>
-              <IconButton
-                color="primary"
-                onClick={querySelectedSelements}
-                disabled={loading}
-              >
+              <IconButton color="primary" onClick={querySelectedSelements} disabled={loading}>
                 <SelectedSegmentsIcon fontSize="large" />
               </IconButton>
             </span>
@@ -213,6 +214,31 @@ function BodyAnnotationQuery({
   "status": "Anchor",
   "user": "john.doe"
 }`}
+          </pre>
+
+          <h4>Query fields can include two special types of values:</h4>
+          <ul>
+            <li>
+              Regular expressions: a string value that starts with &quot;re/&quot; is treated as a
+              regex with the remainder of the string being the regex. The regex is anchored to the
+              beginning.
+            </li>
+            <li>
+              Field existence: a string value that starts with &quot;exists/&quot; checks if a field
+              exists. If &quot;exists/0&quot; is specified, the field must not exist or be set to
+              null. If &quot;exists/1&quot;
+            </li>
+            is specified, the field must exist.
+          </ul>
+          <h4>Examples:</h4>
+
+          <pre style={{ backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
+            {`// Returns annotations where "type" field does exist
+{"type": "exists/1"}
+
+// Returns annotations where "type" field begins with "L"
+{"type": "re/^L.*"}
+`}
           </pre>
         </DialogContent>
         <DialogActions>
