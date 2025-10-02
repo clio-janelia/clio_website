@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Input from '@material-ui/core/Input';
+// import Input from '@material-ui/core/Input';
 import Tooltip from '@material-ui/core/Tooltip';
 
 export default function BodyColorControl({
@@ -15,10 +15,10 @@ export default function BodyColorControl({
   }, [setBodyColor, getBodies]);
 
   return (
-    <div style={{ width: '20px' }}>
+    <div>
       <Tooltip title={title}>
-        <Input
-          style={{ width: '100%' }}
+        <input
+          style={{ width: '30px' }}
           type="color"
           defaultValue={defaultColor || '#ffffff'}
           onChange={handleColorChange}
