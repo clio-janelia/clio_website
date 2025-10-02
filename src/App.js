@@ -1,5 +1,5 @@
 // eslint-disable-next-line object-curly-newline
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useCallback } from 'react';
 import { Router, Route } from 'react-router-dom';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { createBrowserHistory } from 'history';
@@ -14,7 +14,6 @@ import Alerts from './Alerts';
 import UnauthenticatedApp from './UnauthenticatedApp';
 // import loadScript from './utils/load-script';
 // import removeScript from './utils/remove-script';
-import { useLocalStorage } from './utils/hooks';
 import { loginGoogleUser } from './actions/user';
 import config from './config';
 import { expandDatasets } from './utils/config';
@@ -124,11 +123,54 @@ ErrorFallback.propTypes = {
 function App() {
   const dispatch = useDispatch();
 
-  const [selectedDatasetName, setSelectedDataset] = useLocalStorage('dataset', null);
-
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const [datasets, setDatasets] = useState([]);
+
+  // Initialize dataset from URL params or localStorage
+  const getInitialDataset = useCallback(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlDataset = searchParams.get('dataset');
+    const storedDataset = localStorage.getItem('dataset');
+    return urlDataset || (storedDataset ? JSON.parse(storedDataset) : null);
+  }, []);
+
+  const [selectedDatasetName, setSelectedDatasetNameState] = useState(getInitialDataset);
+
+  // Update URL and localStorage when dataset changes
+  const setSelectedDataset = useCallback((datasetName) => {
+    setSelectedDatasetNameState(datasetName);
+
+    // Update URL
+    const searchParams = new URLSearchParams(window.location.search);
+    if (datasetName) {
+      searchParams.set('dataset', datasetName);
+    } else {
+      searchParams.delete('dataset');
+    }
+    const newUrl = searchParams.toString()
+      ? `${window.location.pathname}?${searchParams.toString()}`
+      : window.location.pathname;
+    history.replace(newUrl);
+
+    // Update localStorage for backward compatibility
+    localStorage.setItem('dataset', JSON.stringify(datasetName));
+  }, []);
+
+  // Sync dataset from URL on history change
+  useEffect(() => {
+    const unlisten = history.listen(() => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlDataset = searchParams.get('dataset');
+      if (urlDataset !== selectedDatasetName) {
+        setSelectedDatasetNameState(urlDataset);
+        if (urlDataset) {
+          localStorage.setItem('dataset', JSON.stringify(urlDataset));
+        }
+      }
+    });
+    return unlisten;
+  }, [selectedDatasetName]);
 
   // This effect will fire off a request to the production clio store to let us know when
   // a client is using a non standard production or test url. This should be a very rare
