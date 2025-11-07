@@ -172,6 +172,7 @@ function BodyAnnotation({
       <BodyAnnotationTable
         data={rows}
         dataConfig={config.dataConfig}
+        datasetName={dataset.name}
         showBodies={showBodies}
         setBodyColor={setBodyColor}
         localize={localize}

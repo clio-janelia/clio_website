@@ -1,37 +1,45 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { useHistory, useLocation } from 'react-router-dom';
 import DataTable from '../DataTable/DataTable';
 import BodyAnnotationTableControl from './BodyAnnotationTableControl';
 import BodyListControl from './BodyListControl';
 
+// Generate storage key for dataset-specific field selections
+const getStorageKey = (datasetName) => `clio_body_annotation_fields_${datasetName}`;
+
 function BodyAnnotationTable({
   data,
   dataConfig,
+  datasetName,
   showBodies,
   setBodyColor,
   localize,
 }) {
-  const history = useHistory();
-  const location = useLocation();
-
-  // Initialize columns from URL query parameter or default
+  // Initialize columns from localStorage or default
   const getInitialColumns = () => {
-    const searchParams = new URLSearchParams(location.search);
-    const fieldsParam = searchParams.get('fields');
+    if (dataConfig.columns && dataConfig.columns.collection && datasetName) {
+      try {
+        const storageKey = getStorageKey(datasetName);
+        const storedFields = localStorage.getItem(storageKey);
 
-    if (fieldsParam && dataConfig.columns && dataConfig.columns.collection) {
-      // Parse comma-separated fields from URL
-      const fieldsFromUrl = fieldsParam.split(',').filter((f) => f.trim());
+        if (storedFields) {
+          // Parse stored fields
+          const fieldsFromStorage = JSON.parse(storedFields);
 
-      // Validate that the fields exist in the available columns collection
-      const validFields = fieldsFromUrl.filter((field) => dataConfig.columns.collection[field]);
+          // Validate that the fields exist in the available columns collection
+          const validFields = fieldsFromStorage.filter(
+            (field) => dataConfig.columns.collection[field],
+          );
 
-      if (validFields.length > 0) {
-        return {
-          ...dataConfig.columns,
-          shape: validFields,
-        };
+          if (validFields.length > 0) {
+            return {
+              ...dataConfig.columns,
+              shape: validFields,
+            };
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load field selection from localStorage:', error);
       }
     }
 
@@ -40,22 +48,19 @@ function BodyAnnotationTable({
 
   const [columns, setColumns] = useState(getInitialColumns);
 
-  // Update URL when columns.shape changes
+  // Save to localStorage when columns.shape changes
   useEffect(() => {
-    if (columns && columns.shape && Array.isArray(columns.shape)) {
-      const searchParams = new URLSearchParams(location.search);
-      const currentFields = searchParams.get('fields');
-      const newFields = columns.shape.join(',');
-
-      if (currentFields !== newFields) {
-        searchParams.set('fields', newFields);
-        const newUrl = `${location.pathname}?${searchParams.toString()}`;
-        history.replace(newUrl);
+    if (columns && columns.shape && Array.isArray(columns.shape) && datasetName) {
+      try {
+        const storageKey = getStorageKey(datasetName);
+        localStorage.setItem(storageKey, JSON.stringify(columns.shape));
+      } catch (error) {
+        console.warn('Failed to save field selection to localStorage:', error);
       }
     }
-  }, [columns, location.pathname, location.search, history]);
+  }, [columns, datasetName]);
 
-  // Wrapper for setColumns that updates both state and URL
+  // Wrapper for setColumns
   const handleSetColumns = useCallback((newColumns) => {
     setColumns(newColumns);
   }, []);
@@ -100,6 +105,7 @@ function BodyAnnotationTable({
 BodyAnnotationTable.propTypes = {
   data: PropTypes.arrayOf(PropTypes.object).isRequired,
   dataConfig: PropTypes.object.isRequired,
+  datasetName: PropTypes.string.isRequired,
   showBodies: PropTypes.func,
   setBodyColor: PropTypes.func,
   localize: PropTypes.func,
