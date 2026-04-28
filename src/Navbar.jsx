@@ -183,7 +183,7 @@ function Navbar({ history, datasets, selectedDatasetName, setSelectedDataset }) 
         <Button onClick={handleCollapse} className={classes.navToggle} size="small">
           Hide Header
         </Button>
-        <GoogleSignIn />
+        <GoogleSignIn datasets={datasets || []} selectedDatasetName={selectedDatasetName} />
         <IconButton to="/help" component={Link} className={classes.title}>
           <HelpIcon />
         </IconButton>

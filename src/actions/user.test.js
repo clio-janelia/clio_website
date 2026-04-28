@@ -113,6 +113,8 @@ describe('loginDSGUser action', () => {
       name: 'U',
       picture: 'https://example.test/u.png',
       dsg_url: 'https://dsg.test',
+      datasets_ignore_tos: { fanc: ['clio_general'] },
+      missing_tos: [{ dataset_name: 'fanc', tos_id: 7 }],
     };
     const roles = {
       email: 'u@test.com',
@@ -137,6 +139,8 @@ describe('loginDSGUser action', () => {
         name: 'U',
         picture: 'https://example.test/u.png',
         dsg_url: 'https://dsg.test',
+        datasets_ignore_tos: { fanc: ['clio_general'] },
+        missing_tos: [{ dataset_name: 'fanc', tos_id: 7 }],
       },
     });
     expect(global.fetch).toHaveBeenNthCalledWith(
@@ -212,6 +216,8 @@ describe('loginDSGUser action', () => {
       name: 'New Name',
       picture: 'https://example.test/u.png',
       dsg_url: 'https://dsg.test',
+      datasets_ignore_tos: {},
+      missing_tos: [],
     });
     expect(JSON.parse(localStorage.getItem('user'))).toEqual(user);
     expect(window.neurohub.clio.auth.getAuthResponse()).toEqual({ id_token: 'cached-token' });

@@ -52,6 +52,8 @@ function buildUserFromProfile(profile, token) {
       name: profile.name || profile.email,
       picture: profile.picture || '',
       dsg_url: profile.dsg_url || null,
+      datasets_ignore_tos: profile.datasets_ignore_tos || {},
+      missing_tos: profile.missing_tos || [],
     },
   };
 }

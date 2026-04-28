@@ -2,12 +2,14 @@
 import { Button } from '@material-ui/core';
 import Avatar from '@material-ui/core/Avatar';
 import Tooltip from '@material-ui/core/Tooltip';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { logoutDSGUser } from './actions/user';
 import { authBaseFromProjectUrl } from './utils/auth';
+import { canonicalDatasetName, selectedDatasetNameFromBrowser } from './utils/dsgTos';
 
-export default function GoogleSignin() {
+export default function GoogleSignin({ datasets, selectedDatasetName }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const clioUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
@@ -15,7 +17,10 @@ export default function GoogleSignin() {
   const handleLogin = () => {
     const authBase = authBaseFromProjectUrl(clioUrl);
     const redirectUrl = encodeURIComponent(window.location.href);
-    window.location.href = `${authBase}/login?redirect=${redirectUrl}`;
+    const requestedDataset = selectedDatasetName || selectedDatasetNameFromBrowser();
+    const dsgDataset = canonicalDatasetName(datasets, requestedDataset);
+    const datasetParam = dsgDataset ? `&dataset=${encodeURIComponent(dsgDataset)}` : '';
+    window.location.href = `${authBase}/login?redirect=${redirectUrl}${datasetParam}`;
   };
 
   const handleLogout = () => {
@@ -44,3 +49,13 @@ export default function GoogleSignin() {
     </Button>
   );
 }
+
+GoogleSignin.propTypes = {
+  datasets: PropTypes.arrayOf(PropTypes.object),
+  selectedDatasetName: PropTypes.string,
+};
+
+GoogleSignin.defaultProps = {
+  datasets: [],
+  selectedDatasetName: null,
+};

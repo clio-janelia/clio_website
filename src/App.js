@@ -17,6 +17,7 @@ import UnauthenticatedApp from './UnauthenticatedApp';
 import { loginDSGUser } from './actions/user';
 import config from './config';
 import { expandDatasets } from './utils/config';
+import { getTosRedirectUrlForSelection } from './utils/dsgTos';
 import { addAlert } from './actions/alerts';
 
 import './App.css';
@@ -137,8 +138,23 @@ function App() {
 
   const [selectedDatasetName, setSelectedDatasetNameState] = useState(getInitialDataset);
 
+  const redirectToTosIfNeeded = useCallback((datasetName) => {
+    const tosUrl = getTosRedirectUrlForSelection({
+      user,
+      datasets,
+      selectedDatasetName: datasetName,
+      currentUrl: window.location.href,
+    });
+    if (!tosUrl) return false;
+
+    window.location.href = tosUrl;
+    return true;
+  }, [datasets, user]);
+
   // Update URL and localStorage when dataset changes
   const setSelectedDataset = useCallback((datasetName) => {
+    if (redirectToTosIfNeeded(datasetName)) return;
+
     setSelectedDatasetNameState(datasetName);
 
     // Update URL
@@ -155,7 +171,13 @@ function App() {
 
     // Update localStorage for backward compatibility
     localStorage.setItem('dataset', JSON.stringify(datasetName));
-  }, []);
+  }, [redirectToTosIfNeeded]);
+
+  useEffect(() => {
+    if (selectedDatasetName) {
+      redirectToTosIfNeeded(selectedDatasetName);
+    }
+  }, [redirectToTosIfNeeded, selectedDatasetName]);
 
   // Sync dataset from URL on history change
   useEffect(() => {
