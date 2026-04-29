@@ -1,8 +1,13 @@
-export function missingTosDatasetNames(user) {
+function missingTosAppliesToService(item, service) {
+  if (!service) return true;
+  return !item.service || item.service === service;
+}
+
+export function missingTosDatasetNames(user, service = null) {
   const info = user && user.info ? user.info : {};
   const missingTos = Array.isArray(info.missing_tos) ? info.missing_tos : [];
   return missingTos.reduce((names, item) => {
-    if (item && item.dataset_name) {
+    if (item && item.dataset_name && missingTosAppliesToService(item, service)) {
       names.add(item.dataset_name);
     }
     return names;
@@ -57,7 +62,7 @@ export function getTosRedirectUrlForSelection({
   currentUrl,
 }) {
   const dsgDataset = canonicalDatasetName(datasets, selectedDatasetName);
-  if (!dsgDataset || !missingTosDatasetNames(user).has(dsgDataset)) {
+  if (!dsgDataset || !missingTosDatasetNames(user, service).has(dsgDataset)) {
     return null;
   }
 

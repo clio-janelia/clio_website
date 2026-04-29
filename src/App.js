@@ -173,12 +173,6 @@ function App() {
     localStorage.setItem('dataset', JSON.stringify(datasetName));
   }, [redirectToTosIfNeeded]);
 
-  useEffect(() => {
-    if (selectedDatasetName) {
-      redirectToTosIfNeeded(selectedDatasetName);
-    }
-  }, [redirectToTosIfNeeded, selectedDatasetName]);
-
   // Sync dataset from URL on history change
   useEffect(() => {
     const unlisten = history.listen(() => {

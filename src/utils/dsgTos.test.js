@@ -12,12 +12,27 @@ describe('DSG TOS helpers', () => {
       info: {
         missing_tos: [
           { dataset_name: 'fanc', tos_id: 1 },
-          { dataset_name: 'hemibrain', tos_id: 2 },
+          { dataset_name: 'hemibrain', tos_id: 2, service: 'neuprint' },
         ],
       },
     };
 
     expect(missingTosDatasetNames(user)).toEqual(new Set(['fanc', 'hemibrain']));
+  });
+
+  it('filters service-specific TOS entries to the requested service', () => {
+    const user = {
+      info: {
+        missing_tos: [
+          { dataset_name: 'fanc', tos_id: 1 },
+          { dataset_name: 'fanc', tos_id: 2, service: 'clio' },
+          { dataset_name: 'hemibrain', tos_id: 3, service: 'neuprint' },
+        ],
+      },
+    };
+
+    expect(missingTosDatasetNames(user, 'clio')).toEqual(new Set(['fanc']));
+    expect(missingTosDatasetNames(user, 'neuprint')).toEqual(new Set(['fanc', 'hemibrain']));
   });
 
   it('maps expanded Clio dataset names back to canonical DSG dataset IDs', () => {
@@ -74,6 +89,23 @@ describe('DSG TOS helpers', () => {
       user,
       datasets,
       selectedDatasetName: 'open',
+      currentUrl: 'https://clio.test/',
+    })).toBeNull();
+  });
+
+  it('does not redirect Clio for TOS entries scoped to another service', () => {
+    const user = {
+      info: {
+        dsg_url: 'https://dsg.test',
+        missing_tos: [{ dataset_name: 'fanc', tos_id: 1, service: 'neuprint' }],
+      },
+    };
+    const datasets = [{ name: 'fanc-v1', key: 'fanc' }];
+
+    expect(getTosRedirectUrlForSelection({
+      user,
+      datasets,
+      selectedDatasetName: 'fanc-v1',
       currentUrl: 'https://clio.test/',
     })).toBeNull();
   });
