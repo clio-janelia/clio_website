@@ -17,7 +17,12 @@ import UnauthenticatedApp from './UnauthenticatedApp';
 import { loginDSGUser } from './actions/user';
 import config from './config';
 import { expandDatasets } from './utils/config';
-import { getTosRedirectUrlForSelection } from './utils/dsgTos';
+import {
+  canonicalDatasetName,
+  getTosRedirectUrlForSelection,
+  missingTosDatasetNames,
+} from './utils/dsgTos';
+import TosRequiredView from './TosRequiredView';
 import { addAlert } from './actions/alerts';
 
 import './App.css';
@@ -273,6 +278,13 @@ function App() {
   if (!user) {
     return <UnauthenticatedApp history={history} theme={theme} />;
   }
+
+  const tosPending = !!(
+    selectedDatasetName
+    && datasets
+    && datasets.length > 0
+    && missingTosDatasetNames(user, 'clio').has(canonicalDatasetName(datasets, selectedDatasetName))
+  );
   // The inner ErrorBoundary should catch most errors, and will keep the Navbar with the
   // Neurohub branding.  The outer ErrorBoundary is a last resort, in case there is an
   // error in the Navbar itself.
@@ -293,7 +305,14 @@ function App() {
               </Suspense>
               <Suspense fallback={<div>Loading...</div>}>
                 <Route path="/ws/:ws">
-                  <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
+                  {tosPending ? (
+                    <TosRequiredView
+                      datasetName={selectedDatasetName}
+                      onAccept={() => redirectToTosIfNeeded(selectedDatasetName)}
+                    />
+                  ) : (
+                    <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
+                  )}
                 </Route>
                 <Route path="/settings" component={Settings} />
                 <Route path="/help" component={Help} />

@@ -79,7 +79,9 @@ export function loginDSGUser() {
       .then((res) => (res.ok ? res.json() : null))
       .then((profile) => {
         if (!profile || !profile.email) {
-          localStorage.removeItem('user');
+          // Definitive negative response from the backend — clear any
+          // rehydrated user so the UI doesn't keep rendering as logged in.
+          dispatch({ type: C.LOGOUT_GOOGLE_USER });
           return null;
         }
 

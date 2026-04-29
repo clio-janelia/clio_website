@@ -1,11 +1,33 @@
 import Immutable from 'immutable';
 import C from './constants';
 
+// Rehydrate the user from localStorage at module-load time so the very first
+// render is already authenticated. Without this, every page load briefly
+// renders UnauthenticatedApp before /profile resolves. The Neuroglancer auth
+// bridge is also installed synchronously here so embedded NG viewers don't
+// race the /profile call.
+function rehydrateGoogleUser() {
+  try {
+    const cached = JSON.parse(localStorage.getItem('user') || 'null');
+    if (cached && cached.token && cached.info && cached.info.email) {
+      window.neurohub = {
+        clio: {
+          auth: { getAuthResponse: () => ({ id_token: cached.token }) },
+        },
+      };
+      return cached;
+    }
+  } catch (e) {
+    // corrupt payload — fall through and start unauthenticated
+  }
+  return null;
+}
+
 const userState = Immutable.Map({
   loggedIn: false,
   userInfo: {},
   token: '',
-  googleUser: null,
+  googleUser: rehydrateGoogleUser(),
   roles: {},
 });
 
