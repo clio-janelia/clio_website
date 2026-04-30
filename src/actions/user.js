@@ -66,10 +66,12 @@ function persistAndDispatchUser(user, dispatch) {
 }
 
 // DSG-mode login: confirm the browser's dsg_token cookie is valid by calling
-// /profile, then (if we don't already have one cached) request a long-lived
-// DSG API token to use as a Bearer elsewhere. DSG issues a fresh APIKey row on
-// every /create_token call, so we cache aggressively to avoid flooding its
-// database with one-shot tokens.
+// /profile, then (if we don't already have one cached) request the user's
+// stable long-lived DSG API token to use as a Bearer elsewhere. The
+// clio-store /server/token proxy hits DSG's idempotent long_lived_token
+// endpoint, so the same token is returned on every call. localStorage
+// caching is now an optimization to avoid an unnecessary network round-trip
+// rather than a defense against DSG database churn.
 export function loginDSGUser() {
   return (dispatch, getState) => {
     const clioUrl = getState().clio.get('projectUrl');
