@@ -72,7 +72,7 @@ The embedded Neuroglancer fork depends on a global auth bridge.
 
 ## Commit Protocol
 
-- Follow the shared user-level commit protocol in `/Users/katzw/GitHub/AGENTS.md`.
+- Follow the shared user-level commit protocol from in-scope higher-level instruction files, including `$HOME/AGENTS.md` when present.
 - For this repository, run `npm test -- --watchAll=false` before committing when feasible.
 
 ## Branch Context
