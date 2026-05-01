@@ -48,7 +48,10 @@ export function buildTosRedirectUrl(dsgUrl, service, dsgDataset, nextUrl) {
 
 export function buildTosLoginRedirectUrl(authBaseUrl, dsgDataset, nextUrl) {
   if (!authBaseUrl || !dsgDataset || !nextUrl) return null;
-  const url = new URL('/login', authBaseUrl);
+  const baseUrl = authBaseUrl.charAt(authBaseUrl.length - 1) === '/'
+    ? authBaseUrl
+    : `${authBaseUrl}/`;
+  const url = new URL('login', baseUrl);
   url.searchParams.set('redirect', nextUrl);
   url.searchParams.set('dataset', dsgDataset);
   return url.toString();

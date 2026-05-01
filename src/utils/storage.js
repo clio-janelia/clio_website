@@ -1,4 +1,42 @@
 import Immutable from 'immutable';
+import config from '../config';
+
+const defaultProjectUrl = `${config.projectBaseUrlDefault}/${config.top_level_function}`;
+
+function normalizeProjectUrl(projectUrl) {
+  if (!projectUrl) return projectUrl;
+
+  const defaultBase = config.projectBaseUrlDefault.replace(/\/$/, '');
+  const bareDefaultBase = defaultBase.replace(/\/clio-store$/, '');
+  const topLevel = config.top_level_function;
+
+  if (
+    defaultBase !== bareDefaultBase
+    && (
+      projectUrl === `${bareDefaultBase}/${topLevel}`
+      || projectUrl === `${bareDefaultBase}/${topLevel}/`
+      || projectUrl === bareDefaultBase
+      || projectUrl === `${bareDefaultBase}/`
+    )
+  ) {
+    return defaultProjectUrl;
+  }
+
+  return projectUrl;
+}
+
+function normalizePersistedState(state) {
+  if (state && state.clio && state.clio.projectUrl) {
+    // eslint-disable-next-line prefer-object-spread
+    const clio = Object.assign({}, state.clio, {
+      projectUrl: normalizeProjectUrl(state.clio.projectUrl),
+    });
+
+    // eslint-disable-next-line prefer-object-spread
+    return Object.assign({}, state, { clio });
+  }
+  return state;
+}
 
 // Returns true local storage is availble.
 // Adapted from:
@@ -31,7 +69,7 @@ export const loadState = () => {
     if (serializedState === null) {
       return undefined;
     }
-    const state = JSON.parse(serializedState);
+    const state = normalizePersistedState(JSON.parse(serializedState));
     const Immutabled = {};
     Object.keys(state).forEach((key) => {
       Immutabled[key] = Immutable.fromJS(state[key]);

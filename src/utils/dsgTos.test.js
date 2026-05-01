@@ -79,6 +79,18 @@ describe('DSG TOS helpers', () => {
     );
   });
 
+  it('preserves path prefixes in clio-store login redirect URLs', () => {
+    const tosUrl = buildTosLoginRedirectUrl(
+      'https://emdata7.janelia.org/clio-store',
+      'fish2',
+      'https://clio-dev.janelia.org:3001/ws/annotate?dataset=fish2-v0.2.43',
+    );
+
+    expect(tosUrl).toBe(
+      'https://emdata7.janelia.org/clio-store/login?redirect=https%3A%2F%2Fclio-dev.janelia.org%3A3001%2Fws%2Fannotate%3Fdataset%3Dfish2-v0.2.43&dataset=fish2',
+    );
+  });
+
   it('returns a redirect only when the selected dataset has missing TOS', () => {
     const user = {
       info: {
@@ -120,11 +132,11 @@ describe('DSG TOS helpers', () => {
       datasets,
       selectedDatasetName: 'fanc-v1',
       currentUrl: 'https://clio.test/',
-      authBaseUrl: 'https://backend.test',
+      authBaseUrl: 'https://backend.test/clio-store',
     });
 
     expect(tosUrl).toBe(
-      'https://backend.test/login?redirect=https%3A%2F%2Fclio.test%2F%3Fdataset%3Dfanc-v1&dataset=fanc',
+      'https://backend.test/clio-store/login?redirect=https%3A%2F%2Fclio.test%2F%3Fdataset%3Dfanc-v1&dataset=fanc',
     );
   });
 
