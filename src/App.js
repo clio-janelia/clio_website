@@ -17,6 +17,7 @@ import UnauthenticatedApp from './UnauthenticatedApp';
 import { loginDSGUser } from './actions/user';
 import config from './config';
 import { expandDatasets } from './utils/config';
+import { authBaseFromProjectUrl } from './utils/auth';
 import {
   canonicalDatasetName,
   getTosRedirectUrlForSelection,
@@ -132,13 +133,14 @@ function App() {
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
   const [datasets, setDatasets] = useState([]);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Initialize dataset from URL params or localStorage
+  // Initialize dataset from URL params. Shared localStorage causes cross-tab
+  // confusion during DSG service-specific TOS flows.
   const getInitialDataset = useCallback(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const urlDataset = searchParams.get('dataset');
-    const storedDataset = localStorage.getItem('dataset');
-    return urlDataset || (storedDataset ? JSON.parse(storedDataset) : null);
+    return urlDataset || null;
   }, []);
 
   const [selectedDatasetName, setSelectedDatasetNameState] = useState(getInitialDataset);
@@ -149,14 +151,15 @@ function App() {
       datasets,
       selectedDatasetName: datasetName,
       currentUrl: window.location.href,
+      authBaseUrl: authBaseFromProjectUrl(projectUrl),
     });
     if (!tosUrl) return false;
 
     window.location.href = tosUrl;
     return true;
-  }, [datasets, user]);
+  }, [datasets, projectUrl, user]);
 
-  // Update URL and localStorage when dataset changes
+  // Update URL when dataset changes
   const setSelectedDataset = useCallback((datasetName) => {
     if (redirectToTosIfNeeded(datasetName)) return;
 
@@ -173,9 +176,6 @@ function App() {
       ? `${window.location.pathname}?${searchParams.toString()}`
       : window.location.pathname;
     history.replace(newUrl);
-
-    // Update localStorage for backward compatibility
-    localStorage.setItem('dataset', JSON.stringify(datasetName));
   }, [redirectToTosIfNeeded]);
 
   // Sync dataset from URL on history change
@@ -185,9 +185,6 @@ function App() {
       const urlDataset = searchParams.get('dataset');
       if (urlDataset !== selectedDatasetName) {
         setSelectedDatasetNameState(urlDataset);
-        if (urlDataset) {
-          localStorage.setItem('dataset', JSON.stringify(urlDataset));
-        }
       }
     });
     return unlisten;
@@ -270,11 +267,47 @@ function App() {
   // (window.neurohub.clio.auth) with the fresh Bearer token so our neuroglancer
   // fork can authenticate against clio-store.
   useEffect(() => {
-    if (!projectUrl) return;
-    dispatch(loginDSGUser());
+    if (!projectUrl) return undefined;
+    let cancelled = false;
+    setAuthChecked(false);
+
+    dispatch(loginDSGUser()).then(() => {
+      if (!cancelled) setAuthChecked(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, projectUrl]);
+
+  useEffect(() => {
+    if (!projectUrl) return undefined;
+
+    const refreshVisibleSession = () => {
+      if (document.visibilityState && document.visibilityState !== 'visible') return;
+      dispatch(loginDSGUser());
+    };
+
+    window.addEventListener('focus', refreshVisibleSession);
+    window.addEventListener('pageshow', refreshVisibleSession);
+    document.addEventListener('visibilitychange', refreshVisibleSession);
+
+    return () => {
+      window.removeEventListener('focus', refreshVisibleSession);
+      window.removeEventListener('pageshow', refreshVisibleSession);
+      document.removeEventListener('visibilitychange', refreshVisibleSession);
+    };
   }, [dispatch, projectUrl]);
 
   // if not logged in then show the login page for all routes.
+  if (!user && !authChecked) {
+    return (
+      <ThemeProvider theme={theme}>
+        <div className="App">Loading...</div>
+      </ThemeProvider>
+    );
+  }
+
   if (!user) {
     return <UnauthenticatedApp history={history} theme={theme} />;
   }

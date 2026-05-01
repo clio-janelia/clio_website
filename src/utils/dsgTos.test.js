@@ -1,4 +1,5 @@
 import {
+  buildTosLoginRedirectUrl,
   buildTosRedirectUrl,
   canonicalDatasetName,
   getTosRedirectUrlForSelection,
@@ -66,6 +67,18 @@ describe('DSG TOS helpers', () => {
     );
   });
 
+  it('builds the clio-store login redirect URL for TOS acceptance', () => {
+    const tosUrl = buildTosLoginRedirectUrl(
+      'https://backend.test',
+      'fanc',
+      'https://clio.test/?dataset=fanc-v1',
+    );
+
+    expect(tosUrl).toBe(
+      'https://backend.test/login?redirect=https%3A%2F%2Fclio.test%2F%3Fdataset%3Dfanc-v1&dataset=fanc',
+    );
+  });
+
   it('returns a redirect only when the selected dataset has missing TOS', () => {
     const user = {
       info: {
@@ -91,6 +104,28 @@ describe('DSG TOS helpers', () => {
       selectedDatasetName: 'open',
       currentUrl: 'https://clio.test/',
     })).toBeNull();
+  });
+
+  it('prefers clio-store login redirects when an auth base URL is available', () => {
+    const user = {
+      info: {
+        dsg_url: 'https://dsg.test',
+        missing_tos: [{ dataset_name: 'fanc', tos_id: 1 }],
+      },
+    };
+    const datasets = [{ name: 'fanc-v1', key: 'fanc' }];
+
+    const tosUrl = getTosRedirectUrlForSelection({
+      user,
+      datasets,
+      selectedDatasetName: 'fanc-v1',
+      currentUrl: 'https://clio.test/',
+      authBaseUrl: 'https://backend.test',
+    });
+
+    expect(tosUrl).toBe(
+      'https://backend.test/login?redirect=https%3A%2F%2Fclio.test%2F%3Fdataset%3Dfanc-v1&dataset=fanc',
+    );
   });
 
   it('does not redirect Clio for TOS entries scoped to another service', () => {

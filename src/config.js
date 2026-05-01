@@ -1,7 +1,7 @@
 export default {
   // project: 'FlyEM Private',
   project: 'janeliacave-global',
-  projectBaseUrlDefault: 'https://clio-store-vwzoicitea-uk.a.run.app',
+  projectBaseUrlDefault: 'https://emdata7.janelia.org/clio-store',
   projectBaseUrlTest: 'https://clio-dev.janelia.org:8080',
   top_level_function: 'v2',
   imageSliceUrlTemplate: 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>',

@@ -1,7 +1,7 @@
 import Immutable from 'immutable';
 import C from '../reducers/constants';
 import userReducer from '../reducers/user';
-import { loginDSGUser } from './user';
+import { DSG_TOKEN_CACHE_KEY, loginDSGUser } from './user';
 import { authBaseFromProjectUrl, normalizeTokenResponse } from '../utils/auth';
 
 const initialState = Immutable.Map({
@@ -25,6 +25,7 @@ function createMockStore(state) {
 }
 
 function jsonResponse(body, overrides = {}) {
+  // eslint-disable-next-line prefer-object-spread
   return Object.assign({
     ok: true,
     status: 200,
@@ -33,6 +34,7 @@ function jsonResponse(body, overrides = {}) {
 }
 
 function textResponse(body, overrides = {}) {
+  // eslint-disable-next-line prefer-object-spread
   return Object.assign({
     ok: true,
     status: 200,
@@ -97,12 +99,14 @@ describe('loginDSGUser action', () => {
   beforeEach(() => {
     global.fetch = jest.fn();
     localStorage.clear();
+    sessionStorage.clear();
     delete window.neurohub;
   });
 
   afterEach(() => {
     delete global.fetch;
     localStorage.clear();
+    sessionStorage.clear();
     delete window.neurohub;
     jest.restoreAllMocks();
   });
@@ -165,19 +169,18 @@ describe('loginDSGUser action', () => {
       { type: C.LOGIN_GOOGLE_USER, user },
       { type: C.SET_USER_ROLES, roles },
     ]));
-    expect(JSON.parse(localStorage.getItem('user'))).toEqual(user);
+    expect(JSON.parse(sessionStorage.getItem(DSG_TOKEN_CACHE_KEY))).toEqual({
+      email: 'u@test.com',
+      token: 'bearer-token',
+    });
+    expect(localStorage.getItem('user')).toBeNull();
     expect(window.neurohub.clio.auth.getAuthResponse()).toEqual({ id_token: 'bearer-token' });
   });
 
   it('reuses a cached token for the same profile instead of creating another APIKey', async () => {
-    const cachedUser = {
+    const cachedToken = {
+      email: 'u@test.com',
       token: 'cached-token',
-      info: {
-        email: 'u@test.com',
-        name: 'Old Name',
-        picture: '',
-        dsg_url: null,
-      },
     };
     const profile = {
       email: 'u@test.com',
@@ -192,7 +195,7 @@ describe('loginDSGUser action', () => {
       groups: [],
     };
 
-    localStorage.setItem('user', JSON.stringify(cachedUser));
+    sessionStorage.setItem(DSG_TOKEN_CACHE_KEY, JSON.stringify(cachedToken));
     global.fetch
       .mockResolvedValueOnce(jsonResponse(profile))
       .mockResolvedValueOnce(jsonResponse(roles));
@@ -219,12 +222,16 @@ describe('loginDSGUser action', () => {
       datasets_ignore_tos: {},
       missing_tos: [],
     });
-    expect(JSON.parse(localStorage.getItem('user'))).toEqual(user);
+    expect(JSON.parse(sessionStorage.getItem(DSG_TOKEN_CACHE_KEY))).toEqual(cachedToken);
+    expect(localStorage.getItem('user')).toBeNull();
     expect(window.neurohub.clio.auth.getAuthResponse()).toEqual({ id_token: 'cached-token' });
   });
 
   it('clears cached user state when /profile does not return an authenticated profile', async () => {
-    localStorage.setItem('user', JSON.stringify({ token: 'stale-token' }));
+    sessionStorage.setItem(DSG_TOKEN_CACHE_KEY, JSON.stringify({
+      email: 'u@test.com',
+      token: 'stale-token',
+    }));
     global.fetch.mockResolvedValueOnce(jsonResponse({}, { ok: false, status: 401 }));
 
     const store = createMockStore(mockState);
@@ -232,7 +239,7 @@ describe('loginDSGUser action', () => {
 
     expect(user).toBeNull();
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(localStorage.getItem('user')).toBeNull();
-    expect(store.actions).toEqual([]);
+    expect(sessionStorage.getItem(DSG_TOKEN_CACHE_KEY)).toBeNull();
+    expect(store.actions).toEqual([{ type: C.LOGOUT_GOOGLE_USER }]);
   });
 });

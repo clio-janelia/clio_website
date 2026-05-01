@@ -7,7 +7,7 @@ import React from 'react';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import { logoutDSGUser } from './actions/user';
 import { authBaseFromProjectUrl } from './utils/auth';
-import { canonicalDatasetName, selectedDatasetNameFromBrowser } from './utils/dsgTos';
+import { canonicalDatasetName } from './utils/dsgTos';
 
 export default function GoogleSignin({ datasets, selectedDatasetName }) {
   const dispatch = useDispatch();
@@ -17,8 +17,7 @@ export default function GoogleSignin({ datasets, selectedDatasetName }) {
   const handleLogin = () => {
     const authBase = authBaseFromProjectUrl(clioUrl);
     const redirectUrl = encodeURIComponent(window.location.href);
-    const requestedDataset = selectedDatasetName || selectedDatasetNameFromBrowser();
-    const dsgDataset = canonicalDatasetName(datasets, requestedDataset);
+    const dsgDataset = canonicalDatasetName(datasets, selectedDatasetName);
     const datasetParam = dsgDataset ? `&dataset=${encodeURIComponent(dsgDataset)}` : '';
     window.location.href = `${authBase}/login?redirect=${redirectUrl}${datasetParam}`;
   };

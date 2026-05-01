@@ -24,15 +24,7 @@ export function canonicalDatasetName(datasets, selectedDatasetName) {
 
 export function selectedDatasetNameFromBrowser() {
   const searchParams = new URLSearchParams(window.location.search);
-  const urlDataset = searchParams.get('dataset');
-  if (urlDataset) return urlDataset;
-
-  try {
-    const storedDataset = localStorage.getItem('dataset');
-    return storedDataset ? JSON.parse(storedDataset) : null;
-  } catch (e) {
-    return null;
-  }
+  return searchParams.get('dataset');
 }
 
 export function selectedDatasetReturnUrl(currentUrl, selectedDatasetName) {
@@ -54,19 +46,32 @@ export function buildTosRedirectUrl(dsgUrl, service, dsgDataset, nextUrl) {
   return url.toString();
 }
 
+export function buildTosLoginRedirectUrl(authBaseUrl, dsgDataset, nextUrl) {
+  if (!authBaseUrl || !dsgDataset || !nextUrl) return null;
+  const url = new URL('/login', authBaseUrl);
+  url.searchParams.set('redirect', nextUrl);
+  url.searchParams.set('dataset', dsgDataset);
+  return url.toString();
+}
+
 export function getTosRedirectUrlForSelection({
   user,
   datasets,
   selectedDatasetName,
   service = 'clio',
   currentUrl,
+  authBaseUrl = null,
 }) {
   const dsgDataset = canonicalDatasetName(datasets, selectedDatasetName);
   if (!dsgDataset || !missingTosDatasetNames(user, service).has(dsgDataset)) {
     return null;
   }
 
-  const dsgUrl = user && user.info ? user.info.dsg_url : null;
   const nextUrl = selectedDatasetReturnUrl(currentUrl, selectedDatasetName);
+  if (authBaseUrl) {
+    return buildTosLoginRedirectUrl(authBaseUrl, dsgDataset, nextUrl);
+  }
+
+  const dsgUrl = user && user.info ? user.info.dsg_url : null;
   return buildTosRedirectUrl(dsgUrl, service, dsgDataset, nextUrl);
 }

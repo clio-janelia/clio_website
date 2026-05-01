@@ -3,6 +3,8 @@ import jwt_decode from 'jwt-decode';
 import C from '../reducers/constants';
 import { authBaseFromProjectUrl, normalizeTokenResponse } from '../utils/auth';
 
+export const DSG_TOKEN_CACHE_KEY = 'clio_dsg_token';
+
 export default function setUserRoles(user) {
   return (dispatch, getState) => {
     const clioUrl = getState().clio.get('projectUrl');
@@ -20,6 +22,11 @@ export default function setUserRoles(user) {
   };
 }
 
+function getSessionStorage() {
+  if (typeof sessionStorage === 'undefined') return null;
+  return sessionStorage;
+}
+
 // The Neuroglancer fork reads window.neurohub.clio.auth.getAuthResponse()
 // to fetch the current bearer token when it talks to clio-store.
 function installNeurohubBridge(token) {
@@ -32,16 +39,44 @@ function installNeurohubBridge(token) {
   };
 }
 
-function loadCachedUser(profileEmail) {
+function loadCachedToken(profileEmail) {
+  const storage = getSessionStorage();
+  if (!storage) return null;
+
   try {
-    const cached = JSON.parse(localStorage.getItem('user') || 'null');
-    if (cached && cached.token && cached.info && cached.info.email === profileEmail) {
-      return cached;
+    const cached = JSON.parse(storage.getItem(DSG_TOKEN_CACHE_KEY) || 'null');
+    if (cached && cached.token && cached.email === profileEmail) {
+      return cached.token;
     }
   } catch (e) {
     // corrupt payload; fall through and re-fetch
   }
   return null;
+}
+
+function cacheToken(user) {
+  const storage = getSessionStorage();
+  if (!storage || !user || !user.token || !user.info || !user.info.email) return;
+
+  try {
+    storage.setItem(DSG_TOKEN_CACHE_KEY, JSON.stringify({
+      email: user.info.email,
+      token: user.token,
+    }));
+  } catch (e) {
+    // Token caching is only an optimization.
+  }
+}
+
+function clearCachedToken() {
+  const storage = getSessionStorage();
+  if (!storage) return;
+
+  try {
+    storage.removeItem(DSG_TOKEN_CACHE_KEY);
+  } catch (e) {
+    // Token caching is only an optimization.
+  }
 }
 
 function buildUserFromProfile(profile, token) {
@@ -59,19 +94,19 @@ function buildUserFromProfile(profile, token) {
 }
 
 function persistAndDispatchUser(user, dispatch) {
-  localStorage.setItem('user', JSON.stringify(user));
+  cacheToken(user);
   installNeurohubBridge(user.token);
   dispatch({ type: C.LOGIN_GOOGLE_USER, user });
   dispatch(setUserRoles(user));
 }
 
 // DSG-mode login: confirm the browser's dsg_token cookie is valid by calling
-// /profile, then (if we don't already have one cached) request the user's
+// /profile, then (if this tab does not already have one cached) request the user's
 // stable long-lived DSG API token to use as a Bearer elsewhere. The
 // clio-store /server/token proxy hits DSG's idempotent long_lived_token
-// endpoint, so the same token is returned on every call. localStorage
-// caching is now an optimization to avoid an unnecessary network round-trip
-// rather than a defense against DSG database churn.
+// endpoint, so the same token is returned on every call. Only the token is
+// cached, and only in sessionStorage, because profile fields like missing_tos
+// can change in DSG while this app is open.
 export function loginDSGUser() {
   return (dispatch, getState) => {
     const clioUrl = getState().clio.get('projectUrl');
@@ -82,18 +117,15 @@ export function loginDSGUser() {
       .then((profile) => {
         if (!profile || !profile.email) {
           // Definitive negative response from the backend — clear any
-          // rehydrated user so the UI doesn't keep rendering as logged in.
+          // current user so the UI doesn't keep rendering as logged in.
+          clearCachedToken();
           dispatch({ type: C.LOGOUT_GOOGLE_USER });
           return null;
         }
 
-        const cached = loadCachedUser(profile.email);
-        if (cached) {
-          // Keep the token but refresh name/picture in case DSG updated them.
-          const refreshed = {
-            ...cached,
-            info: { ...cached.info, ...buildUserFromProfile(profile, cached.token).info },
-          };
+        const cachedToken = loadCachedToken(profile.email);
+        if (cachedToken) {
+          const refreshed = buildUserFromProfile(profile, cachedToken);
           persistAndDispatchUser(refreshed, dispatch);
           return refreshed;
         }
@@ -132,7 +164,7 @@ export function logoutDSGUser() {
     const clioUrl = getState().clio.get('projectUrl');
     const authBase = authBaseFromProjectUrl(clioUrl);
 
-    localStorage.removeItem('user');
+    clearCachedToken();
     dispatch({ type: C.LOGOUT_GOOGLE_USER });
 
     // Navigate the browser to clio-store /logout, which:
