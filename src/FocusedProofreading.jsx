@@ -356,6 +356,24 @@ const falseMergePositions = () => {
   return falseMerges;
 };
 
+const falseMergeDescriptions = () => {
+  const falseMerges = [];
+  const layer = getAnnotationLayer(null, 'false merges');
+  if (layer) {
+    const { localAnnotations } = layer;
+    if (localAnnotations) {
+      const { annotationMap } = localAnnotations;
+      if (annotationMap) {
+        annotationMap.forEach((annotation) => {
+          const { description } = annotation;
+          falseMerges.push(description);
+        });
+      }
+    }
+  }
+  return falseMerges;
+};
+
 const storeResults = (userEmail, bodyIds, selection, result, resultsInstance, taskJson,
   taskStartTime, actions, dvidMngr, assnMngr) => {
   const bodyIdMergedOnto = bodyIds[0];
@@ -378,6 +396,7 @@ const storeResults = (userEmail, bodyIds, selection, result, resultsInstance, ta
     'body ID 2': bodyIdOther,
     'selected body IDs': selection,
     'false merges': falseMergePositions(),
+    'false merge descriptions': falseMergeDescriptions(),
     result,
     time,
     user: userEmail,
