@@ -1,8 +1,10 @@
 export default {
   // project: 'FlyEM Private',
   project: 'janeliacave-global',
-  projectBaseUrlDefault: 'https://emdata7.janelia.org/clio-store',
-  projectBaseUrlTest: 'https://clio-dev.janelia.org:8080',
+  // Prod clio-store handled through nginx proxy to Cloud Run
+  projectBaseUrlDefault: 'https://dataset-gateway.janelia.org/clio-store',
+  // Test clio-store is unused unless we bring one up on DSG server
+  projectBaseUrlTest: 'https://dataset-gateway.janelia.org/clio-store-test',
   top_level_function: 'v2',
   imageSliceUrlTemplate: 'https://tensorslice-bmcp5imp6q-uk.a.run.app/slice/<xyz>/256_256_1/jpeg?location=<location>',
   google_auth: {

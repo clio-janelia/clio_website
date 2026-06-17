@@ -3,22 +3,31 @@ import config from '../config';
 
 const defaultProjectUrl = `${config.projectBaseUrlDefault}/${config.top_level_function}`;
 
+// Backends from older builds that no longer exist. A browser that persisted one
+// of these as clio.projectUrl would otherwise stay stuck on a dead backend after
+// a redeploy, so we rewrite any of them to the current default. Add a base here
+// whenever projectBaseUrlDefault/Test is repointed away from a previously-live
+// backend.
+const LEGACY_PROJECT_BASES = [
+  'https://emdata7.janelia.org',
+  'https://emdata7.janelia.org/clio-store',
+  'https://clio-dev.janelia.org:8080',
+  'https://clio-store-dsg-464281314980.us-east4.run.app',
+];
+
 function normalizeProjectUrl(projectUrl) {
   if (!projectUrl) return projectUrl;
 
-  const defaultBase = config.projectBaseUrlDefault.replace(/\/$/, '');
-  const bareDefaultBase = defaultBase.replace(/\/clio-store$/, '');
   const topLevel = config.top_level_function;
+  const matchesBase = (base) => {
+    const b = base.replace(/\/$/, '');
+    return projectUrl === b
+      || projectUrl === `${b}/`
+      || projectUrl === `${b}/${topLevel}`
+      || projectUrl === `${b}/${topLevel}/`;
+  };
 
-  if (
-    defaultBase !== bareDefaultBase
-    && (
-      projectUrl === `${bareDefaultBase}/${topLevel}`
-      || projectUrl === `${bareDefaultBase}/${topLevel}/`
-      || projectUrl === bareDefaultBase
-      || projectUrl === `${bareDefaultBase}/`
-    )
-  ) {
+  if (LEGACY_PROJECT_BASES.some(matchesBase)) {
     return defaultProjectUrl;
   }
 
