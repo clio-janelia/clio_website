@@ -1,5 +1,7 @@
 // eslint-disable-next-line object-curly-newline
-import React, { useState, useEffect, Suspense, lazy, useCallback } from 'react';
+import React, {
+  useState, useEffect, Suspense, lazy, useCallback, useRef,
+} from 'react';
 import { Router, Route } from 'react-router-dom';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { createBrowserHistory } from 'history';
@@ -19,10 +21,16 @@ import config from './config';
 import { expandDatasets } from './utils/config';
 import { authBaseFromProjectUrl } from './utils/auth';
 import {
+  checkDatasetAccess,
   canonicalDatasetName,
-  getTosRedirectUrlForSelection,
-  missingTosDatasetNames,
-} from './utils/dsgTos';
+  clearTosLoopGuard,
+  datasetAccessFingerprint,
+  datasetAccessGate,
+  isCurrentDatasetAccessRequest,
+  readTosLoopGuard,
+  selectedDatasetReturnUrl,
+  setTosLoopGuard,
+} from './utils/datasetAccess';
 import TosRequiredView from './TosRequiredView';
 import { addAlert } from './actions/alerts';
 
@@ -132,7 +140,7 @@ function App() {
 
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const [datasets, setDatasets] = useState([]);
+  const [datasets, setDatasets] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   // Initialize dataset from URL params. Shared localStorage causes cross-tab
@@ -144,26 +152,19 @@ function App() {
   }, []);
 
   const [selectedDatasetName, setSelectedDatasetNameState] = useState(getInitialDataset);
-
-  const redirectToTosIfNeeded = useCallback((datasetName) => {
-    const tosUrl = getTosRedirectUrlForSelection({
-      user,
-      datasets,
-      selectedDatasetName: datasetName,
-      currentUrl: window.location.href,
-      authBaseUrl: authBaseFromProjectUrl(projectUrl),
-    });
-    if (!tosUrl) return false;
-
-    window.location.href = tosUrl;
-    return true;
-  }, [datasets, projectUrl, user]);
+  const [datasetAccessCheck, setDatasetAccessCheck] = useState({
+    fingerprint: null,
+    result: undefined,
+  });
+  const [tosFallback, setTosFallback] = useState(null);
+  const selectedDatasetNameRef = useRef(selectedDatasetName);
+  const selectedDatasetKeyRef = useRef(null);
+  const previousDatasetKeyRef = useRef(null);
 
   // Update URL when dataset changes
   const setSelectedDataset = useCallback((datasetName) => {
-    if (redirectToTosIfNeeded(datasetName)) return;
-
     setSelectedDatasetNameState(datasetName);
+    setTosFallback(null);
 
     // Update URL
     const searchParams = new URLSearchParams(window.location.search);
@@ -176,7 +177,7 @@ function App() {
       ? `${window.location.pathname}?${searchParams.toString()}`
       : window.location.pathname;
     history.replace(newUrl);
-  }, [redirectToTosIfNeeded]);
+  }, []);
 
   // Sync dataset from URL on history change
   useEffect(() => {
@@ -185,6 +186,7 @@ function App() {
       const urlDataset = searchParams.get('dataset');
       if (urlDataset !== selectedDatasetName) {
         setSelectedDatasetNameState(urlDataset);
+        setTosFallback(null);
       }
     });
     return unlisten;
@@ -224,41 +226,46 @@ function App() {
   }, [projectUrl, user]);
 
   useEffect(() => {
-    if (user) {
-      const options = {
-        credentials: 'include',
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
-
-      const datasetUrl = `${projectUrl}/datasets`;
-      fetch(datasetUrl, options)
-        .then((result) => {
-          if (!result.ok) {
-            // Create a custom error with response info
-            return result.text().then((text) => {
-              const error = new Error(`Request failed with status ${result.status}`);
-              error.status = result.status;
-              error.statusText = result.statusText;
-              error.body = text;
-              throw error;
-            });
-          }
-          return result.json();
-        })
-        .then((res) => {
-          const datasetsArray = expandDatasets(res);
-          setDatasets(datasetsArray);
-        })
-        .catch((err) => {
-          console.error('Error fetching datasets:', err);
-          dispatch(addAlert({
-            severity: 'error',
-            message: 'Failed to load datasets from the server. Please logout and log back in. If the error persists, please contact support.',
-          }));
-        });
+    if (!user) {
+      setDatasets(null);
+      return undefined;
     }
+
+    setDatasets(null);
+    const options = {
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+
+    const datasetUrl = `${projectUrl}/datasets`;
+    fetch(datasetUrl, options)
+      .then((result) => {
+        if (!result.ok) {
+          // Create a custom error with response info
+          return result.text().then((text) => {
+            const error = new Error(`Request failed with status ${result.status}`);
+            error.status = result.status;
+            error.statusText = result.statusText;
+            error.body = text;
+            throw error;
+          });
+        }
+        return result.json();
+      })
+      .then((res) => {
+        const datasetsArray = expandDatasets(res);
+        setDatasets(datasetsArray);
+      })
+      .catch((err) => {
+        console.error('Error fetching datasets:', err);
+        dispatch(addAlert({
+          severity: 'error',
+          message: 'Failed to load datasets from the server. Please logout and log back in. If the error persists, please contact support.',
+        }));
+      });
+    return undefined;
   }, [user, dispatch, projectUrl]);
 
   // Rehydrate the user session from the backend. In DSG mode the dsg_token
@@ -299,6 +306,111 @@ function App() {
     };
   }, [dispatch, projectUrl]);
 
+  useEffect(() => {
+    selectedDatasetNameRef.current = selectedDatasetName;
+    selectedDatasetKeyRef.current = canonicalDatasetName(datasets, selectedDatasetName);
+  }, [datasets, selectedDatasetName]);
+
+  useEffect(() => {
+    const datasetKey = canonicalDatasetName(datasets, selectedDatasetName);
+    const previousDatasetKey = previousDatasetKeyRef.current;
+    if (previousDatasetKey && previousDatasetKey !== datasetKey) {
+      clearTosLoopGuard(previousDatasetKey);
+    }
+    previousDatasetKeyRef.current = datasetKey;
+  }, [datasets, selectedDatasetName]);
+
+  useEffect(() => {
+    const gate = datasetAccessGate({
+      user,
+      datasets,
+      selectedDatasetName,
+      checkResult: undefined,
+    });
+    if (!projectUrl || gate.action !== 'query') {
+      setDatasetAccessCheck({ fingerprint: null, result: null });
+      return undefined;
+    }
+
+    const requestFingerprint = datasetAccessFingerprint(selectedDatasetName, gate.datasetKey);
+    const redirectUrl = selectedDatasetReturnUrl(window.location.href, selectedDatasetName);
+    let cancelled = false;
+    setDatasetAccessCheck({ fingerprint: requestFingerprint, result: undefined });
+
+    checkDatasetAccess({
+      authBase: authBaseFromProjectUrl(projectUrl),
+      datasetKey: gate.datasetKey,
+      redirectUrl,
+    }).then((result) => {
+      if (
+        cancelled
+        || !isCurrentDatasetAccessRequest(
+          requestFingerprint,
+          selectedDatasetNameRef.current,
+          selectedDatasetKeyRef.current,
+        )
+      ) return;
+      setDatasetAccessCheck({ fingerprint: requestFingerprint, result });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [datasets, projectUrl, selectedDatasetName, user]);
+
+  useEffect(() => {
+    const datasetKey = canonicalDatasetName(datasets, selectedDatasetName);
+    const fingerprint = datasetAccessFingerprint(selectedDatasetName, datasetKey);
+    const checkResult = datasetAccessCheck.fingerprint === fingerprint
+      ? datasetAccessCheck.result
+      : undefined;
+    const gate = datasetAccessGate({
+      user,
+      datasets,
+      selectedDatasetName,
+      checkResult,
+      loopGuardState: readTosLoopGuard(datasetKey),
+    });
+
+    if (gate.loopGuard === 'clear') clearTosLoopGuard(gate.datasetKey);
+    if (gate.action === 'show-card') {
+      setTosFallback({ datasetName: selectedDatasetName, tosUrl: gate.tosUrl });
+      return;
+    }
+
+    setTosFallback(null);
+    if (gate.action === 'redirect') {
+      setTosLoopGuard(gate.datasetKey);
+      window.location.href = gate.tosUrl;
+    }
+  }, [datasetAccessCheck, datasets, selectedDatasetName, user]);
+
+  const retryTosAcceptance = useCallback(() => {
+    const datasetKey = canonicalDatasetName(datasets, selectedDatasetName);
+    if (!datasetKey || !projectUrl) return;
+
+    const requestFingerprint = datasetAccessFingerprint(selectedDatasetName, datasetKey);
+    const redirectUrl = selectedDatasetReturnUrl(window.location.href, selectedDatasetName);
+    setDatasetAccessCheck({ fingerprint: requestFingerprint, result: undefined });
+    checkDatasetAccess({
+      authBase: authBaseFromProjectUrl(projectUrl),
+      datasetKey,
+      redirectUrl,
+    }).then((result) => {
+      if (!isCurrentDatasetAccessRequest(
+        requestFingerprint,
+        selectedDatasetNameRef.current,
+        selectedDatasetKeyRef.current,
+      )) return;
+      if (result && result.tos_required && result.tos_url) {
+        setTosLoopGuard(datasetKey);
+        window.location.href = result.tos_url;
+        return;
+      }
+      setDatasetAccessCheck({ fingerprint: requestFingerprint, result });
+    });
+  }, [datasets, projectUrl, selectedDatasetName]);
+
   // if not logged in then show the login page for all routes.
   if (!user && !authChecked) {
     return (
@@ -313,10 +425,7 @@ function App() {
   }
 
   const tosPending = !!(
-    selectedDatasetName
-    && datasets
-    && datasets.length > 0
-    && missingTosDatasetNames(user, 'clio').has(canonicalDatasetName(datasets, selectedDatasetName))
+    tosFallback && tosFallback.datasetName === selectedDatasetName
   );
   // The inner ErrorBoundary should catch most errors, and will keep the Navbar with the
   // Neurohub branding.  The outer ErrorBoundary is a last resort, in case there is an
@@ -327,7 +436,7 @@ function App() {
         <ThemeProvider theme={theme}>
           <Navbar
             history={history}
-            datasets={datasets}
+            datasets={datasets || []}
             selectedDatasetName={selectedDatasetName}
             setSelectedDataset={setSelectedDataset}
           />
@@ -341,10 +450,13 @@ function App() {
                   {tosPending ? (
                     <TosRequiredView
                       datasetName={selectedDatasetName}
-                      onAccept={() => redirectToTosIfNeeded(selectedDatasetName)}
+                      onAccept={retryTosAcceptance}
                     />
                   ) : (
-                    <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
+                    <WorkSpaces
+                      datasets={datasets || []}
+                      selectedDatasetName={selectedDatasetName}
+                    />
                   )}
                 </Route>
                 <Route path="/settings" component={Settings} />

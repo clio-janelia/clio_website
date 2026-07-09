@@ -87,8 +87,6 @@ function buildUserFromProfile(profile, token) {
       name: profile.name || profile.email,
       picture: profile.picture || '',
       dsg_url: profile.dsg_url || null,
-      datasets_ignore_tos: profile.datasets_ignore_tos || {},
-      missing_tos: profile.missing_tos || [],
     },
   };
 }
@@ -105,8 +103,8 @@ function persistAndDispatchUser(user, dispatch) {
 // stable long-lived DSG API token to use as a Bearer elsewhere. The
 // clio-store /server/token proxy hits DSG's idempotent long_lived_token
 // endpoint, so the same token is returned on every call. Only the token is
-// cached, and only in sessionStorage, because profile fields like missing_tos
-// can change in DSG while this app is open.
+// cached, and only in sessionStorage, because profile authorization can change
+// in DSG while this app is open.
 export function loginDSGUser() {
   return (dispatch, getState) => {
     const clioUrl = getState().clio.get('projectUrl');
