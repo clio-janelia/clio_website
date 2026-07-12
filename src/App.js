@@ -1,5 +1,7 @@
 // eslint-disable-next-line object-curly-newline
-import React, { useState, useEffect, Suspense, lazy, useCallback } from 'react';
+import React, {
+  useState, useEffect, Suspense, lazy, useCallback, useRef,
+} from 'react';
 import { Router, Route } from 'react-router-dom';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import { createBrowserHistory } from 'history';
@@ -14,9 +16,22 @@ import Alerts from './Alerts';
 import UnauthenticatedApp from './UnauthenticatedApp';
 // import loadScript from './utils/load-script';
 // import removeScript from './utils/remove-script';
-import { loginGoogleUser } from './actions/user';
+import { loginDSGUser } from './actions/user';
 import config from './config';
 import { expandDatasets } from './utils/config';
+import { authBaseFromProjectUrl } from './utils/auth';
+import {
+  checkDatasetAccess,
+  canonicalDatasetName,
+  clearTosLoopGuard,
+  datasetAccessFingerprint,
+  datasetAccessGate,
+  isCurrentDatasetAccessRequest,
+  readTosLoopGuard,
+  selectedDatasetReturnUrl,
+  setTosLoopGuard,
+} from './utils/datasetAccess';
+import TosRequiredView from './TosRequiredView';
 import { addAlert } from './actions/alerts';
 
 import './App.css';
@@ -125,21 +140,31 @@ function App() {
 
   const user = useSelector((state) => state.user.get('googleUser'), shallowEqual);
   const projectUrl = useSelector((state) => state.clio.get('projectUrl'), shallowEqual);
-  const [datasets, setDatasets] = useState([]);
+  const [datasets, setDatasets] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  // Initialize dataset from URL params or localStorage
+  // Initialize dataset from URL params. Shared localStorage causes cross-tab
+  // confusion during DSG service-specific TOS flows.
   const getInitialDataset = useCallback(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const urlDataset = searchParams.get('dataset');
-    const storedDataset = localStorage.getItem('dataset');
-    return urlDataset || (storedDataset ? JSON.parse(storedDataset) : null);
+    return urlDataset || null;
   }, []);
 
   const [selectedDatasetName, setSelectedDatasetNameState] = useState(getInitialDataset);
+  const [datasetAccessCheck, setDatasetAccessCheck] = useState({
+    fingerprint: null,
+    result: undefined,
+  });
+  const [tosFallback, setTosFallback] = useState(null);
+  const selectedDatasetNameRef = useRef(selectedDatasetName);
+  const selectedDatasetKeyRef = useRef(null);
+  const previousDatasetKeyRef = useRef(null);
 
-  // Update URL and localStorage when dataset changes
+  // Update URL when dataset changes
   const setSelectedDataset = useCallback((datasetName) => {
     setSelectedDatasetNameState(datasetName);
+    setTosFallback(null);
 
     // Update URL
     const searchParams = new URLSearchParams(window.location.search);
@@ -152,9 +177,6 @@ function App() {
       ? `${window.location.pathname}?${searchParams.toString()}`
       : window.location.pathname;
     history.replace(newUrl);
-
-    // Update localStorage for backward compatibility
-    localStorage.setItem('dataset', JSON.stringify(datasetName));
   }, []);
 
   // Sync dataset from URL on history change
@@ -164,9 +186,7 @@ function App() {
       const urlDataset = searchParams.get('dataset');
       if (urlDataset !== selectedDatasetName) {
         setSelectedDatasetNameState(urlDataset);
-        if (urlDataset) {
-          localStorage.setItem('dataset', JSON.stringify(urlDataset));
-        }
+        setTosFallback(null);
       }
     });
     return unlisten;
@@ -191,7 +211,7 @@ function App() {
             method: 'POST',
             keepalive: 'true',
             headers: {
-              Authorization: `Bearer ${user.getAuthResponse().id_token}`,
+              Authorization: `Bearer ${user.token}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
@@ -206,66 +226,207 @@ function App() {
   }, [projectUrl, user]);
 
   useEffect(() => {
-    if (user) {
-      const options = {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
-
-      const datasetUrl = `${projectUrl}/datasets`;
-      fetch(datasetUrl, options)
-        .then((result) => {
-          if (!result.ok) {
-            // Create a custom error with response info
-            return result.text().then((text) => {
-              const error = new Error(`Request failed with status ${result.status}`);
-              error.status = result.status;
-              error.statusText = result.statusText;
-              error.body = text;
-              throw error;
-            });
-          }
-          return result.json();
-        })
-        .then((res) => {
-          const datasetsArray = expandDatasets(res);
-          setDatasets(datasetsArray);
-        })
-        .catch((err) => {
-          console.error('Error fetching datasets:', err);
-          dispatch(addAlert({
-            severity: 'error',
-            message: 'Failed to load datasets from the server. Please logout and log back in. If the error persists, please contact support.',
-          }));
-        });
+    if (!user) {
+      setDatasets(null);
+      return undefined;
     }
+
+    setDatasets(null);
+    const options = {
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+
+    const datasetUrl = `${projectUrl}/datasets`;
+    fetch(datasetUrl, options)
+      .then((result) => {
+        if (!result.ok) {
+          // Create a custom error with response info
+          return result.text().then((text) => {
+            const error = new Error(`Request failed with status ${result.status}`);
+            error.status = result.status;
+            error.statusText = result.statusText;
+            error.body = text;
+            throw error;
+          });
+        }
+        return result.json();
+      })
+      .then((res) => {
+        const datasetsArray = expandDatasets(res);
+        setDatasets(datasetsArray);
+      })
+      .catch((err) => {
+        console.error('Error fetching datasets:', err);
+        dispatch(addAlert({
+          severity: 'error',
+          message: 'Failed to load datasets from the server. Please logout and log back in. If the error persists, please contact support.',
+        }));
+      });
+    return undefined;
   }, [user, dispatch, projectUrl]);
 
+  // Rehydrate the user session from the backend. In DSG mode the dsg_token
+  // HttpOnly cookie survives page reloads, so we just ask the backend who we
+  // are via /profile. The loginDSGUser thunk installs the Neuroglancer bridge
+  // (window.neurohub.clio.auth) with the fresh Bearer token so our neuroglancer
+  // fork can authenticate against clio-store.
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      // this global key is used to store the auth token in a place where
-      // the neuroglancer code can get access to it. DO NOT DELETE this without
-      // first changing the way the clio plugin in neuroglancer authenticates
-      // against the clio store.
-      window.neurohub = {
-        clio: {
-          auth: {
-            getAuthResponse: () => ({ id_token: JSON.parse(storedUser).token }),
-          },
-        },
-      };
-      // This stores the logged in users details in the redux state, so that it can
-      // be used elsewhere in the app.
-      dispatch(loginGoogleUser(JSON.parse(storedUser)));
+    if (!projectUrl) return undefined;
+    let cancelled = false;
+    setAuthChecked(false);
+
+    dispatch(loginDSGUser()).then(() => {
+      if (!cancelled) setAuthChecked(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, projectUrl]);
+
+  useEffect(() => {
+    if (!projectUrl) return undefined;
+
+    const refreshVisibleSession = () => {
+      if (document.visibilityState && document.visibilityState !== 'visible') return;
+      dispatch(loginDSGUser());
+    };
+
+    window.addEventListener('focus', refreshVisibleSession);
+    window.addEventListener('pageshow', refreshVisibleSession);
+    document.addEventListener('visibilitychange', refreshVisibleSession);
+
+    return () => {
+      window.removeEventListener('focus', refreshVisibleSession);
+      window.removeEventListener('pageshow', refreshVisibleSession);
+      document.removeEventListener('visibilitychange', refreshVisibleSession);
+    };
+  }, [dispatch, projectUrl]);
+
+  useEffect(() => {
+    selectedDatasetNameRef.current = selectedDatasetName;
+    selectedDatasetKeyRef.current = canonicalDatasetName(datasets, selectedDatasetName);
+  }, [datasets, selectedDatasetName]);
+
+  useEffect(() => {
+    const datasetKey = canonicalDatasetName(datasets, selectedDatasetName);
+    const previousDatasetKey = previousDatasetKeyRef.current;
+    if (previousDatasetKey && previousDatasetKey !== datasetKey) {
+      clearTosLoopGuard(previousDatasetKey);
     }
-  }, [dispatch]);
+    previousDatasetKeyRef.current = datasetKey;
+  }, [datasets, selectedDatasetName]);
+
+  useEffect(() => {
+    const gate = datasetAccessGate({
+      user,
+      datasets,
+      selectedDatasetName,
+      checkResult: undefined,
+    });
+    if (!projectUrl || gate.action !== 'query') {
+      setDatasetAccessCheck({ fingerprint: null, result: null });
+      return undefined;
+    }
+
+    const requestFingerprint = datasetAccessFingerprint(selectedDatasetName, gate.datasetKey);
+    const redirectUrl = selectedDatasetReturnUrl(window.location.href, selectedDatasetName);
+    let cancelled = false;
+    setDatasetAccessCheck({ fingerprint: requestFingerprint, result: undefined });
+
+    checkDatasetAccess({
+      authBase: authBaseFromProjectUrl(projectUrl),
+      datasetKey: gate.datasetKey,
+      redirectUrl,
+    }).then((result) => {
+      if (
+        cancelled
+        || !isCurrentDatasetAccessRequest(
+          requestFingerprint,
+          selectedDatasetNameRef.current,
+          selectedDatasetKeyRef.current,
+        )
+      ) return;
+      setDatasetAccessCheck({ fingerprint: requestFingerprint, result });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [datasets, projectUrl, selectedDatasetName, user]);
+
+  useEffect(() => {
+    const datasetKey = canonicalDatasetName(datasets, selectedDatasetName);
+    const fingerprint = datasetAccessFingerprint(selectedDatasetName, datasetKey);
+    const checkResult = datasetAccessCheck.fingerprint === fingerprint
+      ? datasetAccessCheck.result
+      : undefined;
+    const gate = datasetAccessGate({
+      user,
+      datasets,
+      selectedDatasetName,
+      checkResult,
+      loopGuardState: readTosLoopGuard(datasetKey),
+    });
+
+    if (gate.loopGuard === 'clear') clearTosLoopGuard(gate.datasetKey);
+    if (gate.action === 'show-card') {
+      setTosFallback({ datasetName: selectedDatasetName, tosUrl: gate.tosUrl });
+      return;
+    }
+
+    setTosFallback(null);
+    if (gate.action === 'redirect') {
+      setTosLoopGuard(gate.datasetKey);
+      window.location.href = gate.tosUrl;
+    }
+  }, [datasetAccessCheck, datasets, selectedDatasetName, user]);
+
+  const retryTosAcceptance = useCallback(() => {
+    const datasetKey = canonicalDatasetName(datasets, selectedDatasetName);
+    if (!datasetKey || !projectUrl) return;
+
+    const requestFingerprint = datasetAccessFingerprint(selectedDatasetName, datasetKey);
+    const redirectUrl = selectedDatasetReturnUrl(window.location.href, selectedDatasetName);
+    setDatasetAccessCheck({ fingerprint: requestFingerprint, result: undefined });
+    checkDatasetAccess({
+      authBase: authBaseFromProjectUrl(projectUrl),
+      datasetKey,
+      redirectUrl,
+    }).then((result) => {
+      if (!isCurrentDatasetAccessRequest(
+        requestFingerprint,
+        selectedDatasetNameRef.current,
+        selectedDatasetKeyRef.current,
+      )) return;
+      if (result && result.tos_required && result.tos_url) {
+        setTosLoopGuard(datasetKey);
+        window.location.href = result.tos_url;
+        return;
+      }
+      setDatasetAccessCheck({ fingerprint: requestFingerprint, result });
+    });
+  }, [datasets, projectUrl, selectedDatasetName]);
 
   // if not logged in then show the login page for all routes.
+  if (!user && !authChecked) {
+    return (
+      <ThemeProvider theme={theme}>
+        <div className="App">Loading...</div>
+      </ThemeProvider>
+    );
+  }
+
   if (!user) {
     return <UnauthenticatedApp history={history} theme={theme} />;
   }
+
+  const tosPending = !!(
+    tosFallback && tosFallback.datasetName === selectedDatasetName
+  );
   // The inner ErrorBoundary should catch most errors, and will keep the Navbar with the
   // Neurohub branding.  The outer ErrorBoundary is a last resort, in case there is an
   // error in the Navbar itself.
@@ -275,7 +436,7 @@ function App() {
         <ThemeProvider theme={theme}>
           <Navbar
             history={history}
-            datasets={datasets}
+            datasets={datasets || []}
             selectedDatasetName={selectedDatasetName}
             setSelectedDataset={setSelectedDataset}
           />
@@ -286,7 +447,17 @@ function App() {
               </Suspense>
               <Suspense fallback={<div>Loading...</div>}>
                 <Route path="/ws/:ws">
-                  <WorkSpaces datasets={datasets} selectedDatasetName={selectedDatasetName} />
+                  {tosPending ? (
+                    <TosRequiredView
+                      datasetName={selectedDatasetName}
+                      onAccept={retryTosAcceptance}
+                    />
+                  ) : (
+                    <WorkSpaces
+                      datasets={datasets || []}
+                      selectedDatasetName={selectedDatasetName}
+                    />
+                  )}
                 </Route>
                 <Route path="/settings" component={Settings} />
                 <Route path="/help" component={Help} />
