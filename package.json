@@ -80,8 +80,8 @@
     "build": "node --openssl-legacy-provider scripts/build.js",
     "test": "node scripts/test.js",
     "lint": "eslint src --ext .js --ext .jsx",
-    "deploy": "node --openssl-legacy-provider scripts/build.js && gsutil rsync -dr build/ gs://clio.janelia.org && gsutil setmeta -h \"Cache-Control:no-cache, max-age=0\" gs://clio.janelia.org/index.html",
-    "deploy:dev": "node --openssl-legacy-provider scripts/build.js && gsutil rsync -dr build/ gs://clio-dev.janelia.org && gsutil setmeta -h \"Cache-Control:no-cache, max-age=0\" gs://clio-dev.janelia.org/index.html"
+    "deploy": "node --openssl-legacy-provider scripts/build.js && gcloud storage rsync build/ gs://clio.janelia.org --recursive --delete-unmatched-destination-objects && gcloud storage objects update gs://clio.janelia.org/index.html --cache-control=\"no-cache, max-age=0\"",
+    "deploy:dev": "node --openssl-legacy-provider scripts/build.js && gcloud storage rsync build/ gs://clio-dev.janelia.org --recursive --delete-unmatched-destination-objects && gcloud storage objects update gs://clio-dev.janelia.org/index.html --cache-control=\"no-cache, max-age=0\""
   },
   "eslintConfig": {
     "extends": "react-app"

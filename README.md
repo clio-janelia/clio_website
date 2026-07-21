@@ -11,8 +11,8 @@
 #### `npm start`
 
 ## Deployment
-* install gsutil
-#### https://cloud.google.com/storage/docs/gsutil
+* install the Google Cloud CLI (includes `gcloud storage`)
+#### https://cloud.google.com/sdk/docs/install
 * run the deployment command
 #### npm run deploy
 
