@@ -4,6 +4,14 @@ import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 
+// Registers the 'ngauth' and 'ngauth_gcs' credentials providers on our
+// Neuroglancer fork's defaultCredentialsManager. This is a side-effect-only
+// module and it is NOT pulled in by the fork's main_module entry that
+// react-neuroglancer builds on, so without this import any
+// `gs+ngauth+https://` layer (e.g. a DSG-gated GCS bucket) fails at URL-parse
+// time with `No registered credentials provider: "ngauth_gcs"`.
+import '@janelia-flyem/neuroglancer/dist/module/neuroglancer/datasource/ngauth/register_credentials_provider';
+
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
